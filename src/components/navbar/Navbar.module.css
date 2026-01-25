@@ -1,9 +1,25 @@
-@reference "tailwindcss";
+@reference "../../index.css";
 
 .nav {
-  @apply fixed top-0 left-0 right-0 z-50 flex justify-between items-center p-4 bg-black/30 backdrop-blur-xs;
+  @apply fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-10 pt-5 pb-3 bg-secondaryBg;
 }
 
 .title {
-  @apply font-semibold;
+  @apply font-semibold text-2xl;
+}
+
+.navContent {
+  @apply flex items-center gap-3;
+}
+
+.dividerY {
+  @apply h-5 w-px bg-white;
+}
+
+.dividerX {
+  @apply h-px w-full bg-white;
+}
+
+.profile {
+  @apply flex items-center gap-2 select-none;
 }

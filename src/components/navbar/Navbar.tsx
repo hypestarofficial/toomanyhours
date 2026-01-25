@@ -1,23 +1,38 @@
 import { forwardRef } from "react"
 import type { ComponentPropsWithoutRef } from "react"
-
-import { Link } from "react-router"
+import MotionLink from "../motionLink/MotionLink"
+import useAuthStore from "../../store/useAuthStore"
+import UserMenu from "./UserMenu"
 import styles from "./Navbar.module.css"
+import MotionContainer from "../motionContainer/MotionContainer"
 
 type NavbarProps = ComponentPropsWithoutRef<"nav">
 
-const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => (
-  <nav ref={ref} {...props} className={styles.nav}>
-    <h3 className={styles.title}>tooManyHours</h3>
-    <ul className="flex gap-4">
-      <li>
-        <Link to="/">Home</Link>
-      </li>
-      <li>
-        <Link to="/about">About</Link>
-      </li>
-    </ul>
-  </nav>
-))
+const AuthenticatedNavbar = () => (
+  <MotionContainer type="ease" className={styles.navContent}>
+    <UserMenu />
+  </MotionContainer>
+)
+
+const UnauthenticatedNavbar = () => (
+  <MotionContainer type="ease" className={styles.navContent}>
+    <MotionLink to="/login">Login</MotionLink>
+    <div className={styles.dividerY} />
+    <MotionLink to="/register">Register</MotionLink>
+  </MotionContainer>
+)
+
+const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
+  const { authenticated } = useAuthStore()
+
+  return (
+    <nav ref={ref} {...props} className={styles.nav}>
+      <MotionLink to="/" className={styles.title}>
+        tooManyHours
+      </MotionLink>
+      {authenticated ? <AuthenticatedNavbar /> : <UnauthenticatedNavbar />}
+    </nav>
+  )
+})
 
 export default Navbar

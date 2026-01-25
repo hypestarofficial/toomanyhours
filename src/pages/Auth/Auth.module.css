@@ -1,0 +1,9 @@
+@reference "../../index.css";
+
+.container {
+  @apply flex flex-col items-center gap-4;
+}
+
+.colWrapper {
+  @apply flex flex-col gap-2 w-full text-center;
+}
