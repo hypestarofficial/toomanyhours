@@ -1,0 +1,25 @@
+@reference "../../../index.css";
+
+.inputContainer {
+  @apply relative flex flex-col gap-1
+}
+
+.sideLabel {
+  @apply absolute top-0 bottom-0 flex items-center justify-center whitespace-nowrap
+}
+
+.inputWrapper {
+  @apply bg-bg flex h-10 overflow-hidden rounded-md
+}
+
+.input {
+  @apply w-full rounded-l-md px-2 py-1 focus:outline-none
+}
+
+.passwordToggle {
+  @apply relative p-2 transition-colors focus:outline-none bg-secondaryBg
+}
+
+.icon {
+  @apply h-4 w-4
+}

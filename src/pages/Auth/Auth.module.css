@@ -1,9 +1,21 @@
 @reference "../../index.css";
 
+.form {
+  @apply flex w-60 flex-col justify-center gap-6;
+}
+
 .container {
   @apply flex flex-col items-center gap-4;
 }
 
+.errors {
+  @apply flex flex-col;
+}
+
 .colWrapper {
+  @apply flex flex-col gap-2 w-full;
+}
+
+.buttonWrapper {
   @apply flex flex-col gap-2 w-full text-center;
 }

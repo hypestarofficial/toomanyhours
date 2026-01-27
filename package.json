@@ -1,7 +1,7 @@
 {
   "name": "toomanyhours",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,11 +14,15 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@heroui/image": "^2.2.18",
+    "@heroui/skeleton": "^2.2.18",
+    "@heroui/system": "^2.4.25",
+    "@heroui/theme": "^2.4.25",
     "@tailwindcss/vite": "^4.1.18",
     "clsx": "^2.1.1",
     "motion": "^12.29.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "react-hook-form": "^7.71.1",
     "react-loader-spinner": "^8.0.2",
     "react-router": "^7.13.0",
@@ -44,6 +48,7 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4",
+    "vite-plugin-svgr": "^4.5.0",
     "vite-plugin-vue-tailwind-auto-reference": "^2.0.1"
   }
 }

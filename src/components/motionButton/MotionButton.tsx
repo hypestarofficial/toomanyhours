@@ -7,6 +7,7 @@ type MotionButtonProps = {
   children: React.ReactNode
   onClick?: () => void
   className?: string
+  disabled?: boolean
   flex?: boolean
   size?: "menu" | "default"
   type?: "text" | "default"
@@ -17,6 +18,7 @@ const MotionButton: React.FC<MotionButtonProps> = ({
   children,
   onClick,
   className,
+  disabled = false,
   flex = false,
   size = "default",
   type = "default",
@@ -29,7 +31,7 @@ const MotionButton: React.FC<MotionButtonProps> = ({
 
   return (
     <motion.button
-      {...motionButtonConfig[type]}
+      {...motionButtonConfig[disabled ? "disabled" : type]}
       whileTap={{
         scale: 0.9,
       }}
@@ -37,9 +39,16 @@ const MotionButton: React.FC<MotionButtonProps> = ({
         duration: 0.3,
         ease: "easeInOut",
       }}
-      className={cn("rounded-md whitespace-nowrap select-none", flex ? "w-full" : "", sizeMap[size], className)}
+      className={cn(
+        "rounded-md whitespace-nowrap select-none",
+        flex && "w-full",
+        sizeMap[size],
+        disabled && "cursor-not-allowed! opacity-50!",
+        className,
+      )}
       onClick={onClick}
       ref={ref}
+      disabled={disabled}
     >
       {children}
     </motion.button>

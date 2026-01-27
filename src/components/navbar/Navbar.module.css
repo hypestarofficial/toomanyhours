@@ -5,7 +5,7 @@
 }
 
 .title {
-  @apply font-semibold text-2xl;
+  @apply font-semibold text-2xl select-none;
 }
 
 .navContent {

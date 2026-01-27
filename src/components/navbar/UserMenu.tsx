@@ -4,8 +4,11 @@ import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import MotionButton from "../motionButton/MotionButton"
 import useAuthStore from "../../store/useAuthStore"
+import { routes } from "../../helpers/routes"
+import { useNavigate } from "react-router"
 
 const UserMenu: React.FC = () => {
+  const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuSize, setMenuSize] = useState(0)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -33,11 +36,22 @@ const UserMenu: React.FC = () => {
     return () => ro.disconnect()
   }, [])
 
+  const handleProfile = () => {
+    navigate(routes.profile)
+    setMenuOpen(false)
+  }
+
+  const handleLogout = () => {
+    setAuthenticated(false)
+    navigate(routes.home)
+    setMenuOpen(false)
+  }
+
   return (
     <div ref={menuRef} className="relative inline-block">
       <MotionButton ref={buttonRef} type="text" size="menu" onClick={() => setMenuOpen(!menuOpen)} className={styles.profile}>
+        <span className="text-base">hypestar</span>
         <UserCircleIcon className="h-6 w-6" />
-        <span className="text-base">hypestarofficial</span>
       </MotionButton>
 
       <AnimatePresence>
@@ -50,9 +64,11 @@ const UserMenu: React.FC = () => {
             className="bg-secondaryBg border-bg absolute top-9 right-0 flex flex-col gap-1 rounded-xl border-2 p-2"
             style={{ width: menuSize }}
           >
-            <MotionButton size="menu">Option 1</MotionButton>
+            <MotionButton size="menu" onClick={handleProfile}>
+              Profile
+            </MotionButton>
             <div className={styles.dividerX} />
-            <MotionButton size="menu" onClick={() => setAuthenticated(false)}>
+            <MotionButton size="menu" onClick={handleLogout}>
               Logout
             </MotionButton>
           </motion.ul>

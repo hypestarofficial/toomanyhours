@@ -21,4 +21,10 @@ export const motionButtonConfig = {
       color: colors.primary,
     },
   },
+  disabled: {
+    initial: {
+      backgroundColor: colors.secondaryBg,
+      color: "#ffffff",
+    },
+  },
 }

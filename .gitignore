@@ -1,4 +1,5 @@
-# Logs
+# --- Logs & Debugging ---
+# Log files and debugging information
 logs
 *.log
 npm-debug.log*
@@ -7,12 +8,15 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# --- Node.js & Package Management ---
+# Node.js package manager files
 node_modules
 dist
 dist-ssr
 *.local
 
-# Editor directories and files
+# --- Editor & IDE Configuration ---
+# Editor-specific configuration files
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -23,7 +27,8 @@ dist-ssr
 *.sln
 *.sw?
 
-## Environment variables
+# --- Environment Variables ---
+# Environment variables for the application
 .env
 .env.local
 .env.development.local

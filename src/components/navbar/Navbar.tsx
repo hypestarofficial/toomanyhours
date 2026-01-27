@@ -1,15 +1,20 @@
 import { forwardRef } from "react"
 import type { ComponentPropsWithoutRef } from "react"
+
 import MotionLink from "../motionLink/MotionLink"
 import useAuthStore from "../../store/useAuthStore"
 import UserMenu from "./UserMenu"
 import styles from "./Navbar.module.css"
 import MotionContainer from "../motionContainer/MotionContainer"
+import { motion } from "motion/react"
+import { colors } from "../../utils/colors"
+import GithubIcon from "../../assets/github.svg?react"
 
 type NavbarProps = ComponentPropsWithoutRef<"nav">
 
 const AuthenticatedNavbar = () => (
   <MotionContainer type="ease" className={styles.navContent}>
+    <MotionLink to="/">My list</MotionLink>
     <UserMenu />
   </MotionContainer>
 )
@@ -27,9 +32,21 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
 
   return (
     <nav ref={ref} {...props} className={styles.nav}>
-      <MotionLink to="/" className={styles.title}>
-        tooManyHours
-      </MotionLink>
+      <div className="flex items-center justify-start gap-3">
+        <h1 className={styles.title}>tooManyHours</h1>
+        <motion.a
+          initial={{ color: colors.text }}
+          whileHover={{ color: colors.primary }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          href="https://github.com/hypestarofficial"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary"
+        >
+          <GithubIcon className="h-5 w-5" />
+        </motion.a>
+      </div>
       {authenticated ? <AuthenticatedNavbar /> : <UnauthenticatedNavbar />}
     </nav>
   )

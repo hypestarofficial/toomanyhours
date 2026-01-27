@@ -1,8 +1,9 @@
-import { AnimatePresence, motion } from "motion/react"
+import { AnimatePresence, motion, type HTMLMotionProps } from "motion/react"
 import { colors } from "../../../utils/colors"
 import { useRef, useState, useEffect } from "react"
 import { EyeIcon } from "@heroicons/react/24/outline"
 import { EyeSlashIcon } from "@heroicons/react/20/solid"
+import styles from "./Input.module.css"
 
 const SIDE_LABEL_GAP = 8
 
@@ -11,9 +12,10 @@ type InputProps = {
   label: string
   sideLabel?: boolean
   id: string
-} & React.InputHTMLAttributes<HTMLInputElement>
+  error?: string | null
+} & HTMLMotionProps<"input">
 
-const Input: React.FC<InputProps> = ({ id, type, label, sideLabel = true, maxLength, ...props }) => {
+const Input: React.FC<InputProps> = ({ id, type, label, sideLabel = true, maxLength, error, ...props }) => {
   const ref = useRef<HTMLInputElement>(null)
   const [inputWidth, setInputWidth] = useState(0)
   const [showPassword, setShowPassword] = useState(false)
@@ -29,17 +31,18 @@ const Input: React.FC<InputProps> = ({ id, type, label, sideLabel = true, maxLen
   }, [])
 
   return (
-    <div className="relative flex flex-col gap-1">
+    <div className={styles.inputContainer}>
       <label
         htmlFor={id}
-        className={sideLabel ? "absolute top-0 bottom-0 flex items-center justify-center whitespace-nowrap" : ""}
+        className={sideLabel ? styles.sideLabel : ""}
         style={sideLabel ? { right: inputWidth + SIDE_LABEL_GAP } : undefined}
       >
         {label}
       </label>
-      <div ref={ref} className="bg-bg flex h-10 overflow-hidden rounded-md">
+      {error && <p className="errorStr">{error}</p>}
+      <div ref={ref} className={styles.inputWrapper}>
         <motion.input
-          className="w-full rounded-l-md px-2 py-1 focus:outline-none"
+          className={styles.input}
           type={showPassword ? "text" : type}
           maxLength={maxLength}
           id={id}
@@ -47,13 +50,10 @@ const Input: React.FC<InputProps> = ({ id, type, label, sideLabel = true, maxLen
           initial={{ backgroundColor: colors.secondaryBg }}
           whileFocus={{ backgroundColor: colors.inputBg, color: colors.bg }}
           transition={{ duration: 0.1 }}
+          {...props}
         />
         {type === "password" && (
-          <button
-            onClick={() => setShowPassword(!showPassword)}
-            className="relative p-2 transition-colors focus:outline-none"
-            type="button"
-          >
+          <button onClick={() => setShowPassword(!showPassword)} className={styles.passwordToggle} type="button">
             <AnimatePresence mode="wait" initial={false}>
               {showPassword ? (
                 <motion.div
@@ -64,7 +64,7 @@ const Input: React.FC<InputProps> = ({ id, type, label, sideLabel = true, maxLen
                   whileHover={{ color: colors.primary }}
                   transition={{ duration: 0.15 }}
                 >
-                  <EyeIcon className="h-4 w-4" />
+                  <EyeIcon className={styles.icon} />
                 </motion.div>
               ) : (
                 <motion.div
@@ -75,7 +75,7 @@ const Input: React.FC<InputProps> = ({ id, type, label, sideLabel = true, maxLen
                   whileHover={{ color: colors.primary }}
                   transition={{ duration: 0.15 }}
                 >
-                  <EyeSlashIcon className="h-4 w-4" />
+                  <EyeSlashIcon className={styles.icon} />
                 </motion.div>
               )}
             </AnimatePresence>
