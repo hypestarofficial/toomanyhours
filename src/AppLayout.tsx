@@ -9,9 +9,49 @@ import useAuthStore from "./store/useAuthStore.ts"
 import MyList from "./pages/MyList/MyList.tsx"
 import { routes } from "./helpers/routes.ts"
 import Profile from "./pages/Profile/Profile.tsx"
+import { useEffect } from "react"
+import { handleError } from "./utils/errors.ts"
+import useGlobalStore from "./store/useGlobalStore.ts"
+import Loader from "./components/loader/Loader.tsx"
+import useAuth from "./hooks/api/useAuth.ts"
 
 const AppLayout = () => {
-  const { authenticated } = useAuthStore()
+  const { authenticated, setAuthenticated, jwtToken, setJwtToken } = useAuthStore()
+  const { isGlobalLoading, setIsGlobalLoading } = useGlobalStore()
+  const { toggleRefresh } = useAuth()
+
+  useEffect(() => {
+    setIsGlobalLoading(true)
+    if (jwtToken === "") {
+      const requestOptions = {
+        method: "GET",
+        credentials: "include" as RequestCredentials,
+      }
+
+      fetch("/api/refresh-token", requestOptions)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Session expired. Please login.")
+          }
+          return response.json()
+        })
+        .then((data) => {
+          if (data.error) {
+            handleError(data.message, "AppLayout")
+          } else {
+            setJwtToken(data.access_token)
+            setAuthenticated(true)
+            toggleRefresh(true)
+          }
+        })
+        .catch((error) => {
+          console.warn("Refresh token failed:", error.message)
+        })
+        .finally(() => setIsGlobalLoading(false))
+    } else {
+      setIsGlobalLoading(false)
+    }
+  }, [jwtToken, toggleRefresh])
 
   return (
     <BrowserRouter>
@@ -20,13 +60,14 @@ const AppLayout = () => {
         <main className="flex h-full w-full flex-col px-10 pt-28">
           <Toaster
             closeButton
-            position="top-right"
+            position="bottom-right"
             richColors
-            swipeDirections={["top"]}
+            swipeDirections={["bottom"]}
+            offset="1rem"
             toastOptions={{
               classNames: {
                 description: "text-text!",
-                toast: "bg-secondaryBg! border-none! top-14!",
+                toast: "bg-secondaryBg! border-none!",
                 title: "text-text!",
                 closeButton: "text-bg!",
                 error: "text-error!",
@@ -36,21 +77,27 @@ const AppLayout = () => {
               },
             }}
           />
-          {authenticated ? (
-            <Routes>
-              <Route path={routes.home} element={<MyList />} />
-              <Route path={routes.profile} element={<Profile />} />
-              <Route path={routes.login} element={<LoginForm />} />
-              <Route path={routes.register} element={<RegisterForm />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+          {isGlobalLoading ? (
+            <Loader fullPage />
           ) : (
-            <Routes>
-              <Route path={routes.home} element={<App />} />
-              <Route path={routes.login} element={<LoginForm />} />
-              <Route path={routes.register} element={<RegisterForm />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <>
+              {authenticated ? (
+                <Routes>
+                  <Route path={routes.home} element={<MyList />} />
+                  <Route path={routes.profile} element={<Profile />} />
+                  <Route path={routes.login} element={<LoginForm />} />
+                  <Route path={routes.register} element={<RegisterForm />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              ) : (
+                <Routes>
+                  <Route path={routes.home} element={<App />} />
+                  <Route path={routes.login} element={<LoginForm />} />
+                  <Route path={routes.register} element={<RegisterForm />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              )}
+            </>
           )}
         </main>
         {/* <div className="fixed right-0 bottom-0 left-0 z-30">

@@ -9,21 +9,22 @@ import MotionContainer from "../motionContainer/MotionContainer"
 import { motion } from "motion/react"
 import { colors } from "../../utils/colors"
 import GithubIcon from "../../assets/github.svg?react"
+import { routes } from "../../helpers/routes"
 
 type NavbarProps = ComponentPropsWithoutRef<"nav">
 
 const AuthenticatedNavbar = () => (
   <MotionContainer type="ease" className={styles.navContent}>
-    <MotionLink to="/">My list</MotionLink>
+    <MotionLink to={routes.home}>My list</MotionLink>
     <UserMenu />
   </MotionContainer>
 )
 
 const UnauthenticatedNavbar = () => (
   <MotionContainer type="ease" className={styles.navContent}>
-    <MotionLink to="/login">Login</MotionLink>
+    <MotionLink to={routes.login}>Login</MotionLink>
     <div className={styles.dividerY} />
-    <MotionLink to="/register">Register</MotionLink>
+    <MotionLink to={routes.register}>Register</MotionLink>
   </MotionContainer>
 )
 

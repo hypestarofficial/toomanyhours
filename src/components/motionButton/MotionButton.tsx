@@ -10,8 +10,9 @@ type MotionButtonProps = {
   disabled?: boolean
   flex?: boolean
   size?: "menu" | "default"
-  type?: "text" | "default"
+  variant?: "text" | "default"
   ref?: RefObject<HTMLButtonElement | null>
+  type?: "button" | "submit" | "reset"
 }
 
 const MotionButton: React.FC<MotionButtonProps> = ({
@@ -21,8 +22,9 @@ const MotionButton: React.FC<MotionButtonProps> = ({
   disabled = false,
   flex = false,
   size = "default",
-  type = "default",
+  variant = "default",
   ref,
+  type = "button",
 }) => {
   const sizeMap = {
     menu: "px-3! py-0.5! text-sm!",
@@ -31,7 +33,7 @@ const MotionButton: React.FC<MotionButtonProps> = ({
 
   return (
     <motion.button
-      {...motionButtonConfig[disabled ? "disabled" : type]}
+      {...motionButtonConfig[disabled ? "disabled" : variant]}
       whileTap={{
         scale: 0.9,
       }}
@@ -39,6 +41,7 @@ const MotionButton: React.FC<MotionButtonProps> = ({
         duration: 0.3,
         ease: "easeInOut",
       }}
+      type={type}
       className={cn(
         "rounded-md whitespace-nowrap select-none",
         flex && "w-full",

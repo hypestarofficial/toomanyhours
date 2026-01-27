@@ -6,6 +6,7 @@ import MotionButton from "../motionButton/MotionButton"
 import useAuthStore from "../../store/useAuthStore"
 import { routes } from "../../helpers/routes"
 import { useNavigate } from "react-router"
+import { handleError } from "../../utils/errors"
 
 const UserMenu: React.FC = () => {
   const navigate = useNavigate()
@@ -13,7 +14,7 @@ const UserMenu: React.FC = () => {
   const [menuSize, setMenuSize] = useState(0)
   const menuRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
-  const { setAuthenticated } = useAuthStore()
+  const { setAuthenticated, setJwtToken } = useAuthStore()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -42,14 +43,23 @@ const UserMenu: React.FC = () => {
   }
 
   const handleLogout = () => {
-    setAuthenticated(false)
-    navigate(routes.home)
-    setMenuOpen(false)
+    const requestOptions = {
+      method: "GET",
+      credentials: "include" as RequestCredentials,
+    }
+    fetch("/api/logout", requestOptions)
+      .catch((error) => handleError(error, "UserMenu"))
+      .then(() => {
+        setAuthenticated(false)
+        setJwtToken("")
+        setMenuOpen(false)
+        navigate(routes.home)
+      })
   }
 
   return (
     <div ref={menuRef} className="relative inline-block">
-      <MotionButton ref={buttonRef} type="text" size="menu" onClick={() => setMenuOpen(!menuOpen)} className={styles.profile}>
+      <MotionButton ref={buttonRef} variant="text" size="menu" onClick={() => setMenuOpen(!menuOpen)} className={styles.profile}>
         <span className="text-base">hypestar</span>
         <UserCircleIcon className="h-6 w-6" />
       </MotionButton>
