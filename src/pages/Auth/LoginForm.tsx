@@ -37,10 +37,9 @@ const LoginForm: React.FC = () => {
     mode: "onChange",
   })
 
-  const onSubmit: SubmitHandler<Inputs> = (data, event) => {
+  const onSubmit: SubmitHandler<Inputs> = async (data, event) => {
     event?.preventDefault()
     setIsLoading(true)
-    // build request payload
     const requestOptions = {
       method: "POST",
       headers: {
@@ -51,24 +50,23 @@ const LoginForm: React.FC = () => {
     }
 
     try {
-      // send request to API
-      fetch("/api/authenticate", requestOptions)
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.error) {
-            handleError(data.message, "LoginForm")
-          } else {
-            setJwtToken(data.access_token)
-            setAuthenticated(true)
-            toast.success("Login successful")
-            toggleRefresh(true)
-            navigate(routes.home)
-          }
-        })
-        .catch((error) => console.error(error, "LoginForm"))
-        .finally(() => setIsLoading(false))
+      const response = await fetch("/api/authenticate", requestOptions)
+      const result = await response.json()
+
+      if (result.error) {
+        handleError(result.message, "LoginForm")
+      } else {
+        setJwtToken(result.access_token)
+        setAuthenticated(true)
+        toast.success("Login successful")
+        toggleRefresh(true)
+        navigate(routes.home)
+      }
     } catch (error: unknown) {
+      console.error(error, "LoginForm")
       handleError(error, "LoginForm")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -86,8 +84,17 @@ const LoginForm: React.FC = () => {
               <Controller
                 name="email"
                 control={control}
+                rules={{ pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email address" } }}
                 render={({ field, formState: { errors } }) => (
-                  <Input type="email" label="Email" id="email" placeholder="john@doe.com" {...field} error={errors.email?.message} />
+                  <Input
+                    type="email"
+                    label="Email"
+                    id="email"
+                    autoComplete="email"
+                    placeholder="john@doe.com"
+                    {...field}
+                    error={errors.email?.message}
+                  />
                 )}
               />
               <Controller
@@ -98,6 +105,7 @@ const LoginForm: React.FC = () => {
                     type="password"
                     maxLength={16}
                     label="Password"
+                    autoComplete="current-password"
                     id="password"
                     placeholder="********"
                     {...field}

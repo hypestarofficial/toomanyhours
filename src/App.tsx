@@ -2,6 +2,7 @@ import MotionContainer from "./components/motionContainer/MotionContainer"
 import MotionButton from "./components/motionButton/MotionButton"
 import { useNavigate } from "react-router"
 import Page from "./components/page/Page"
+import { routes } from "./helpers/routes"
 
 function App() {
   const navigate = useNavigate()
@@ -16,7 +17,7 @@ function App() {
             currently playing games.
           </p>
         </div>
-        <MotionButton onClick={() => navigate("/register")}>Get Started</MotionButton>
+        <MotionButton onClick={() => navigate(routes.register)}>Get Started</MotionButton>
       </MotionContainer>
     </Page>
   )

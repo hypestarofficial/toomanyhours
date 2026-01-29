@@ -10,6 +10,7 @@
   /* Background */
   --color-bg: #242424;
   --color-secondaryBg: #1a1a1a;
+  --color-highlight: #313131;
   --color-inputBg: #ffffff;
 
   /* System colors */
@@ -34,6 +35,18 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0; /* Removes space left behind by the buttons */
+}
+
+/* For Firefox */
+input[type="number"] {
+  -moz-appearance: textfield; /* Applies appropriate styling for text input */
+  appearance: none; /* Standard property for newer browsers */
 }
 
 #root {

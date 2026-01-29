@@ -10,6 +10,7 @@ export const colors = {
   // Background
   bg: "#242424",
   secondaryBg: "#1a1a1a",
+  highlight: "#313131",
   inputBg: "#ffffff",
 
   // System colors

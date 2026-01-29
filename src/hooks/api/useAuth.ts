@@ -24,6 +24,10 @@ export default function useAuth() {
             .then((data) => {
               if (data.error) {
                 console.error(data.message, "AppLayout")
+                setAuthenticated(false)
+                setJwtToken("")
+                clearInterval(i)
+                setTickInterval(undefined)
               } else {
                 setJwtToken(data.access_token)
                 setAuthenticated(true)
@@ -31,6 +35,10 @@ export default function useAuth() {
             })
             .catch((error) => {
               console.warn("Refresh token failed:", error.message)
+              setAuthenticated(false)
+              setJwtToken("")
+              clearInterval(i)
+              setTickInterval(undefined)
             })
         }, 600000) // 10 minutes
         setTickInterval(i)

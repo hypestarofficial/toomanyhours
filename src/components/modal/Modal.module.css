@@ -1,0 +1,17 @@
+@reference "../../index.css";
+
+.backdrop {
+  @apply fixed inset-0 z-50 bg-black/50 backdrop-blur-sm
+}
+
+.modal {
+  @apply bg-bg fixed top-1/2 left-1/2 z-50 max-w-[80%] min-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl
+}
+
+.modalContent {
+  @apply relative flex w-full pt-10 px-6 pb-6
+}
+
+.closeBtn {
+  @apply absolute top-2 right-3 z-30;
+}

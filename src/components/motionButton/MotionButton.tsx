@@ -9,10 +9,11 @@ type MotionButtonProps = {
   className?: string
   disabled?: boolean
   flex?: boolean
-  size?: "menu" | "default"
+  size?: "menu" | "default" | "icon"
   variant?: "text" | "default"
   ref?: RefObject<HTMLButtonElement | null>
   type?: "button" | "submit" | "reset"
+  icon?: React.ReactNode
 }
 
 const MotionButton: React.FC<MotionButtonProps> = ({
@@ -25,10 +26,12 @@ const MotionButton: React.FC<MotionButtonProps> = ({
   variant = "default",
   ref,
   type = "button",
+  icon,
 }) => {
   const sizeMap = {
-    menu: "px-3! py-0.5! text-sm!",
-    default: "px-6! py-2!",
+    menu: icon ? "px-1.5! py-0.5! text-sm!" : "px-3! py-0.5! text-sm!",
+    default: icon ? "px-4! py-1.5!" : "px-6! py-2!",
+    icon: "p-0!",
   }
 
   return (
@@ -43,16 +46,19 @@ const MotionButton: React.FC<MotionButtonProps> = ({
       }}
       type={type}
       className={cn(
-        "rounded-md whitespace-nowrap select-none",
+        "flex items-center justify-center rounded-md whitespace-nowrap select-none",
         flex && "w-full",
+        icon && "gap-2",
         sizeMap[size],
-        disabled && "cursor-not-allowed! opacity-50!",
+        disabled && variant !== "text" && "bg-secondaryBg! cursor-not-allowed! opacity-50!",
+        disabled && variant === "text" && "cursor-not-allowed! bg-transparent! opacity-50!",
         className,
       )}
       onClick={onClick}
       ref={ref}
       disabled={disabled}
     >
+      {icon && icon}
       {children}
     </motion.button>
   )

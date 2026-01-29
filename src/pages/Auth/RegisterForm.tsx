@@ -48,7 +48,7 @@ const RegisterForm: React.FC = () => {
 
   return (
     <Page>
-      <Form control={control} onSubmit={({ data }) => onSubmit(data)}>
+      <Form control={control} onSubmit={({ data }) => onSubmit(data)} autoComplete="on">
         <MotionContainer className={styles.form}>
           <h1>register</h1>
           <div className={styles.container}>
@@ -77,7 +77,15 @@ const RegisterForm: React.FC = () => {
                   pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email address" },
                 }}
                 render={({ field, formState: { errors } }) => (
-                  <Input type="email" label="Email" id="email" placeholder="john@doe.com" {...field} error={errors.email?.message} />
+                  <Input
+                    type="email"
+                    label="Email"
+                    id="email"
+                    autoComplete="email"
+                    placeholder="john@doe.com"
+                    {...field}
+                    error={errors.email?.message}
+                  />
                 )}
               />
               <Controller
@@ -93,6 +101,7 @@ const RegisterForm: React.FC = () => {
                     maxLength={16}
                     label="Password"
                     id="password"
+                    autoComplete="new-password"
                     placeholder="********"
                     {...field}
                     error={errors.password?.message}

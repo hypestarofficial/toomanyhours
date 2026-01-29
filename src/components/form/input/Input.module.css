@@ -13,7 +13,11 @@
 }
 
 .input {
-  @apply w-full rounded-l-md px-2 py-1 focus:outline-none
+  @apply w-full px-2 py-1 focus:outline-none
+}
+
+.input:disabled {
+  @apply opacity-50
 }
 
 .passwordToggle {
@@ -22,4 +26,12 @@
 
 .icon {
   @apply h-4 w-4
+}
+
+.iconClear {
+  @apply h-5 w-5 
+}
+
+.clear {
+  @apply absolute top-0 bottom-0 right-0 flex items-center justify-center p-2 transition-colors focus:outline-none bg-transparent hover:text-primary
 }

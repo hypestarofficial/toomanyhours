@@ -7,13 +7,14 @@ import LoginForm from "./pages/Auth/LoginForm.tsx"
 import RegisterForm from "./pages/Auth/RegisterForm.tsx"
 import useAuthStore from "./store/useAuthStore.ts"
 import MyList from "./pages/MyList/MyList.tsx"
-import { routes } from "./helpers/routes.ts"
+import { adminRoutes, routes } from "./helpers/routes.ts"
 import Profile from "./pages/Profile/Profile.tsx"
 import { useEffect } from "react"
 import { handleError } from "./utils/errors.ts"
 import useGlobalStore from "./store/useGlobalStore.ts"
 import Loader from "./components/loader/Loader.tsx"
 import useAuth from "./hooks/api/useAuth.ts"
+import Admin from "./pages/Admin/Admin.tsx"
 
 const AppLayout = () => {
   const { authenticated, setAuthenticated, jwtToken, setJwtToken } = useAuthStore()
@@ -38,6 +39,8 @@ const AppLayout = () => {
         .then((data) => {
           if (data.error) {
             handleError(data.message, "AppLayout")
+            setAuthenticated(false)
+            setJwtToken("")
           } else {
             setJwtToken(data.access_token)
             setAuthenticated(true)
@@ -46,6 +49,8 @@ const AppLayout = () => {
         })
         .catch((error) => {
           console.warn("Refresh token failed:", error.message)
+          setAuthenticated(false)
+          setJwtToken("")
         })
         .finally(() => setIsGlobalLoading(false))
     } else {
@@ -57,7 +62,7 @@ const AppLayout = () => {
     <BrowserRouter>
       <div className="relative flex h-full">
         <Navbar />
-        <main className="flex h-full w-full flex-col px-10 pt-28">
+        <main className="flex h-full w-full flex-col px-10 pt-20">
           <Toaster
             closeButton
             position="bottom-right"
@@ -83,10 +88,9 @@ const AppLayout = () => {
             <>
               {authenticated ? (
                 <Routes>
+                  <Route path={adminRoutes.games} element={<Admin />} />
                   <Route path={routes.home} element={<MyList />} />
                   <Route path={routes.profile} element={<Profile />} />
-                  <Route path={routes.login} element={<LoginForm />} />
-                  <Route path={routes.register} element={<RegisterForm />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               ) : (
@@ -100,10 +104,6 @@ const AppLayout = () => {
             </>
           )}
         </main>
-        {/* <div className="fixed right-0 bottom-0 left-0 z-30">
-          <div className="from-bg pointer-events-none h-20 bg-linear-to-t to-transparent" />
-          <div className="bg-bg pointer-events-none h-5" />
-        </div> */}
       </div>
     </BrowserRouter>
   )

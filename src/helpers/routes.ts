@@ -7,3 +7,7 @@ export const routes = {
   // authenticated routes
   profile: "/profile",
 }
+
+export const adminRoutes = {
+  games: "/admin/games",
+}

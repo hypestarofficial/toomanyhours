@@ -1,17 +1,7 @@
 import { colors } from "../../utils/colors"
 
-export const motionButtonConfig = {
+export const motionIconButtonConfig = {
   default: {
-    initial: {
-      backgroundColor: colors.secondaryBg,
-      color: "#ffffff",
-    },
-    whileHover: {
-      backgroundColor: "#ffffff",
-      color: colors.secondaryBg,
-    },
-  },
-  text: {
     initial: {
       backgroundColor: "transparent",
       color: "#ffffff",
@@ -22,7 +12,7 @@ export const motionButtonConfig = {
     },
   },
   disabled: {
-    animate: {
+    initial: {
       backgroundColor: colors.secondaryBg,
       color: "#ffffff",
     },
