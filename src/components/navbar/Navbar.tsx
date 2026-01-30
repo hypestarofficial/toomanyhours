@@ -1,4 +1,4 @@
-import { forwardRef } from "react"
+import { forwardRef, useEffect } from "react"
 import type { ComponentPropsWithoutRef } from "react"
 import MotionLink from "../motionLink/MotionLink"
 import useAuthStore from "../../store/useAuthStore"
@@ -9,13 +9,14 @@ import { motion } from "motion/react"
 import { colors } from "../../utils/colors"
 import GithubIcon from "../../assets/github.svg?react"
 import { adminRoutes, routes } from "../../helpers/routes"
+import { useNavigate } from "react-router"
 
 type NavbarProps = ComponentPropsWithoutRef<"nav">
 
 const AuthenticatedNavbar = () => (
   <MotionContainer type="ease" className={styles.navContent}>
     <MotionLink to={adminRoutes.games}>Admin</MotionLink>
-    <MotionLink to={routes.home}>My list</MotionLink>
+    <MotionLink to={routes.myList}>My list</MotionLink>
     <UserMenu />
   </MotionContainer>
 )
@@ -30,6 +31,13 @@ const UnauthenticatedNavbar = () => (
 
 const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
   const { authenticated } = useAuthStore()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (authenticated && window.location.pathname === routes.home) {
+      navigate(routes.myList)
+    }
+  }, [authenticated])
 
   return (
     <nav ref={ref} {...props} className={styles.nav}>

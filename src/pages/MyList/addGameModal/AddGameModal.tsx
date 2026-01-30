@@ -39,10 +39,20 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
     setSelectedGames((prev) => (prev.includes(game.id) ? prev.filter((g) => g !== game.id) : [...prev, game.id]))
   }
 
+  const clearSelection = () => {
+    setSelectedGames([])
+    setSearchQuery("")
+    setListType(null)
+  }
+
+  const close = () => {
+    clearSelection()
+    onClose()
+  }
+
   const handleAddGames = () => {
     try {
-      setSelectedGames([])
-      setSearchQuery("")
+      clearSelection()
       toast.success("Games added successfully")
     } catch (error: unknown) {
       handleError(error, "AddGameModal")
@@ -54,8 +64,8 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
   const isDisabled = selectedGames.length === 0 || !listType
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="flex w-full flex-col gap-4">
+    <Modal isOpen={isOpen} onClose={close}>
+      <div className="flex w-full flex-col gap-4 px-6 pb-6">
         <Input
           type="text"
           id="gameTitle"
@@ -64,7 +74,7 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
           onChange={(e) => setSearchQuery(e.target.value)}
           clearable
         />
-        <MotionContainer type="ease" className="flex h-64 w-full flex-col gap-1 overflow-y-auto">
+        <MotionContainer type="ease" className="flex max-h-80 min-h-60 w-full flex-col gap-1 overflow-y-auto">
           {searchResults ? (
             searchResults.map((game) => (
               <GameRow
@@ -87,10 +97,10 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
             placeholder="Select a list type"
           />
           <div className="flex items-center justify-center gap-2">
-            <MotionButton variant="text" onClick={() => setSelectedGames([])} disabled={selectedGames.length === 0}>
+            <MotionButton variant="text" onClick={clearSelection} disabled={selectedGames.length === 0}>
               Clear
             </MotionButton>
-            <MotionButton flex onClick={handleAddGames} disabled={isDisabled}>
+            <MotionButton flex onClick={handleAddGames} disabled={isDisabled} variant="success">
               {selectedGames.length > 1 ? "Add Games" : "Add Game"}
             </MotionButton>
           </div>

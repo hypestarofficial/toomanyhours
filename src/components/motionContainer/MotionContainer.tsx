@@ -1,4 +1,5 @@
-import { motion, type MotionProps } from "motion/react"
+import { motion } from "motion/react"
+import type { MotionProps } from "motion/react"
 
 type MotionContainerProps = {
   children: React.ReactNode

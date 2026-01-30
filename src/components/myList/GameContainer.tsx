@@ -1,4 +1,5 @@
 import { motion } from "motion/react"
+import type { Variants } from "motion/react"
 import { Image } from "@heroui/image"
 import type { Game } from "../../types/games"
 
@@ -8,16 +9,40 @@ type GameContainerProps = {
   onClick?: () => void
 }
 
+const containerVariants: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: i * 0.05,
+      duration: 0.3,
+      ease: "easeInOut",
+      type: "spring",
+    },
+  }),
+  tap: {
+    scale: 0.98,
+    transition: { delay: 0, duration: 0.1 },
+  },
+  hover: {
+    scale: 1.02,
+  },
+}
+
 const GameContainer: React.FC<GameContainerProps> = ({ game, index, onClick }) => (
   <motion.button
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3, ease: "easeInOut", delay: index * 0.05, type: "spring" }}
-    className="bg-secondaryBg flex flex-col items-center justify-center gap-4 rounded-xl p-3!"
+    custom={index}
+    variants={containerVariants}
+    initial="hidden"
+    animate="visible"
+    whileTap="tap"
+    whileHover="hover"
+    className="bg-secondaryBg flex flex-col items-center justify-start gap-4 rounded-xl p-3! select-none"
     onClick={onClick}
   >
-    <Image src={game.image} loading="lazy" alt={game.title} width={250} className="pointer-events-none z-0 rounded-md select-none" />
-    <span className="text-center text-sm">{game.title}</span>
+    <Image src={game.image} alt={game.title} width={250} className="pointer-events-none z-0 rounded-md" />
+    <span className="line-clamp-1 text-center text-sm">{game.title}</span>
   </motion.button>
 )
 

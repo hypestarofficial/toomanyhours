@@ -6,6 +6,7 @@ export const routes = {
 
   // authenticated routes
   profile: "/profile",
+  myList: "/myList",
 }
 
 export const adminRoutes = {

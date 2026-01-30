@@ -1,6 +1,7 @@
-import { motion } from "framer-motion"
+import { motion } from "motion/react"
 import { cn } from "../../utils/cn"
-import { motionButtonConfig } from "./motionButtonConfig"
+import { getMotionButtonConfig } from "./motionButtonConfig"
+import type { MotionButtonVariant } from "./motionButtonConfig"
 import type { RefObject } from "react"
 
 type MotionButtonProps = {
@@ -10,7 +11,7 @@ type MotionButtonProps = {
   disabled?: boolean
   flex?: boolean
   size?: "menu" | "default" | "icon"
-  variant?: "text" | "default"
+  variant?: MotionButtonVariant
   ref?: RefObject<HTMLButtonElement | null>
   type?: "button" | "submit" | "reset"
   icon?: React.ReactNode
@@ -38,13 +39,9 @@ const MotionButton: React.FC<MotionButtonProps> = ({
 
   return (
     <motion.button
-      {...motionButtonConfig[disabled ? "disabled" : variant]}
+      {...getMotionButtonConfig({ disabled, variant })}
       whileTap={{
         scale: noTap ? 1 : 0.9,
-      }}
-      transition={{
-        duration: 0.3,
-        ease: "easeInOut",
       }}
       type={type}
       className={cn(

@@ -6,6 +6,7 @@ type PageProps = {
   flex?: "row" | "col"
   justify?: "start" | "center" | "end" | "between" | "around" | "evenly"
   align?: "start" | "center" | "end" | "between" | "around" | "evenly"
+  relative?: boolean
 }
 
 const justifyMap = {
@@ -25,12 +26,14 @@ const alignMap = {
   evenly: "items-evenly",
 }
 
-const Page: React.FC<PageProps> = ({ children, className, flex = "row", justify = "center", align = "center" }) => {
+const Page: React.FC<PageProps> = ({ children, className, flex = "row", justify = "center", align = "center", relative = true }) => {
   const flexDirection = flex === "row" ? "flex-row" : "flex-col"
   const justifyClass = justifyMap[justify]
   const alignClass = alignMap[align]
 
-  return <div className={cn("relative flex h-full", flexDirection, justifyClass, alignClass, className)}>{children}</div>
+  return (
+    <div className={cn("relative flex h-full", flexDirection, justifyClass, alignClass, relative && "relative", className)}>{children}</div>
+  )
 }
 
 export default Page

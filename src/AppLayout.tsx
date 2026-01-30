@@ -108,7 +108,7 @@ const AppLayout = () => {
               {authenticated ? (
                 <Routes>
                   <Route path={adminRoutes.games} element={<Admin />} />
-                  <Route path={routes.home} element={<MyList />} />
+                  <Route path={routes.myList} element={<MyList />} />
                   <Route path={routes.profile} element={<Profile />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

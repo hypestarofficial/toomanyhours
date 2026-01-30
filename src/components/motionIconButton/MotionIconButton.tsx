@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+import { motion } from "motion/react"
 import { cn } from "../../utils/cn"
 import { motionIconButtonConfig } from "./motionIconButtonConfig"
 import type { RefObject } from "react"

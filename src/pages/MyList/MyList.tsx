@@ -1,18 +1,17 @@
 import { useState } from "react"
-import MotionCollapse from "../../components/motionCollapse/MotionCollapse"
-import GameContainer from "../../components/myList/GameContainer"
 import Page from "../../components/page/Page"
-import styles from "./MyList.module.css"
 import Loader from "../../components/loader/Loader"
 import MotionContainer from "../../components/motionContainer/MotionContainer"
 import MotionButton from "../../components/motionButton/MotionButton"
 import { PlusIcon } from "@heroicons/react/24/outline"
 import AddGameModal from "./addGameModal/AddGameModal"
 import { useGamesQuery } from "../../api/endpoints/useQuery"
+import type { Game } from "../../types/games"
+import GameCard from "./gameCard/GameCard"
+import ListSection from "./listSection/ListSection"
 
 const MyList: React.FC = () => {
-  // const [games, setGames] = useState<Game[]>([])
-  // const [isLoading, setIsLoading] = useState(true)
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [isAddGameOpen, setIsAddGameOpen] = useState(false)
   const { data: games, isLoading } = useGamesQuery()
 
@@ -26,37 +25,27 @@ const MyList: React.FC = () => {
 
   return (
     <Page align="start">
-      <MotionContainer className="flex w-full flex-col gap-2">
-        <div className="flex gap-2">
-          <MotionButton icon={<PlusIcon className="h-5 w-5" />} onClick={() => setIsAddGameOpen(true)}>
-            Add Game
-          </MotionButton>
-        </div>
-        <MotionCollapse defaultOpen={true} title="finished">
-          <div className={styles.gamesGrid}>
-            {games.map((game, index) => (
-              <GameContainer key={game.id} game={game} index={index} />
-            ))}
-          </div>
-        </MotionCollapse>
-        <MotionCollapse defaultOpen={false} title="currently playing">
-          <div className={styles.gamesGrid}>
-            {games.map((game, index) => (
-              <GameContainer key={game.id} game={game} index={index} />
-            ))}
-          </div>
-        </MotionCollapse>
-        <MotionCollapse defaultOpen={false} title="want to play">
-          <div className={styles.gamesGrid}>
-            {games.map((game, index) => (
-              <GameContainer key={game.id} game={game} index={index} />
-            ))}
-          </div>
-        </MotionCollapse>
+      <MotionContainer type="ease" className="fixed bottom-6 left-6">
+        <MotionButton
+          variant="success"
+          className="rounded-full"
+          icon={<PlusIcon className="h-5 w-5" />}
+          onClick={() => setIsAddGameOpen(true)}
+        >
+          Add Game
+        </MotionButton>
+      </MotionContainer>
+      <MotionContainer className="flex w-full flex-col gap-2 pb-10">
+        <ListSection title="finished" games={games} onSelectItem={setSelectedGame} defaultOpen={true} />
+        <ListSection title="currently playing" games={games} onSelectItem={setSelectedGame} />
+        <ListSection title="want to play" games={games} onSelectItem={setSelectedGame} />
       </MotionContainer>
 
       {/* Add Game Modal */}
       <AddGameModal isOpen={isAddGameOpen} onClose={() => setIsAddGameOpen(false)} />
+
+      {/* Game Details Modal */}
+      <GameCard game={selectedGame} onClose={() => setSelectedGame(null)} />
     </Page>
   )
 }

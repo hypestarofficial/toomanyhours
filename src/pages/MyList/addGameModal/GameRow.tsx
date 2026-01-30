@@ -15,7 +15,7 @@ type GameRowProps = {
 
 const GameRow: React.FC<GameRowProps> = ({ game, isChecked, onCheck, disabled }) => (
   <motion.div
-    onClick={disabled ? () => toast.error(`You can only select up to ${MAX_SELECTED_GAMES} games`) : onCheck}
+    onClick={disabled ? () => toast.info(`You can only select up to ${MAX_SELECTED_GAMES} games`) : onCheck}
     whileHover={{ color: colors.primary }}
     className={cn(
       "flex cursor-pointer items-center justify-between rounded-md px-2 py-1 select-none",

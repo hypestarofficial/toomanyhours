@@ -5,13 +5,21 @@
 }
 
 .modal {
-  @apply bg-bg fixed top-1/2 left-1/2 z-50 max-w-[80%] min-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl
+  @apply flex flex-col bg-bg fixed top-1/2 left-1/2 z-50 max-w-[90%] max-h-[90vh] overflow-hidden -translate-x-1/2 -translate-y-1/2 rounded-xl
 }
 
-.modalContent {
-  @apply relative flex w-full pt-10 px-6 pb-6
+.modalHeader {
+  @apply relative flex w-full pt-10 px-6
 }
 
 .closeBtn {
   @apply absolute top-2 right-3 z-30;
+}
+
+.modalContent {
+  @apply flex flex-1 min-h-0 w-full overflow-y-auto
+}
+
+.modalFooter {
+  @apply flex w-full
 }

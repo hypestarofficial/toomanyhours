@@ -1,5 +1,5 @@
 import { ChevronDownIcon } from "@heroicons/react/24/outline"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence } from "motion/react"
 import { useState } from "react"
 import { colors } from "../../utils/colors"
 
@@ -9,21 +9,19 @@ type CollapseProps = {
   defaultOpen?: boolean
 }
 
-export const MotionCollapse = ({ title, children, defaultOpen = false }: CollapseProps) => {
+const MotionCollapse = ({ title, children, defaultOpen = false }: CollapseProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
-    <div className="flex w-full flex-col gap-3 pb-5">
+    <div className="flex w-full flex-col gap-3 border-b! border-white! pb-5">
       <motion.button
-        initial={{ color: colors.text, borderBottomWidth: 1, borderBottomColor: "white" }}
+        initial={{ color: colors.text }}
         whileHover={{ color: colors.primary }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-0! pb-3! text-left"
-        aria-expanded={isOpen}
+        className="flex w-full items-center justify-between text-left"
       >
         <h4 className="font-semibold">{title}</h4>
-        <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.3, ease: "easeInOut" }}>
+        <motion.div animate={{ rotate: isOpen ? 180 : 0 }}>
           <ChevronDownIcon className="h-5 w-5 text-white" />
         </motion.div>
       </motion.button>
@@ -34,10 +32,10 @@ export const MotionCollapse = ({ title, children, defaultOpen = false }: Collaps
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.5, ease: "circOut" }}
+            transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
             className="overflow-hidden"
           >
-            {children}
+            <div className="py-4">{children}</div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -12,11 +12,12 @@
   --color-secondaryBg: #1a1a1a;
   --color-highlight: #313131;
   --color-inputBg: #ffffff;
+  --color-hoverBg: #ffffff;
 
   /* System colors */
-  --color-error: var(--color-red-400);
-  --color-success: var(--color-green-400);
-  --color-warning: var(--color-yellow-400);
+  --color-error: #7f1d1d;
+  --color-success: #14532d;
+  --color-warning: #713f12;
 }
 
 :root {
@@ -124,6 +125,10 @@ h3 {
 h4 {
   font-size: 1.6em;
   line-height: 1.1;
+}
+
+img {
+  @apply select-none pointer-events-none;
 }
 
 button {

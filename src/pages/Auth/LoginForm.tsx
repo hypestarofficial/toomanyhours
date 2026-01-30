@@ -52,7 +52,7 @@ const LoginForm: React.FC = () => {
         setAuthenticated(true)
         toast.success("Login successful")
         toggleRefresh(true)
-        navigate(routes.home)
+        navigate(routes.myList)
       }
     } catch (error: unknown) {
       console.error(error, "LoginForm")

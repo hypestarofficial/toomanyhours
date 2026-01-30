@@ -1,30 +1,36 @@
+import type { MotionProps, Transition } from "motion/react"
 import { colors } from "../../utils/colors"
 
-export const motionButtonConfig = {
-  default: {
-    initial: {
-      backgroundColor: colors.secondaryBg,
-      color: "#ffffff",
-    },
-    whileHover: {
-      backgroundColor: "#ffffff",
-      color: colors.secondaryBg,
-    },
-  },
-  text: {
-    initial: {
-      backgroundColor: "transparent",
-      color: "#ffffff",
-    },
-    whileHover: {
-      backgroundColor: "transparent",
-      color: colors.primary,
-    },
-  },
-  disabled: {
-    animate: {
-      backgroundColor: colors.secondaryBg,
-      color: "#ffffff",
-    },
-  },
+export type MotionButtonVariant = "text" | "default" | "success" | "error"
+
+type MotionButtonConfigParams = {
+  disabled: boolean
+  variant: MotionButtonVariant
+}
+
+export const getMotionButtonConfig = ({ disabled, variant }: MotionButtonConfigParams): MotionProps => {
+  const transition: Transition = { duration: 0.3, ease: "easeInOut" }
+
+  if (disabled) {
+    return {
+      animate: { backgroundColor: colors.secondaryBg, color: "#ffffff" },
+      transition,
+    }
+  }
+
+  const variants = {
+    default: { bg: colors.secondaryBg, hoverBg: colors.hoverBg, text: "#ffffff", hoverText: colors.secondaryBg },
+    success: { bg: colors.success, hoverBg: colors.hoverBg, text: "#ffffff", hoverText: colors.success },
+    error: { bg: colors.error, hoverBg: colors.hoverBg, text: "#ffffff", hoverText: colors.error },
+    text: { bg: "transparent", hoverBg: "transparent", text: "#ffffff", hoverText: colors.primary },
+  }
+
+  const current = variants[variant] || variants.default
+
+  return {
+    initial: { backgroundColor: current.bg, color: current.text },
+    animate: { backgroundColor: current.bg, color: current.text },
+    whileHover: { backgroundColor: current.hoverBg, color: current.hoverText },
+    transition,
+  }
 }
