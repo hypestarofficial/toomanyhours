@@ -15,10 +15,11 @@ import Loader from "./components/loader/Loader.tsx"
 import useAuth from "./hooks/api/useAuth.ts"
 import Admin from "./pages/Admin/Admin.tsx"
 import { refreshToken } from "./api/endpoints/auth.ts"
+import { getMe } from "./api/endpoints/users.ts"
 import { handleError } from "./utils/errors.ts"
 
 const AppLayout = () => {
-  const { authenticated, setAuthenticated, jwtToken, setJwtToken } = useAuthStore()
+  const { authenticated, setAuthenticated, jwtToken, setJwtToken, setUser, user } = useAuthStore()
   const { isGlobalLoading, setIsGlobalLoading } = useGlobalStore()
   const { toggleRefresh } = useAuth()
 
@@ -47,6 +48,7 @@ const AppLayout = () => {
           handleError("Session expired. Please login.", "AppLayout")
           setAuthenticated(false)
           setJwtToken("")
+          setUser(null)
         } finally {
           setIsGlobalLoading(false)
         }
@@ -57,6 +59,23 @@ const AppLayout = () => {
 
     checkSession()
   }, [jwtToken, toggleRefresh])
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (jwtToken && !user) {
+        try {
+          const userData = await getMe({ jwtToken })
+          setUser(userData)
+        } catch (error) {
+          console.error("Failed to fetch user profile:", error)
+          setAuthenticated(false)
+          setJwtToken("")
+        }
+      }
+    }
+
+    fetchUserProfile()
+  }, [jwtToken, user, setUser, setAuthenticated, setJwtToken])
 
   return (
     <BrowserRouter>

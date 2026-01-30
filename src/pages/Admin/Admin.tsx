@@ -14,9 +14,7 @@ const Admin: React.FC = () => {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [isAddGameOpen, setIsAddGameOpen] = useState(false)
   const { data: games, isLoading } = useAdminGamesQuery()
-  const { data: genres } = useGenresQuery()
-
-  console.log(genres)
+  const { data: _genres } = useGenresQuery()
 
   const handleToggleModal = (game?: Game | null) => {
     if (game) {

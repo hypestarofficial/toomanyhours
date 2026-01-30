@@ -1,4 +1,4 @@
-import { UserCircleIcon } from "@heroicons/react/24/solid"
+import { UserIcon } from "@heroicons/react/24/solid"
 import styles from "./Navbar.module.css"
 import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
@@ -14,7 +14,7 @@ const UserMenu: React.FC = () => {
   const [menuSize, setMenuSize] = useState(0)
   const menuRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
-  const { setAuthenticated, setJwtToken } = useAuthStore()
+  const { setAuthenticated, setJwtToken, user, setUser } = useAuthStore()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -52,6 +52,7 @@ const UserMenu: React.FC = () => {
       setAuthenticated(false)
       setJwtToken("")
       setMenuOpen(false)
+      setUser(null)
       navigate(routes.login)
     }
   }
@@ -59,8 +60,8 @@ const UserMenu: React.FC = () => {
   return (
     <div ref={menuRef} className="relative inline-block">
       <MotionButton ref={buttonRef} variant="text" size="menu" onClick={() => setMenuOpen(!menuOpen)} className={styles.profile}>
-        <span className="text-base">hypestar</span>
-        <UserCircleIcon className="h-6 w-6" />
+        <span className="text-base">{user?.username || "Unknown user"}</span>
+        <UserIcon className="h-6 w-6" />
       </MotionButton>
 
       <AnimatePresence>

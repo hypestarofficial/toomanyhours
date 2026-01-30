@@ -42,19 +42,16 @@ export const httpRequest = async ({
       let errorData = { message: `HTTP error ${response.status}` }
 
       if (isJson) {
-        // Parse JSON based on Header
         errorData = await response.json().catch(() => ({ message: "Failed to parse error JSON" }))
       }
 
       throw new Error(`HTTP ${response.status}: ${errorData.message}`)
     }
 
-    // Return null for successful responses that are not JSON
     if (!isJson || response.status === 204) {
       return null
     }
 
-    // Parse JSON
     return await response.json()
   } catch (error) {
     console.error("API Error:", error)
