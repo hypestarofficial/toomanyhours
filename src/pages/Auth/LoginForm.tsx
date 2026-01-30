@@ -13,6 +13,7 @@ import { routes } from "../../helpers/routes"
 import { useState } from "react"
 import Loader from "../../components/loader/Loader"
 import useAuth from "../../hooks/api/useAuth"
+import { login } from "../../api/endpoints/auth"
 
 type Inputs = {
   email: string
@@ -40,22 +41,13 @@ const LoginForm: React.FC = () => {
   const onSubmit: SubmitHandler<Inputs> = async (data, event) => {
     event?.preventDefault()
     setIsLoading(true)
-    const requestOptions = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include" as RequestCredentials,
-      body: JSON.stringify(data),
-    }
 
     try {
-      const response = await fetch("/api/authenticate", requestOptions)
-      const result = await response.json()
+      const result = await login({ email: data.email, password: data.password })
 
-      if (result.error) {
-        handleError(result.message, "LoginForm")
-      } else {
+      if (result && result.access_token) {
+        localStorage.setItem("session_active", "true")
+
         setJwtToken(result.access_token)
         setAuthenticated(true)
         toast.success("Login successful")

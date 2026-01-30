@@ -6,7 +6,7 @@ import MotionButton from "../motionButton/MotionButton"
 import useAuthStore from "../../store/useAuthStore"
 import { routes } from "../../helpers/routes"
 import { useNavigate } from "react-router"
-import { handleError } from "../../utils/errors"
+import { logout } from "../../api/endpoints/auth"
 
 const UserMenu: React.FC = () => {
   const navigate = useNavigate()
@@ -42,19 +42,18 @@ const UserMenu: React.FC = () => {
     setMenuOpen(false)
   }
 
-  const handleLogout = () => {
-    const requestOptions = {
-      method: "GET",
-      credentials: "include" as RequestCredentials,
+  const handleLogout = async () => {
+    try {
+      await logout()
+      localStorage.removeItem("session_active")
+    } catch (error: unknown) {
+      console.error(error, "UserMenu")
+    } finally {
+      setAuthenticated(false)
+      setJwtToken("")
+      setMenuOpen(false)
+      navigate(routes.login)
     }
-    fetch("/api/logout", requestOptions)
-      .catch((error) => handleError(error, "UserMenu"))
-      .then(() => {
-        setAuthenticated(false)
-        setJwtToken("")
-        setMenuOpen(false)
-        navigate(routes.home)
-      })
   }
 
   return (

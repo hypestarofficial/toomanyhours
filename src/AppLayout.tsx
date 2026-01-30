@@ -10,11 +10,12 @@ import MyList from "./pages/MyList/MyList.tsx"
 import { adminRoutes, routes } from "./helpers/routes.ts"
 import Profile from "./pages/Profile/Profile.tsx"
 import { useEffect } from "react"
-import { handleError } from "./utils/errors.ts"
 import useGlobalStore from "./store/useGlobalStore.ts"
 import Loader from "./components/loader/Loader.tsx"
 import useAuth from "./hooks/api/useAuth.ts"
 import Admin from "./pages/Admin/Admin.tsx"
+import { refreshToken } from "./api/endpoints/auth.ts"
+import { handleError } from "./utils/errors.ts"
 
 const AppLayout = () => {
   const { authenticated, setAuthenticated, jwtToken, setJwtToken } = useAuthStore()
@@ -22,40 +23,39 @@ const AppLayout = () => {
   const { toggleRefresh } = useAuth()
 
   useEffect(() => {
-    setIsGlobalLoading(true)
-    if (jwtToken === "") {
-      const requestOptions = {
-        method: "GET",
-        credentials: "include" as RequestCredentials,
+    const checkSession = async () => {
+      if (jwtToken !== "") {
+        setIsGlobalLoading(false)
+        return
       }
 
-      fetch("/api/refresh-token", requestOptions)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Session expired. Please login.")
-          }
-          return response.json()
-        })
-        .then((data) => {
-          if (data.error) {
-            handleError(data.message, "AppLayout")
-            setAuthenticated(false)
-            setJwtToken("")
-          } else {
+      const sessionActiveHint = localStorage.getItem("session_active") === "true"
+
+      if (sessionActiveHint) {
+        setIsGlobalLoading(true)
+        try {
+          const data = await refreshToken()
+
+          if (data && data.access_token) {
             setJwtToken(data.access_token)
             setAuthenticated(true)
             toggleRefresh(true)
           }
-        })
-        .catch((error) => {
-          console.warn("Refresh token failed:", error.message)
+        } catch (error: unknown) {
+          localStorage.removeItem("session_active")
+          console.warn("Refresh token failed:", error)
+          handleError("Session expired. Please login.", "AppLayout")
           setAuthenticated(false)
           setJwtToken("")
-        })
-        .finally(() => setIsGlobalLoading(false))
-    } else {
-      setIsGlobalLoading(false)
+        } finally {
+          setIsGlobalLoading(false)
+        }
+      } else {
+        setIsGlobalLoading(false)
+      }
     }
+
+    checkSession()
   }, [jwtToken, toggleRefresh])
 
   return (

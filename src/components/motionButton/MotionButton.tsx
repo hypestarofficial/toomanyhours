@@ -14,6 +14,7 @@ type MotionButtonProps = {
   ref?: RefObject<HTMLButtonElement | null>
   type?: "button" | "submit" | "reset"
   icon?: React.ReactNode
+  noTap?: boolean
 }
 
 const MotionButton: React.FC<MotionButtonProps> = ({
@@ -26,6 +27,7 @@ const MotionButton: React.FC<MotionButtonProps> = ({
   variant = "default",
   ref,
   type = "button",
+  noTap = false,
   icon,
 }) => {
   const sizeMap = {
@@ -38,7 +40,7 @@ const MotionButton: React.FC<MotionButtonProps> = ({
     <motion.button
       {...motionButtonConfig[disabled ? "disabled" : variant]}
       whileTap={{
-        scale: 0.9,
+        scale: noTap ? 1 : 0.9,
       }}
       transition={{
         duration: 0.3,

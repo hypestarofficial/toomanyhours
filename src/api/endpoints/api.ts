@@ -5,28 +5,56 @@ interface HttpRequestParams {
   method: "GET" | "POST" | "PUT"
   url: string
   params?: Record<string, string>
+  body?: Record<string, unknown>
+  credentials?: RequestCredentials
   authorization?: boolean
 }
 
 const BASE_URL = "/api"
 
-const httpRequest = async ({ method, url, params, authorization = false, jwtToken }: HttpRequestParams & { jwtToken?: string }) => {
+export const httpRequest = async ({
+  method,
+  url,
+  params,
+  body,
+  authorization = false,
+  jwtToken,
+  credentials,
+}: HttpRequestParams & { jwtToken?: string }) => {
   const headers = new Headers()
   headers.append("Content-Type", "application/json")
 
   if (authorization && jwtToken) {
     headers.append("Authorization", `Bearer ${jwtToken}`)
   }
+
   const cleanParams = params ? Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== "")) : {}
   const queryString = Object.keys(cleanParams).length > 0 ? `?${new URLSearchParams(cleanParams).toString()}` : ""
   const fullUrl = `${BASE_URL}${url}${queryString}`
 
   try {
-    const response = await fetch(fullUrl, { method, headers })
+    const response = await fetch(fullUrl, { method, headers, body: body ? JSON.stringify(body) : undefined, credentials: credentials })
+
+    const contentType = response.headers.get("content-type")
+    const isJson = contentType && contentType.includes("application/json")
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: "Unknown error" }))
+      let errorData = { message: `HTTP error ${response.status}` }
+
+      if (isJson) {
+        // Parse JSON based on Header
+        errorData = await response.json().catch(() => ({ message: "Failed to parse error JSON" }))
+      }
+
       throw new Error(`HTTP ${response.status}: ${errorData.message}`)
     }
+
+    // Return null for successful responses that are not JSON
+    if (!isJson || response.status === 204) {
+      return null
+    }
+
+    // Parse JSON
     return await response.json()
   } catch (error) {
     console.error("API Error:", error)
@@ -35,26 +63,32 @@ const httpRequest = async ({ method, url, params, authorization = false, jwtToke
 }
 
 // ENDPOINTS - These are now just simple functions
-export const getGames = async (title: string): Promise<Game[]> =>
+export const getGames = async (title: string, jwtToken: string): Promise<Game[]> =>
   httpRequest({
     method: "GET",
     url: "/games",
     params: { title },
+    authorization: true,
+    jwtToken: jwtToken,
   }) as Promise<Game[]>
 
-export const getGameById = async (gameId: number): Promise<Game> => {
+export const getGameById = async (gameId: number, jwtToken: string): Promise<Game> => {
   const url = `/games/${gameId}`
 
   return httpRequest({
     method: "GET",
     url: url,
+    authorization: true,
+    jwtToken: jwtToken,
   }) as Promise<Game>
 }
 
-export const getGenres = async (): Promise<Genre[]> =>
+export const getGenres = async (jwtToken: string): Promise<Genre[]> =>
   httpRequest({
     method: "GET",
     url: "/genres",
+    authorization: true,
+    jwtToken: jwtToken,
   }) as Promise<Genre[]>
 
 // Admin endpoints need to accept a token now
