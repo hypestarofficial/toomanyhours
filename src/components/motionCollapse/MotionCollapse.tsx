@@ -1,16 +1,23 @@
 import { ChevronDownIcon } from "@heroicons/react/24/outline"
 import { motion, AnimatePresence } from "motion/react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { colors } from "../../utils/colors"
 
 type CollapseProps = {
   title: string
   children: React.ReactNode
   defaultOpen?: boolean
+  setDefaultOpen?: (open: boolean) => void
 }
 
-const MotionCollapse = ({ title, children, defaultOpen = false }: CollapseProps) => {
+const MotionCollapse = ({ title, children, defaultOpen = false, setDefaultOpen }: CollapseProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen)
+
+  useEffect(() => {
+    if (setDefaultOpen) {
+      setDefaultOpen(isOpen)
+    }
+  }, [isOpen])
 
   return (
     <div className="flex w-full flex-col gap-3 border-b! border-white! pb-5">

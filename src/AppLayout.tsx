@@ -45,7 +45,7 @@ const AppLayout = () => {
         } catch (error: unknown) {
           localStorage.removeItem("session_active")
           console.warn("Refresh token failed:", error)
-          handleError("Session expired. Please login.", "AppLayout")
+          handleError({ error, userMessage: "Session expired. Please login.", componentName: "AppLayout" })
           setAuthenticated(false)
           setJwtToken("")
           setUser(null)
@@ -97,7 +97,7 @@ const AppLayout = () => {
                 error: "text-error!",
                 success: "text-success!",
                 warning: "text-warning!",
-                info: "text-text!",
+                info: "text-info!",
               },
             }}
           />

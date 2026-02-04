@@ -17,7 +17,8 @@
   /* System colors */
   --color-error: #7f1d1d;
   --color-success: #14532d;
-  --color-warning: #713f12;
+  --color-warning: #a16207;
+  --color-info: #ffffff;
 }
 
 :root {

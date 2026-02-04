@@ -15,5 +15,6 @@ export const colors = {
   // System colors
   error: "#7f1d1d",
   success: "#14532d",
-  warning: "#713f12",
+  warning: "#a16207",
+  info: "#ffffff",
 }

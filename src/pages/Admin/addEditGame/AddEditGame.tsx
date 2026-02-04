@@ -4,12 +4,20 @@ import type { Game } from "../../../types/games"
 import MotionButton from "../../../components/motionButton/MotionButton"
 import { toast } from "sonner"
 import { Controller, Form, useForm, useWatch } from "react-hook-form"
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Image } from "@heroui/image"
 import dayjs from "dayjs"
 import Checkbox from "../../../components/form/checkbox/Checkbox"
-import { useGenresQuery } from "../../../api/endpoints/useQuery"
+import {
+  useDeleteGameByGameIdMutation,
+  useGenresQuery,
+  usePostGameToGamesMutation,
+  usePutGameByGameIdMutation,
+} from "../../../api/endpoints/useQuery"
 import Loader from "../../../components/loader/Loader"
+import { handleError } from "../../../utils/errors"
+import { useQueryClient } from "@tanstack/react-query"
+import Dialog from "../../../components/dialog/Dialog"
 
 type AddEditGameProps = {
   game?: Game | null
@@ -22,53 +30,131 @@ type AddEditGameForm = {
   title: string
   image: string
   releaseDate: string
-  genres: number[]
+  genreIds: number[]
 }
 
 const AddEditGame: React.FC<AddEditGameProps> = ({ game, isOpen, onClose }) => {
+  const queryClient = useQueryClient()
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { data: genres } = useGenresQuery()
+  const { mutate: postGameToGames } = usePostGameToGamesMutation()
+  const { mutate: putGame } = usePutGameByGameIdMutation()
+  const { mutate: deleteGameByGameId } = useDeleteGameByGameIdMutation()
+
   const {
     control,
     clearErrors,
     handleSubmit,
-    formState: { isValid },
-    setValue,
+    formState: { isValid, isDirty },
+    reset,
   } = useForm<AddEditGameForm>({
     defaultValues: {
       id: 0,
       title: "",
       image: "",
       releaseDate: dayjs().format("YYYY-MM-DD"),
-      genres: [],
+      genreIds: [],
     },
     mode: "onChange",
   })
 
   const resetFields = useCallback(() => {
     if (!game) return
-    setValue("id", game.id)
-    setValue("title", game.title)
-    setValue("image", game.image)
-    setValue("releaseDate", dayjs(game.releaseDate).format("YYYY-MM-DD"))
-    setValue("genres", game.genres.map((genre) => genre.id) ?? [])
-  }, [game, setValue])
+    reset({
+      id: game.id,
+      title: game.title,
+      image: game.image,
+      releaseDate: dayjs(game.releaseDate).format("YYYY-MM-DD"),
+      genreIds: game.genres?.map((genre) => genre.id) ?? [],
+    })
+  }, [game, reset])
 
   useEffect(() => {
     if (isOpen && game) {
       resetFields()
     } else {
-      setValue("id", 0)
-      setValue("title", "")
-      setValue("image", "")
-      setValue("releaseDate", dayjs().format("YYYY-MM-DD"))
-      setValue("genres", [])
+      reset({
+        id: 0,
+        title: "",
+        image: "",
+        releaseDate: dayjs().format("YYYY-MM-DD"),
+        genreIds: [],
+      })
     }
-  }, [game, isOpen, resetFields, setValue])
+  }, [game, isOpen, resetFields, reset])
 
-  const onSubmit = (data: AddEditGameForm) => {
-    console.log(data)
-    toast.success("Game edited successfully")
-    onClose()
+  const onSubmit = async (data: AddEditGameForm) => {
+    if (game) {
+      // Edit game
+      putGame(
+        {
+          gameId: game.id,
+          game: {
+            title: data.title,
+            image: data.image,
+            releaseDate: dayjs(data.releaseDate).toISOString(),
+            genreIds: data.genreIds,
+          },
+        },
+        {
+          onSuccess: () => {
+            toast.success("Game updated successfully!")
+            queryClient.invalidateQueries({ queryKey: ["admin-games"] })
+            onClose()
+          },
+          onError: (error: Error) => {
+            handleError({ error, userMessage: "An error occurred while updating the game", componentName: "AddEditGame" })
+          },
+        },
+      )
+    } else {
+      // Add game
+      const payload = {
+        id: data.id,
+        title: data.title,
+        image: data.image,
+        releaseDate: dayjs(data.releaseDate).toISOString(),
+        genreIds: data.genreIds,
+      }
+      postGameToGames(payload, {
+        onSuccess: () => {
+          toast.success("Game saved successfully!")
+          queryClient.invalidateQueries({ queryKey: ["admin-games"] })
+          onClose()
+        },
+        onError: (error: Error) => {
+          handleError({ error, userMessage: "An error occurred while adding the game", componentName: "AddEditGame" })
+        },
+      })
+    }
+  }
+
+  const onDelete = async () => {
+    if (!game || !game.id) {
+      handleError({ error: new Error("Game ID is required"), userMessage: "Game id seems to be missing", componentName: "AddEditGame" })
+      return
+    }
+
+    try {
+      deleteGameByGameId(
+        { gameId: game.id },
+        {
+          onSuccess: () => {
+            toast.success("Game deleted successfully!")
+            queryClient.invalidateQueries({ queryKey: ["admin-games"] })
+            setIsDialogOpen(false)
+            setTimeout(() => {
+              onClose()
+            }, 250)
+          },
+          onError: (error: Error) => {
+            handleError({ error, userMessage: "An error occurred while deleting the game", componentName: "AddEditGame" })
+          },
+        },
+      )
+    } catch (error: unknown) {
+      handleError({ error, userMessage: "An error occurred while deleting the game", componentName: "AddEditGame" })
+    }
   }
 
   const formData = useWatch({ control })
@@ -85,16 +171,21 @@ const AddEditGame: React.FC<AddEditGameProps> = ({ game, isOpen, onClose }) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      size="lg"
+      size="xl"
       footer={
-        <div className="flex w-full px-6 py-4">
+        <div className="flex w-full gap-2 px-6 py-4">
           {game && (
-            <MotionButton variant="text" onClick={resetFields}>
-              Reset
-            </MotionButton>
+            <div className="flex gap-2">
+              <MotionButton variant="text" onClick={resetFields}>
+                Reset
+              </MotionButton>
+              <MotionButton variant="error" flex onClick={() => setIsDialogOpen(true)}>
+                Delete
+              </MotionButton>
+            </div>
           )}
-          <MotionButton flex onClick={handleSubmit(onSubmit)} disabled={!isValid}>
-            Edit Game
+          <MotionButton variant="success" flex onClick={handleSubmit(onSubmit)} disabled={game ? !isValid || !isDirty : !isValid}>
+            {game ? "Edit Game" : "Add Game"}
           </MotionButton>
         </div>
       }
@@ -133,7 +224,7 @@ const AddEditGame: React.FC<AddEditGameProps> = ({ game, isOpen, onClose }) => {
           <Controller
             name="image"
             control={control}
-            rules={{ required: "Image is required" }}
+            // rules={{ required: "Image is required" }}
             render={({ field, formState: { errors } }) => (
               <Input
                 type="text"
@@ -162,7 +253,7 @@ const AddEditGame: React.FC<AddEditGameProps> = ({ game, isOpen, onClose }) => {
             )}
           />
           <Controller
-            name="genres"
+            name="genreIds"
             control={control}
             rules={{ required: "Genres are required" }}
             render={({ field }) => (
@@ -190,6 +281,18 @@ const AddEditGame: React.FC<AddEditGameProps> = ({ game, isOpen, onClose }) => {
           </div>
         </div>
       </Form>
+
+      <Dialog
+        isOpen={isDialogOpen}
+        type="warning"
+        onConfirm={onDelete}
+        onClose={() => setIsDialogOpen(false)}
+        children={
+          <p>
+            Are you sure you want to delete <b>{game?.title}</b>?
+          </p>
+        }
+      />
     </Modal>
   )
 }

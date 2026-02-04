@@ -1,15 +1,17 @@
 // hooks/useGamesQuery.ts
-import { useQuery } from "@tanstack/react-query"
-import { getGames, getGenres, getAdminGames, getGameById } from "./api"
+import { useMutation, useQuery } from "@tanstack/react-query"
+import { getGames, getGenres, getAdminGames, getGameById, postGameToGames, putGameByGameId, deleteGameByGameId } from "./api"
 import useAuthStore from "../../store/useAuthStore"
 import type { Game, Genre } from "../../types/games"
+import type { ApiGame } from "../types/apiGames"
 
-export const useGamesQuery = ({ title }: { title?: string } = {}) => {
+// Public endpoints
+export const useGamesQuery = ({ title, genreIDs }: { title?: string; genreIDs?: number[] } = {}) => {
   const { jwtToken } = useAuthStore()
 
   return useQuery<Game[], Error>({
-    queryKey: ["games", title, jwtToken],
-    queryFn: () => getGames(title ?? "", jwtToken!),
+    queryKey: ["games", title, genreIDs, jwtToken],
+    queryFn: () => getGames(title ?? "", genreIDs ?? [], jwtToken!),
     enabled: !!jwtToken,
   })
 }
@@ -33,12 +35,37 @@ export const useGenresQuery = () => {
   })
 }
 
-export const useAdminGamesQuery = () => {
+// Admin endpoints
+export const useAdminGamesQuery = ({ title, genreIDs }: { title?: string; genreIDs?: number[] }) => {
   const { jwtToken } = useAuthStore()
 
   return useQuery<Game[], Error>({
-    queryKey: ["admin-games", jwtToken],
-    queryFn: () => getAdminGames(jwtToken!),
+    queryKey: ["admin-games", title, genreIDs, jwtToken],
+    queryFn: () => getAdminGames(title ?? "", genreIDs ?? [], jwtToken!),
     enabled: !!jwtToken,
+  })
+}
+
+export const usePostGameToGamesMutation = () => {
+  const { jwtToken } = useAuthStore()
+
+  return useMutation<Game, Error, ApiGame>({
+    mutationFn: (game: ApiGame) => postGameToGames(game, jwtToken!),
+  })
+}
+
+export const usePutGameByGameIdMutation = () => {
+  const { jwtToken } = useAuthStore()
+
+  return useMutation<Game, Error, { gameId: number; game: Omit<ApiGame, "id"> }>({
+    mutationFn: ({ gameId, game }: { gameId: number; game: Omit<ApiGame, "id"> }) => putGameByGameId(gameId, game, jwtToken!),
+  })
+}
+
+export const useDeleteGameByGameIdMutation = () => {
+  const { jwtToken } = useAuthStore()
+
+  return useMutation<void, Error, { gameId: number }>({
+    mutationFn: ({ gameId }: { gameId: number }) => deleteGameByGameId(gameId, jwtToken!),
   })
 }

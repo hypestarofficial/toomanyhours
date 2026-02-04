@@ -1,7 +1,13 @@
 import { toast } from "sonner"
 
-export const handleError = (error: unknown, componentName?: string) => {
-  let message = "An unknown error occurred"
+type HandleErrorParams = {
+  error: unknown
+  userMessage?: string
+  componentName?: string
+}
+
+export const handleError = ({ userMessage = "An unknown error occurred", error, componentName }: HandleErrorParams) => {
+  let message = userMessage
 
   // Check if it's an actual Error object
   if (error instanceof Error) {
@@ -13,10 +19,10 @@ export const handleError = (error: unknown, componentName?: string) => {
   }
 
   if (componentName) {
-    toast.error(componentName, { description: message })
+    toast.error(userMessage)
     console.error(`${componentName}: ${message}`)
   } else {
-    toast.error(message)
+    toast.error(userMessage)
     console.error(message)
   }
 }

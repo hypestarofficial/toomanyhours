@@ -9,10 +9,12 @@ import { useGamesQuery } from "../../api/endpoints/useQuery"
 import type { Game } from "../../types/games"
 import GameCard from "./gameCard/GameCard"
 import ListSection from "./listSection/ListSection"
+import useUserSettingsAuthStore from "../../store/useUserSettingsAuth"
 
 const MyList: React.FC = () => {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [isAddGameOpen, setIsAddGameOpen] = useState(false)
+  const { defaultListConfig, setDefaultListConfig } = useUserSettingsAuthStore()
   const { data: games, isLoading } = useGamesQuery()
 
   if (isLoading) {
@@ -36,9 +38,27 @@ const MyList: React.FC = () => {
         </MotionButton>
       </MotionContainer>
       <MotionContainer className="flex w-full flex-col gap-2 pb-10">
-        <ListSection title="finished" games={games} onSelectItem={setSelectedGame} defaultOpen={true} />
-        <ListSection title="currently playing" games={games} onSelectItem={setSelectedGame} />
-        <ListSection title="want to play" games={games} onSelectItem={setSelectedGame} />
+        <ListSection
+          title="finished"
+          games={games}
+          onSelectItem={setSelectedGame}
+          defaultOpen={defaultListConfig.finished}
+          setDefaultOpen={(open) => setDefaultListConfig({ ...defaultListConfig, finished: open })}
+        />
+        <ListSection
+          title="currently playing"
+          games={games}
+          onSelectItem={setSelectedGame}
+          defaultOpen={defaultListConfig.currentlyPlaying}
+          setDefaultOpen={(open) => setDefaultListConfig({ ...defaultListConfig, currentlyPlaying: open })}
+        />
+        <ListSection
+          title="want to play"
+          games={games}
+          onSelectItem={setSelectedGame}
+          defaultOpen={defaultListConfig.wantToPlay}
+          setDefaultOpen={(open) => setDefaultListConfig({ ...defaultListConfig, wantToPlay: open })}
+        />
       </MotionContainer>
 
       {/* Add Game Modal */}

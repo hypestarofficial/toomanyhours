@@ -1,8 +1,9 @@
 // api.ts (Renamed from useApi.ts)
 import type { Game, Genre } from "../../types/games"
+import type { ApiGame } from "../types/apiGames"
 
 interface HttpRequestParams {
-  method: "GET" | "POST" | "PUT"
+  method: "GET" | "POST" | "PUT" | "DELETE"
   url: string
   params?: Record<string, string>
   body?: Record<string, unknown>
@@ -60,11 +61,11 @@ export const httpRequest = async ({
 }
 
 // ENDPOINTS - These are now just simple functions
-export const getGames = async (title: string, jwtToken: string): Promise<Game[]> =>
+export const getGames = async (title: string, genreIDs: number[], jwtToken: string): Promise<Game[]> =>
   httpRequest({
     method: "GET",
     url: "/games",
-    params: { title },
+    params: { title, genreIDs: genreIDs.join(",") },
     authorization: true,
     jwtToken: jwtToken,
   }) as Promise<Game[]>
@@ -89,10 +90,48 @@ export const getGenres = async (jwtToken: string): Promise<Genre[]> =>
   }) as Promise<Genre[]>
 
 // Admin endpoints need to accept a token now
-export const getAdminGames = async (jwtToken: string): Promise<Game[]> =>
+export const getAdminGames = async (title: string, genreIDs: number[], jwtToken: string): Promise<Game[]> =>
   httpRequest({
     method: "GET",
     url: "/admin/games",
+    params: { title, genreIDs: genreIDs.join(",") },
     authorization: true,
     jwtToken: jwtToken,
   }) as Promise<Game[]>
+
+export const postGameToGames = async (game: ApiGame, jwtToken: string): Promise<Game> =>
+  httpRequest({
+    method: "POST",
+    url: "/admin/games",
+    authorization: true,
+    jwtToken: jwtToken,
+    body: {
+      id: Number(game.id),
+      title: game.title,
+      image: game.image,
+      releaseDate: game.releaseDate,
+      genreIDs: game.genreIds,
+    },
+  }) as Promise<Game>
+
+export const putGameByGameId = async (gameId: number, game: Omit<ApiGame, "id">, jwtToken: string): Promise<Game> =>
+  httpRequest({
+    method: "PUT",
+    url: `/admin/games/${gameId}`,
+    authorization: true,
+    jwtToken: jwtToken,
+    body: {
+      title: game.title,
+      image: game.image,
+      releaseDate: game.releaseDate,
+      genreIDs: game.genreIds,
+    },
+  }) as Promise<Game>
+
+export const deleteGameByGameId = async (gameId: number, jwtToken: string): Promise<void> =>
+  httpRequest({
+    method: "DELETE",
+    url: `/admin/games/${gameId}`,
+    authorization: true,
+    jwtToken: jwtToken,
+  }) as Promise<void>

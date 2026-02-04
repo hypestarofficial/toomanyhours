@@ -9,13 +9,14 @@ import { cn } from "../../utils/cn"
 interface ModalProps {
   isOpen: boolean
   onClose: () => void
+  closeBtn?: boolean
   children: React.ReactNode
-  size?: "sm" | "md" | "lg"
+  size?: "xs" | "sm" | "md" | "lg" | "xl"
   backdrop?: boolean
   footer?: React.ReactNode
 }
 
-const Modal = ({ isOpen, onClose, children, backdrop = true, footer, size = "md" }: ModalProps) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, backdrop = true, footer, size = "md", closeBtn = true }) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden"
@@ -28,9 +29,11 @@ const Modal = ({ isOpen, onClose, children, backdrop = true, footer, size = "md"
   }, [isOpen])
 
   const sizeMap = {
-    sm: "min-w-md",
-    md: "min-w-lg",
-    lg: "min-w-xl",
+    xs: "min-w-xs",
+    sm: "min-w-sm",
+    md: "min-w-md",
+    lg: "min-w-lg",
+    xl: "min-w-xl",
   }
 
   return createPortal(
@@ -58,7 +61,7 @@ const Modal = ({ isOpen, onClose, children, backdrop = true, footer, size = "md"
             className={cn(styles.modal, sizeMap[size])}
           >
             <div className={styles.modalHeader}>
-              <MotionIconButton icon={<XMarkIcon />} onClick={onClose} className={styles.closeBtn} />
+              {closeBtn && <MotionIconButton icon={<XMarkIcon />} onClick={onClose} className={styles.closeBtn} />}
             </div>
             <div className={styles.modalContent}>{children}</div>
             {footer && <div className={styles.modalFooter}>{footer}</div>}

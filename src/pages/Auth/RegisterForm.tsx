@@ -35,14 +35,14 @@ const RegisterForm: React.FC = () => {
     mode: "onChange",
   })
 
-  const onSubmit: SubmitHandler<Inputs> = (data) => {
+  const onSubmit: SubmitHandler<Inputs> = async (data) => {
     try {
       console.log(data)
       setAuthenticated(true)
       toast.success("Welcome to the club!")
       navigate(routes.home)
     } catch (error: unknown) {
-      handleError(error, "RegisterForm")
+      handleError({ error, userMessage: "An error occurred while registering", componentName: "RegisterForm" })
     }
   }
 

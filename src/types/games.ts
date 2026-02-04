@@ -9,4 +9,5 @@ export interface Game {
   image: string
   releaseDate: string
   genres: Genre[]
+  genreIds: number[]
 }

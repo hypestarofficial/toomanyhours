@@ -12,6 +12,7 @@ import { useGamesQuery } from "../../../api/endpoints/useQuery"
 import Loader from "../../../components/loader/Loader"
 import Select from "../../../components/form/select/Select"
 import { LIST_TYPE } from "../../../helpers/enums"
+import Empty from "../../../components/empty/Empty"
 
 type AddGameModalProps = {
   isOpen: boolean
@@ -23,7 +24,7 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
   const [selectedGames, setSelectedGames] = useState<number[]>([])
   const [disabledRows, setDisabledRows] = useState(false)
   const [listType, setListType] = useState<LIST_TYPE | null>(null)
-  const { data: searchResults } = useGamesQuery({ title: searchQuery })
+  const { data: searchResults, isLoading: isLoadingSearchResults } = useGamesQuery({ title: searchQuery })
 
   const listTypeOptions = [
     { label: "Finished", value: LIST_TYPE.FINISHED },
@@ -55,7 +56,7 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
       clearSelection()
       toast.success("Games added successfully")
     } catch (error: unknown) {
-      handleError(error, "AddGameModal")
+      handleError({ error, userMessage: "An error occurred while adding games", componentName: "AddGameModal" })
     } finally {
       onClose()
     }
@@ -85,8 +86,10 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
                 disabled={disabledRows && !selectedGames.includes(game.id)}
               />
             ))
-          ) : (
+          ) : isLoadingSearchResults ? (
             <Loader fullPage />
+          ) : (
+            <Empty message="No games found" />
           )}
         </MotionContainer>
         <div className="flex flex-col gap-2">

@@ -6,12 +6,13 @@ import styles from "./ListSection.module.css"
 type ListSectionProps = {
   title: string
   defaultOpen?: boolean
+  setDefaultOpen?: (open: boolean) => void
   games: Game[]
   onSelectItem: (game: Game) => void
 }
 
-const ListSection: React.FC<ListSectionProps> = ({ title, games, onSelectItem, defaultOpen = false }) => (
-  <MotionCollapse defaultOpen={defaultOpen} title={title}>
+const ListSection: React.FC<ListSectionProps> = ({ title, games, onSelectItem, defaultOpen = false, setDefaultOpen }) => (
+  <MotionCollapse defaultOpen={defaultOpen} title={title} setDefaultOpen={setDefaultOpen}>
     <div className={styles.gamesGrid}>
       {games.map((game, index) => (
         <GameContainer key={game.id} game={game} index={index} onClick={() => onSelectItem(game)} />
