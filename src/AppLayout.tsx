@@ -17,10 +17,12 @@ import { refreshToken } from "./api/endpoints/auth.ts"
 import { getMe } from "./api/endpoints/users.ts"
 import { handleError } from "./utils/errors.ts"
 import NavigationRegistrar from "./api/NavigationRegistrar.tsx"
+import ProtectedRoutes from "./router/ProtectedRoutes.tsx"
+import PublicRoutes from "./router/PublicRoutes.tsx"
 import UserList from "./pages/UserList/UserList.tsx"
 
 const AppLayout = () => {
-  const { authenticated, setAuthenticated, jwtToken, setJwtToken, setUser, user } = useAuthStore()
+  const { setAuthenticated, jwtToken, setJwtToken, setUser, user } = useAuthStore()
   const { isGlobalLoading, setIsGlobalLoading } = useGlobalStore()
 
   useEffect(() => {
@@ -104,24 +106,32 @@ const AppLayout = () => {
           {isGlobalLoading ? (
             <Loader fullPage />
           ) : (
-            <>
-              {authenticated ? (
-                <Routes>
-                  <Route path={routes.userList} element={<UserList />} />
-                  <Route path={adminRoutes.games} element={<Admin />} />
-                  <Route path={routes.myList} element={<MyList />} />
-                  <Route path={routes.profile} element={<Profile />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              ) : (
-                <Routes>
-                  <Route path={routes.home} element={<App />} />
-                  <Route path={routes.login} element={<LoginForm />} />
-                  <Route path={routes.register} element={<RegisterForm />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              )}
-            </>
+            // One tree, with guards as layout routes.
+            //
+            // This previously swapped between two entirely separate <Routes>
+            // trees based on `authenticated`, and neither contained the other's
+            // paths. So every render where the flag and the URL disagreed —
+            // unavoidably, for a frame after login — matched only "*" and
+            // flashed a 404. Guards redirect instead, so every URL resolves
+            // under either state.
+            <Routes>
+              <Route element={<PublicRoutes />}>
+                <Route path={routes.home} element={<App />} />
+                <Route path={routes.login} element={<LoginForm />} />
+                <Route path={routes.register} element={<RegisterForm />} />
+              </Route>
+
+              <Route element={<ProtectedRoutes />}>
+                <Route path={routes.myList} element={<MyList />} />
+                <Route path={routes.profile} element={<Profile />} />
+                <Route path={routes.userList} element={<UserList />} />
+                <Route path={adminRoutes.games} element={<Admin />} />
+              </Route>
+
+              {/* Outside both guards on purpose: an unknown URL should say so
+                  rather than bounce the visitor to login. */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           )}
         </main>
       </div>
