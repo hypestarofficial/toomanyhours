@@ -13,9 +13,9 @@
 }
 
 .colWrapper {
-  @apply flex flex-col gap-2 w-full;
+  @apply flex w-full flex-col gap-2;
 }
 
 .buttonWrapper {
-  @apply flex flex-col gap-2 w-full text-center;
+  @apply flex w-full flex-col gap-2 text-center;
 }

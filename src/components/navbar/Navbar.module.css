@@ -1,11 +1,11 @@
 @reference "../../index.css";
 
 .nav {
-  @apply fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-10 pt-5 pb-3 bg-secondaryBg;
+  @apply bg-secondaryBg fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-10 pt-5 pb-3;
 }
 
 .title {
-  @apply font-semibold text-2xl select-none;
+  @apply text-2xl font-semibold select-none;
 }
 
 .navContent {

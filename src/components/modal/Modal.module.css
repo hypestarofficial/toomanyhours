@@ -1,15 +1,15 @@
 @reference "../../index.css";
 
 .backdrop {
-  @apply fixed inset-0 z-50 bg-black/50 backdrop-blur-sm
+  @apply fixed inset-0 z-50 bg-black/50 backdrop-blur-sm;
 }
 
 .modal {
-  @apply flex flex-col bg-bg fixed top-1/2 left-1/2 z-50 max-w-[90%] max-h-[90vh] overflow-hidden -translate-x-1/2 -translate-y-1/2 rounded-xl
+  @apply bg-bg fixed top-1/2 left-1/2 z-50 flex max-h-[90vh] max-w-[90%] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl;
 }
 
 .modalHeader {
-  @apply relative flex w-full pt-10 px-6
+  @apply relative flex w-full px-6 pt-10;
 }
 
 .closeBtn {
@@ -17,9 +17,9 @@
 }
 
 .modalContent {
-  @apply flex flex-1 min-h-0 w-full overflow-y-auto
+  @apply flex min-h-0 w-full flex-1 overflow-y-auto;
 }
 
 .modalFooter {
-  @apply flex w-full
+  @apply flex w-full;
 }

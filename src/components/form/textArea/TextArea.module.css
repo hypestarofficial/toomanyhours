@@ -1,25 +1,25 @@
 @reference "../../../index.css";
 
 .inputContainer {
-  @apply relative flex flex-col gap-1 w-full
+  @apply relative flex w-full flex-col gap-1;
 }
 
 .sideLabel {
-  @apply absolute top-0 bottom-0 flex items-start justify-center whitespace-nowrap
+  @apply absolute top-0 bottom-0 flex items-start justify-center whitespace-nowrap;
 }
 
 .input {
-  @apply bg-bg rounded-md flex w-full px-2 py-1 resize-none
+  @apply bg-bg flex w-full resize-none rounded-md px-2 py-1;
 }
 
 .input:disabled {
-  @apply opacity-50
+  @apply opacity-50;
 }
 
 /* Force placeholder color regardless of the motion animation on the element */
 .input::placeholder {
   color: #9ca3af; /* Use your preferred gray color */
-  opacity: 1; 
+  opacity: 1;
 
-  @apply focus:text-secondaryBg
+  @apply focus:text-secondaryBg;
 }
