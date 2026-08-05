@@ -12,17 +12,16 @@ import Profile from "./pages/Profile/Profile.tsx"
 import { useEffect } from "react"
 import useGlobalStore from "./store/useGlobalStore.ts"
 import Loader from "./components/loader/Loader.tsx"
-import useAuth from "./hooks/api/useAuth.ts"
 import Admin from "./pages/Admin/Admin.tsx"
 import { refreshToken } from "./api/endpoints/auth.ts"
 import { getMe } from "./api/endpoints/users.ts"
 import { handleError } from "./utils/errors.ts"
+import NavigationRegistrar from "./api/NavigationRegistrar.tsx"
 import UserList from "./pages/UserList/UserList.tsx"
 
 const AppLayout = () => {
   const { authenticated, setAuthenticated, jwtToken, setJwtToken, setUser, user } = useAuthStore()
   const { isGlobalLoading, setIsGlobalLoading } = useGlobalStore()
-  const { toggleRefresh } = useAuth()
 
   useEffect(() => {
     const checkSession = async () => {
@@ -41,7 +40,6 @@ const AppLayout = () => {
           if (data && data.access_token) {
             setJwtToken(data.access_token)
             setAuthenticated(true)
-            toggleRefresh(true)
           }
         } catch (error: unknown) {
           localStorage.removeItem("session_active")
@@ -59,7 +57,7 @@ const AppLayout = () => {
     }
 
     checkSession()
-  }, [jwtToken, toggleRefresh])
+  }, [jwtToken])
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -80,6 +78,7 @@ const AppLayout = () => {
 
   return (
     <BrowserRouter>
+      <NavigationRegistrar />
       <div className="relative flex h-full">
         <Navbar />
         <main className="flex h-full w-full flex-col px-10 pt-20">

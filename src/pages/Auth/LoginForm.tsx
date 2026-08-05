@@ -12,7 +12,7 @@ import Page from "../../components/page/Page"
 import { routes } from "../../helpers/routes"
 import { useState } from "react"
 import Loader from "../../components/loader/Loader"
-import useAuth from "../../hooks/api/useAuth"
+import { beginSession } from "../../api/session"
 import { login } from "../../api/endpoints/auth"
 
 type Inputs = {
@@ -22,7 +22,6 @@ type Inputs = {
 
 const LoginForm: React.FC = () => {
   const { setAuthenticated, setJwtToken } = useAuthStore()
-  const { toggleRefresh } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
 
   const navigate = useNavigate()
@@ -51,7 +50,7 @@ const LoginForm: React.FC = () => {
         setJwtToken(result.access_token)
         setAuthenticated(true)
         toast.success("Login successful")
-        toggleRefresh(true)
+        beginSession()
         navigate(routes.myList)
       }
     } catch (error: unknown) {

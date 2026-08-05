@@ -7,6 +7,7 @@ import useAuthStore from "../../store/useAuthStore"
 import { routes } from "../../helpers/routes"
 import { useNavigate } from "react-router"
 import { logout } from "../../api/endpoints/auth"
+import { beginSession } from "../../api/session"
 
 const UserMenu: React.FC = () => {
   const navigate = useNavigate()
@@ -53,6 +54,9 @@ const UserMenu: React.FC = () => {
       setJwtToken("")
       setMenuOpen(false)
       setUser(null)
+      // A deliberate logout is not an expiry: reset the ended-session flag so
+      // the next login is not treated as a dead session by withAuthRetry.
+      beginSession()
       navigate(routes.login)
     }
   }

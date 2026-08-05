@@ -10,7 +10,7 @@ import MotionLink from "../../components/motionLink/MotionLink"
 import styles from "./Auth.module.css"
 import { useNavigate } from "react-router"
 import useAuthStore from "../../store/useAuthStore"
-import useAuth from "../../hooks/api/useAuth"
+import { beginSession } from "../../api/session"
 import { register } from "../../api/endpoints/auth"
 import { routes } from "../../helpers/routes"
 import { handleError } from "../../utils/errors"
@@ -24,7 +24,6 @@ type Inputs = {
 
 const RegisterForm: React.FC = () => {
   const { setAuthenticated, setJwtToken } = useAuthStore()
-  const { toggleRefresh } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
 
@@ -54,7 +53,7 @@ const RegisterForm: React.FC = () => {
         toast.success("Welcome to the club!")
         // Without this the access token expires in 15 minutes with nothing
         // renewing it, and the user is silently logged out mid-session.
-        toggleRefresh(true)
+        beginSession()
         navigate(routes.myList)
       }
     } catch (error: unknown) {
