@@ -34,6 +34,10 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_API_URL,
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ""),
+          // Without this the API sees only Vite's own connection, so every
+          // user would share one rate-limit bucket. The API trusts
+          // X-Forwarded-For from loopback only, which is where this comes from.
+          xfwd: true,
         },
       },
     },
