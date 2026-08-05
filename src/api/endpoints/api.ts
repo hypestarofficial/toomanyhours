@@ -4,7 +4,7 @@ import type { User } from "../../types/users"
 import type { ApiGame } from "../types/apiGames"
 
 interface HttpRequestParams {
-  method: "GET" | "POST" | "PUT" | "DELETE"
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
   url: string
   params?: Record<string, string>
   body?: Record<string, unknown>

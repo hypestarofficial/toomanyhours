@@ -4,7 +4,8 @@ import { getGames, getGenres, getAdminGames, getGameById, postGameToGames, putGa
 import useAuthStore from "../../store/useAuthStore"
 import type { Game, Genre } from "../../types/games"
 import type { ApiGame } from "../types/apiGames"
-import type { User } from "../../types/users"
+import type { User, Visibility } from "../../types/users"
+import { patchMe } from "./users"
 
 // Public endpoints
 export const useGamesQuery = ({ title, genreIDs }: { title?: string; genreIDs?: number[] } = {}) => {
@@ -68,6 +69,17 @@ export const useDeleteGameByGameIdMutation = () => {
 
   return useMutation<void, Error, { gameId: number }>({
     mutationFn: ({ gameId }: { gameId: number }) => deleteGameByGameId(gameId, jwtToken!),
+  })
+}
+
+export const usePatchMeMutation = () => {
+  const { jwtToken, setUser } = useAuthStore()
+
+  return useMutation<User, Error, { username?: string; visibility?: Visibility }>({
+    mutationFn: (body) => patchMe({ body, jwtToken: jwtToken! }),
+    // useAuthStore.user is what the whole app renders from, so without this
+    // the profile and navbar keep showing the old username until a reload.
+    onSuccess: (updated) => setUser(updated),
   })
 }
 
