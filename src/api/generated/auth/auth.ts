@@ -97,7 +97,7 @@ export const authenticate = (
   )
 }
 
-export const getAuthenticateMutationOptions = <TError = ErrorResponse | ErrorResponse, TContext = unknown>(options?: {
+export const getAuthenticateMutationOptions = <TError = ErrorResponse | ErrorResponse | ErrorResponse, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof authenticate>>, TError, { data: AuthenticateRequest }, TContext>
   request?: SecondParameter<typeof customFetch>
 }): UseMutationOptions<Awaited<ReturnType<typeof authenticate>>, TError, { data: AuthenticateRequest }, TContext> => {
@@ -119,12 +119,12 @@ export const getAuthenticateMutationOptions = <TError = ErrorResponse | ErrorRes
 
 export type AuthenticateMutationResult = NonNullable<Awaited<ReturnType<typeof authenticate>>>
 export type AuthenticateMutationBody = AuthenticateRequest
-export type AuthenticateMutationError = ErrorResponse | ErrorResponse
+export type AuthenticateMutationError = ErrorResponse | ErrorResponse | ErrorResponse
 
 /**
  * @summary Log in
  */
-export const useAuthenticate = <TError = ErrorResponse | ErrorResponse, TContext = unknown>(
+export const useAuthenticate = <TError = ErrorResponse | ErrorResponse | ErrorResponse, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof authenticate>>, TError, { data: AuthenticateRequest }, TContext>
     request?: SecondParameter<typeof customFetch>
