@@ -1,13 +1,17 @@
 import { toast } from "sonner"
+import { useState } from "react"
 import { Controller, Form, useForm } from "react-hook-form"
 import type { SubmitHandler } from "react-hook-form"
 import Input from "../../components/form/input/Input"
+import Loader from "../../components/loader/Loader"
 import MotionButton from "../../components/motionButton/MotionButton"
 import MotionContainer from "../../components/motionContainer/MotionContainer"
 import MotionLink from "../../components/motionLink/MotionLink"
 import styles from "./Auth.module.css"
 import { useNavigate } from "react-router"
 import useAuthStore from "../../store/useAuthStore"
+import useAuth from "../../hooks/api/useAuth"
+import { register } from "../../api/endpoints/auth"
 import { routes } from "../../helpers/routes"
 import { handleError } from "../../utils/errors"
 import Page from "../../components/page/Page"
@@ -19,7 +23,9 @@ type Inputs = {
 }
 
 const RegisterForm: React.FC = () => {
-  const { setAuthenticated } = useAuthStore()
+  const { setAuthenticated, setJwtToken } = useAuthStore()
+  const { toggleRefresh } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
 
   const {
@@ -36,14 +42,31 @@ const RegisterForm: React.FC = () => {
   })
 
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
+    setIsLoading(true)
+
     try {
-      console.log(data)
-      setAuthenticated(true)
-      toast.success("Welcome to the club!")
-      navigate(routes.home)
+      const result = await register({ username: data.username, email: data.email, password: data.password })
+
+      if (result && result.access_token) {
+        localStorage.setItem("session_active", "true")
+
+        setJwtToken(result.access_token)
+        setAuthenticated(true)
+        toast.success("Welcome to the club!")
+        // Without this the access token expires in 15 minutes with nothing
+        // renewing it, and the user is silently logged out mid-session.
+        toggleRefresh(true)
+        navigate(routes.myList)
+      }
     } catch (error: unknown) {
-      handleError({ error, userMessage: "An error occurred while registering", componentName: "RegisterForm" })
+      handleError({ error, userMessage: "Could not create account", componentName: "RegisterForm" })
+    } finally {
+      setIsLoading(false)
     }
+  }
+
+  if (isLoading) {
+    return <Loader fullPage />
   }
 
   return (
@@ -56,7 +79,13 @@ const RegisterForm: React.FC = () => {
               <Controller
                 name="username"
                 control={control}
-                rules={{ required: "Game tag is required" }}
+                rules={{
+                  required: "Game tag is required",
+                  minLength: { value: 3, message: "At least 3 characters" },
+                  // Uppercase is accepted because the server lowercases it.
+                  // Rejecting it here would be a lie about what's allowed.
+                  pattern: { value: /^[a-zA-Z0-9_]+$/, message: "Letters, numbers and underscores only" },
+                }}
                 render={({ field, formState: { errors } }) => (
                   <Input
                     type="text"
@@ -93,12 +122,11 @@ const RegisterForm: React.FC = () => {
                 control={control}
                 rules={{
                   required: "Password is required",
-                  minLength: { value: 8, message: "Password must be at least 6 characters long" },
+                  minLength: { value: 8, message: "Password must be at least 8 characters long" },
                 }}
                 render={({ field, formState: { errors } }) => (
                   <Input
                     type="password"
-                    maxLength={16}
                     label="Password"
                     id="password"
                     autoComplete="new-password"
