@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=0",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "check-format": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\""
+    "check-format": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "codegen": "orval"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -45,6 +46,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "orval": "^7.13.2",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "sharp": "^0.34.5",

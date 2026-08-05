@@ -8,17 +8,27 @@ import MotionContainer from "../../components/motionContainer/MotionContainer"
 import MotionButton from "../../components/motionButton/MotionButton"
 import { PlusIcon } from "@heroicons/react/24/outline"
 import AddEditGame from "./addEditGame/AddEditGame"
-import { useAdminGamesQuery, useGenresQuery } from "../../api/endpoints/useQuery"
+import { useGetAdminGames } from "../../api/generated/admin/admin"
+import { useGetGenres } from "../../api/generated/genres/genres"
 import MultiSelect from "../../components/form/multiSelect/MultiSelect"
 import Empty from "../../components/empty/Empty"
 import useUserSettingsAuthStore from "../../store/useUserSettingsAuth"
+import useAuthStore from "../../store/useAuthStore"
 
 const Admin: React.FC = () => {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [isAddGameOpen, setIsAddGameOpen] = useState(false)
   const { filterGenres, setFilterGenres } = useUserSettingsAuthStore()
-  const { data: games, isLoading: isLoadingGames } = useAdminGamesQuery({ genreIDs: filterGenres })
-  const { data: genres } = useGenresQuery()
+  const { jwtToken } = useAuthStore()
+
+  // `enabled` is not optional: the mutator reads the token at request time, so
+  // without this the queries fire before one exists and 401 on every boot.
+  // genreIds is a comma-separated string, not an array — the API splits it.
+  const { data: games, isLoading: isLoadingGames } = useGetAdminGames(
+    { genreIds: filterGenres.join(",") },
+    { query: { enabled: !!jwtToken } },
+  )
+  const { data: genres } = useGetGenres({ query: { enabled: !!jwtToken } })
 
   const multiSelectOptions = genres?.map((genre) => ({ label: genre.genre, value: genre.id })) ?? []
 

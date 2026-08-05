@@ -8,12 +8,8 @@ import { useCallback, useEffect, useState } from "react"
 import { Image } from "@heroui/image"
 import dayjs from "dayjs"
 import Checkbox from "../../../components/form/checkbox/Checkbox"
-import {
-  useDeleteGameByGameIdMutation,
-  useGenresQuery,
-  usePostGameToGamesMutation,
-  usePutGameByGameIdMutation,
-} from "../../../api/endpoints/useQuery"
+import { getGetAdminGamesQueryKey, useCreateGame, useDeleteGame, useUpdateGame } from "../../../api/generated/admin/admin"
+import { useGetGenres } from "../../../api/generated/genres/genres"
 import Loader from "../../../components/loader/Loader"
 import { handleError } from "../../../utils/errors"
 import { useQueryClient } from "@tanstack/react-query"
@@ -36,10 +32,17 @@ type AddEditGameForm = {
 const AddEditGame: React.FC<AddEditGameProps> = ({ game, isOpen, onClose }) => {
   const queryClient = useQueryClient()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const { data: genres } = useGenresQuery()
-  const { mutate: postGameToGames } = usePostGameToGamesMutation()
-  const { mutate: putGame } = usePutGameByGameIdMutation()
-  const { mutate: deleteGameByGameId } = useDeleteGameByGameIdMutation()
+  const { data: genres } = useGetGenres()
+  // <Error> because the mutator throws a real Error; Orval otherwise
+  // types the error as the spec's ErrorResponse, which never reaches here.
+  const { mutate: createGame } = useCreateGame<Error>()
+  const { mutate: updateGame } = useUpdateGame<Error>()
+  const { mutate: deleteGame } = useDeleteGame<Error>()
+
+  // The generated query key is ['/admin/games', ...params], not the old
+  // ['admin-games']. Invalidating the stale string would silently do nothing
+  // and the list would not refresh after a save.
+  const adminGamesKey = getGetAdminGamesQueryKey()
 
   const {
     control,
@@ -86,10 +89,10 @@ const AddEditGame: React.FC<AddEditGameProps> = ({ game, isOpen, onClose }) => {
   const onSubmit = async (data: AddEditGameForm) => {
     if (game) {
       // Edit game
-      putGame(
+      updateGame(
         {
-          gameId: game.id,
-          game: {
+          id: game.id,
+          data: {
             title: data.title,
             image: data.image,
             releaseDate: dayjs(data.releaseDate).toISOString(),
@@ -99,7 +102,7 @@ const AddEditGame: React.FC<AddEditGameProps> = ({ game, isOpen, onClose }) => {
         {
           onSuccess: () => {
             toast.success("Game updated successfully!")
-            queryClient.invalidateQueries({ queryKey: ["admin-games"] })
+            queryClient.invalidateQueries({ queryKey: adminGamesKey })
             onClose()
           },
           onError: (error: Error) => {
@@ -116,16 +119,19 @@ const AddEditGame: React.FC<AddEditGameProps> = ({ game, isOpen, onClose }) => {
         releaseDate: dayjs(data.releaseDate).toISOString(),
         genreIds: data.genreIds,
       }
-      postGameToGames(payload, {
-        onSuccess: () => {
-          toast.success("Game saved successfully!")
-          queryClient.invalidateQueries({ queryKey: ["admin-games"] })
-          onClose()
+      createGame(
+        { data: payload },
+        {
+          onSuccess: () => {
+            toast.success("Game saved successfully!")
+            queryClient.invalidateQueries({ queryKey: adminGamesKey })
+            onClose()
+          },
+          onError: (error: Error) => {
+            handleError({ error, userMessage: "An error occurred while adding the game", componentName: "AddEditGame" })
+          },
         },
-        onError: (error: Error) => {
-          handleError({ error, userMessage: "An error occurred while adding the game", componentName: "AddEditGame" })
-        },
-      })
+      )
     }
   }
 
@@ -136,12 +142,12 @@ const AddEditGame: React.FC<AddEditGameProps> = ({ game, isOpen, onClose }) => {
     }
 
     try {
-      deleteGameByGameId(
-        { gameId: game.id },
+      deleteGame(
+        { id: game.id },
         {
           onSuccess: () => {
             toast.success("Game deleted successfully!")
-            queryClient.invalidateQueries({ queryKey: ["admin-games"] })
+            queryClient.invalidateQueries({ queryKey: adminGamesKey })
             setIsDialogOpen(false)
             setTimeout(() => {
               onClose()

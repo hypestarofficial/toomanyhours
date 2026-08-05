@@ -31,7 +31,6 @@
   background-color: #242424;
   overflow-y: auto;
   overflow-x: hidden;
-  
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -58,7 +57,7 @@ input[type="number"] {
 
 .scroll-shadow-container {
   position: relative; /* Crucial for positioning the absolute overlays */
-  overflow-y: auto;   /* The container must manage its own scrolling */
+  overflow-y: auto; /* The container must manage its own scrolling */
 }
 
 /* Pseudo-element for the top fade */
@@ -72,7 +71,7 @@ input[type="number"] {
   /* Gradient matching your background color */
   background: linear-gradient(to bottom, #242424 0%, rgba(36, 36, 36, 0) 100%);
   /* Ensures the overlay is above the content */
-  pointer-events: none; 
+  pointer-events: none;
   z-index: 10;
 }
 
@@ -129,7 +128,7 @@ h4 {
 }
 
 img {
-  @apply select-none pointer-events-none;
+  @apply pointer-events-none select-none;
 }
 
 button {

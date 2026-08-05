@@ -1,37 +1,37 @@
 @reference "../../../index.css";
 
 .inputContainer {
-  @apply relative flex flex-col gap-1
+  @apply relative flex flex-col gap-1;
 }
 
 .sideLabel {
-  @apply absolute top-0 bottom-0 flex items-center justify-center whitespace-nowrap
+  @apply absolute top-0 bottom-0 flex items-center justify-center whitespace-nowrap;
 }
 
 .inputWrapper {
-  @apply bg-bg flex h-10 overflow-hidden rounded-md
+  @apply bg-bg flex h-10 overflow-hidden rounded-md;
 }
 
 .input {
-  @apply w-full px-2 py-1 focus:outline-none
+  @apply w-full px-2 py-1 focus:outline-none;
 }
 
 .input:disabled {
-  @apply opacity-50
+  @apply opacity-50;
 }
 
 .passwordToggle {
-  @apply relative p-2 transition-colors focus:outline-none bg-secondaryBg
+  @apply bg-secondaryBg relative p-2 transition-colors focus:outline-none;
 }
 
 .icon {
-  @apply h-4 w-4
+  @apply h-4 w-4;
 }
 
 .iconClear {
-  @apply h-5 w-5 
+  @apply h-5 w-5;
 }
 
 .clear {
-  @apply absolute top-0 bottom-0 right-0 flex items-center justify-center p-2 transition-colors focus:outline-none bg-transparent hover:text-primary
+  @apply hover:text-primary absolute top-0 right-0 bottom-0 flex items-center justify-center bg-transparent p-2 transition-colors focus:outline-none;
 }

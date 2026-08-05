@@ -2,7 +2,8 @@ import { useParams } from "react-router"
 import MotionContainer from "../../components/motionContainer/MotionContainer"
 import Page from "../../components/page/Page"
 import Empty from "../../components/empty/Empty"
-import { useGamesQuery, useGenresQuery, useGetUserByIdQuery } from "../../api/endpoints/useQuery"
+import { useGamesQuery, useGetUserByIdQuery } from "../../api/endpoints/useQuery"
+import { useGetGenres } from "../../api/generated/genres/genres"
 import Loader from "../../components/loader/Loader"
 import Avatar from "../../components/avatar/Avatar"
 import ListSection from "../MyList/listSection/ListSection"
@@ -17,7 +18,7 @@ const UserList: React.FC = () => {
   const { defaultListConfig, setDefaultListConfig, filterGenres, setFilterGenres } = useUserSettingsAuthStore()
   const { data: user, isLoading: isLoadingUser } = useGetUserByIdQuery({ id: parseInt(id!) })
   const { data: games, isLoading: isLoadingGames } = useGamesQuery({ genreIDs: filterGenres })
-  const { data: genres } = useGenresQuery()
+  const { data: genres } = useGetGenres()
 
   const multiSelectOptions = genres?.map((genre) => ({ label: genre.genre, value: genre.id })) ?? []
 
