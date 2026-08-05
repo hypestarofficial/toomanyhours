@@ -55,7 +55,7 @@ const LoginForm: React.FC = () => {
         navigate(routes.myList)
       }
     } catch (error: unknown) {
-      handleError({ error, userMessage: "An error occurred while logging in", componentName: "LoginForm" })
+      handleError({ error, userMessage: "Invalid credentials", componentName: "LoginForm" })
     } finally {
       setIsLoading(false)
     }

@@ -17,6 +17,7 @@ import Admin from "./pages/Admin/Admin.tsx"
 import { refreshToken } from "./api/endpoints/auth.ts"
 import { getMe } from "./api/endpoints/users.ts"
 import { handleError } from "./utils/errors.ts"
+import UserList from "./pages/UserList/UserList.tsx"
 
 const AppLayout = () => {
   const { authenticated, setAuthenticated, jwtToken, setJwtToken, setUser, user } = useAuthStore()
@@ -107,6 +108,7 @@ const AppLayout = () => {
             <>
               {authenticated ? (
                 <Routes>
+                  <Route path={routes.userList} element={<UserList />} />
                   <Route path={adminRoutes.games} element={<Admin />} />
                   <Route path={routes.myList} element={<MyList />} />
                   <Route path={routes.profile} element={<Profile />} />

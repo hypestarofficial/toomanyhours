@@ -1,9 +1,10 @@
 // hooks/useGamesQuery.ts
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { getGames, getGenres, getAdminGames, getGameById, postGameToGames, putGameByGameId, deleteGameByGameId } from "./api"
+import { getGames, getGenres, getAdminGames, getGameById, postGameToGames, putGameByGameId, deleteGameByGameId, getUserById } from "./api"
 import useAuthStore from "../../store/useAuthStore"
 import type { Game, Genre } from "../../types/games"
 import type { ApiGame } from "../types/apiGames"
+import type { User } from "../../types/users"
 
 // Public endpoints
 export const useGamesQuery = ({ title, genreIDs }: { title?: string; genreIDs?: number[] } = {}) => {
@@ -67,5 +68,15 @@ export const useDeleteGameByGameIdMutation = () => {
 
   return useMutation<void, Error, { gameId: number }>({
     mutationFn: ({ gameId }: { gameId: number }) => deleteGameByGameId(gameId, jwtToken!),
+  })
+}
+
+export const useGetUserByIdQuery = ({ id }: { id: number }) => {
+  const { jwtToken } = useAuthStore()
+
+  return useQuery<User, Error>({
+    queryKey: ["user", id, jwtToken],
+    queryFn: () => getUserById(id, jwtToken!),
+    enabled: !!jwtToken,
   })
 }

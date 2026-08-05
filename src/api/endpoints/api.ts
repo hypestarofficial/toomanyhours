@@ -1,5 +1,6 @@
 // api.ts (Renamed from useApi.ts)
 import type { Game, Genre } from "../../types/games"
+import type { User } from "../../types/users"
 import type { ApiGame } from "../types/apiGames"
 
 interface HttpRequestParams {
@@ -135,3 +136,11 @@ export const deleteGameByGameId = async (gameId: number, jwtToken: string): Prom
     authorization: true,
     jwtToken: jwtToken,
   }) as Promise<void>
+
+export const getUserById = async (userId: number, jwtToken: string): Promise<User> =>
+  httpRequest({
+    method: "GET",
+    url: `/users/${userId}`,
+    authorization: true,
+    jwtToken: jwtToken,
+  }) as Promise<User>
