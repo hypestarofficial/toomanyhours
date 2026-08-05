@@ -1,4 +1,6 @@
 import useAuthStore from "../store/useAuthStore"
+import { ApiError } from "./apiError"
+import { withAuthRetry } from "./session"
 
 // Matches httpRequest's BASE_URL. vite.config.ts proxies /api/* to the API host
 // and strips the prefix, so this must stay in step with that rewrite rule.
@@ -22,50 +24,55 @@ export type FetchOptions = {
   headers?: Record<string, string>
 }
 
-export const customFetch = async <T>(config: FetchConfig, options?: FetchOptions): Promise<T> => {
-  const { url, method, params, data, headers: configHeaders, signal } = config
+export const customFetch = async <T>(config: FetchConfig, options?: FetchOptions): Promise<T> =>
+  withAuthRetry(async () => {
+    const { url, method, params, data, headers: configHeaders, signal } = config
 
-  // The token is read imperatively rather than through useAuthStore(), because
-  // this is a plain function and not a component — getState() is Zustand's
-  // supported way to reach store state from outside React.
-  const { jwtToken } = useAuthStore.getState()
+    // Read inside the retry closure, not outside. After a refresh the retry
+    // must pick up the NEW token; reading once outside would resend the
+    // expired one and 401 again, ending a session that was actually fine.
+    //
+    // getState() rather than useAuthStore() because this is a plain function,
+    // not a component.
+    const { jwtToken } = useAuthStore.getState()
 
-  const headers = new Headers({ ...configHeaders, ...options?.headers })
-  headers.set("Content-Type", "application/json")
-  if (jwtToken) {
-    headers.set("Authorization", `Bearer ${jwtToken}`)
-  }
-
-  // Drop empty and absent params, matching httpRequest — the API treats an
-  // empty `title` as "no filter", but only if the key is absent entirely.
-  const query = new URLSearchParams()
-  for (const [key, value] of Object.entries(params ?? {})) {
-    if (value !== undefined && value !== null && value !== "") {
-      query.set(key, String(value))
+    const headers = new Headers({ ...configHeaders, ...options?.headers })
+    headers.set("Content-Type", "application/json")
+    if (jwtToken) {
+      headers.set("Authorization", `Bearer ${jwtToken}`)
     }
-  }
-  const queryString = query.size > 0 ? `?${query.toString()}` : ""
 
-  const response = await fetch(`${BASE_URL}${url}${queryString}`, {
-    method,
-    headers,
-    signal,
-    credentials: "include",
-    body: data === undefined ? undefined : JSON.stringify(data),
+    // Drop empty and absent params, matching httpRequest — the API treats an
+    // empty `title` as "no filter", but only if the key is absent entirely.
+    const query = new URLSearchParams()
+    for (const [key, value] of Object.entries(params ?? {})) {
+      if (value !== undefined && value !== null && value !== "") {
+        query.set(key, String(value))
+      }
+    }
+    const queryString = query.size > 0 ? `?${query.toString()}` : ""
+
+    const response = await fetch(`${BASE_URL}${url}${queryString}`, {
+      method,
+      headers,
+      signal,
+      credentials: "include",
+      body: data === undefined ? undefined : JSON.stringify(data),
+    })
+
+    const contentType = response.headers.get("content-type")
+    const isJson = contentType !== null && contentType.includes("application/json")
+
+    if (!response.ok) {
+      const errorBody = isJson ? await response.json().catch(() => null) : null
+      // ApiError rather than Error: withAuthRetry needs the status to tell a
+      // 401 from any other failure. handleError() still reads .message.
+      throw new ApiError(response.status, `HTTP ${response.status}: ${errorBody?.message ?? response.statusText}`, errorBody)
+    }
+
+    if (!isJson || response.status === 204) {
+      return null as T
+    }
+
+    return (await response.json()) as T
   })
-
-  const contentType = response.headers.get("content-type")
-  const isJson = contentType !== null && contentType.includes("application/json")
-
-  if (!response.ok) {
-    const errorBody = isJson ? await response.json().catch(() => null) : null
-    // handleError() reads error.message, and the existing toasts depend on it.
-    throw new Error(`HTTP ${response.status}: ${errorBody?.message ?? response.statusText}`)
-  }
-
-  if (!isJson || response.status === 204) {
-    return null as T
-  }
-
-  return (await response.json()) as T
-}

@@ -2,6 +2,9 @@
 // client. Admin's endpoints moved to src/api/generated; MyList's remain here.
 import type { Game } from "../../types/games"
 import type { User } from "../../types/users"
+import useAuthStore from "../../store/useAuthStore"
+import { ApiError } from "../apiError"
+import { withAuthRetry } from "../session"
 
 interface HttpRequestParams {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
@@ -14,40 +17,40 @@ interface HttpRequestParams {
 
 const BASE_URL = "/api"
 
-export const httpRequest = async ({
-  method,
-  url,
-  params,
-  body,
-  authorization = false,
-  jwtToken,
-  credentials,
-}: HttpRequestParams & { jwtToken?: string }) => {
-  const headers = new Headers()
-  headers.append("Content-Type", "application/json")
+export const httpRequest = async ({ method, url, params, body, authorization = false, credentials }: HttpRequestParams) =>
+  withAuthRetry(async () => {
+    // Read per attempt, so a retry after a refresh carries the new token. This
+    // previously took jwtToken as an argument captured when the calling hook
+    // rendered, which made retry impossible: the retry would resend the
+    // expired token, 401 again, and end a session that was actually fine.
+    const { jwtToken } = useAuthStore.getState()
 
-  if (authorization && jwtToken) {
-    headers.append("Authorization", `Bearer ${jwtToken}`)
-  }
+    const headers = new Headers()
+    headers.append("Content-Type", "application/json")
 
-  const cleanParams = params ? Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== "")) : {}
-  const queryString = Object.keys(cleanParams).length > 0 ? `?${new URLSearchParams(cleanParams).toString()}` : ""
-  const fullUrl = `${BASE_URL}${url}${queryString}`
+    if (authorization && jwtToken) {
+      headers.append("Authorization", `Bearer ${jwtToken}`)
+    }
 
-  try {
-    const response = await fetch(fullUrl, { method, headers, body: body ? JSON.stringify(body) : undefined, credentials: credentials })
+    const cleanParams = params ? Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== "")) : {}
+    const queryString = Object.keys(cleanParams).length > 0 ? `?${new URLSearchParams(cleanParams).toString()}` : ""
+    const fullUrl = `${BASE_URL}${url}${queryString}`
+
+    const response = await fetch(fullUrl, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+      credentials: credentials,
+    })
 
     const contentType = response.headers.get("content-type")
-    const isJson = contentType && contentType.includes("application/json")
+    const isJson = contentType !== null && contentType.includes("application/json")
 
     if (!response.ok) {
-      let errorData = { message: `HTTP error ${response.status}` }
-
-      if (isJson) {
-        errorData = await response.json().catch(() => ({ message: "Failed to parse error JSON" }))
-      }
-
-      throw new Error(`HTTP ${response.status}: ${errorData.message}`)
+      const errorBody = isJson ? await response.json().catch(() => null) : null
+      // ApiError rather than Error: withAuthRetry needs the status to tell a
+      // 401 from any other failure.
+      throw new ApiError(response.status, `HTTP ${response.status}: ${errorBody?.message ?? response.statusText}`, errorBody)
     }
 
     if (!isJson || response.status === 204) {
@@ -55,37 +58,27 @@ export const httpRequest = async ({
     }
 
     return await response.json()
-  } catch (error) {
-    console.error("API Error:", error)
-    throw error
-  }
-}
+  })
 
 // ENDPOINTS - These are now just simple functions
-export const getGames = async (title: string, genreIDs: number[], jwtToken: string): Promise<Game[]> =>
+export const getGames = async (title: string, genreIds: number[]): Promise<Game[]> =>
   httpRequest({
     method: "GET",
     url: "/games",
-    params: { title, genreIds: genreIDs.join(",") },
+    params: { title, genreIds: genreIds.join(",") },
     authorization: true,
-    jwtToken: jwtToken,
   }) as Promise<Game[]>
 
-export const getGameById = async (gameId: number, jwtToken: string): Promise<Game> => {
-  const url = `/games/${gameId}`
-
-  return httpRequest({
+export const getGameById = async (gameId: number): Promise<Game> =>
+  httpRequest({
     method: "GET",
-    url: url,
+    url: `/games/${gameId}`,
     authorization: true,
-    jwtToken: jwtToken,
   }) as Promise<Game>
-}
 
-export const getUserById = async (userId: number, jwtToken: string): Promise<User> =>
+export const getUserById = async (userId: number): Promise<User> =>
   httpRequest({
     method: "GET",
     url: `/users/${userId}`,
     authorization: true,
-    jwtToken: jwtToken,
   }) as Promise<User>
