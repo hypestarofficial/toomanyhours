@@ -25,6 +25,9 @@ export default defineConfig(({ mode }) => {
       dedupe: ["react", "react-dom"],
     },
     server: {
+      // Bind to all interfaces so the dev server is reachable from other
+      // machines on the LAN, not just localhost.
+      host: true,
       port: 3100,
       proxy: {
         "/api": {
