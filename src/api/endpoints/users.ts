@@ -6,19 +6,17 @@ type PatchMeBody = {
   visibility?: Visibility
 }
 
-export const getMe = async ({ jwtToken }: { jwtToken: string }): Promise<User | null> =>
+export const getMe = async (): Promise<User | null> =>
   httpRequest({
     method: "GET",
     url: "/me",
     authorization: true,
-    jwtToken: jwtToken,
   }) as Promise<User | null>
 
-export const patchMe = async ({ body, jwtToken }: { body: PatchMeBody; jwtToken: string }): Promise<User> =>
+export const patchMe = async (body: PatchMeBody): Promise<User> =>
   httpRequest({
     method: "PATCH",
     url: "/me",
     authorization: true,
-    jwtToken: jwtToken,
     body: body,
   }) as Promise<User>

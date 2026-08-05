@@ -65,7 +65,7 @@ const AppLayout = () => {
     const fetchUserProfile = async () => {
       if (jwtToken && !user) {
         try {
-          const userData = await getMe({ jwtToken })
+          const userData = await getMe()
           setUser(userData)
         } catch (error) {
           console.error("Failed to fetch user profile:", error)
