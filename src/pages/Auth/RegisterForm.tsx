@@ -29,7 +29,6 @@ const RegisterForm: React.FC = () => {
   const navigate = useNavigate()
 
   const {
-    handleSubmit,
     control,
     formState: { isValid },
   } = useForm<Inputs>({
@@ -141,7 +140,7 @@ const RegisterForm: React.FC = () => {
               <MotionLink to={routes.login} className="text-center text-xs">
                 Already a gamer? Login here brother
               </MotionLink>
-              <MotionButton flex onClick={handleSubmit(onSubmit)} disabled={!isValid}>
+              <MotionButton type="submit" flex disabled={!isValid}>
                 Register
               </MotionButton>
             </div>
