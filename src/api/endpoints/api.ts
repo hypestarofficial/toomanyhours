@@ -66,7 +66,7 @@ export const getGames = async (title: string, genreIDs: number[], jwtToken: stri
   httpRequest({
     method: "GET",
     url: "/games",
-    params: { title, genreIDs: genreIDs.join(",") },
+    params: { title, genreIds: genreIDs.join(",") },
     authorization: true,
     jwtToken: jwtToken,
   }) as Promise<Game[]>
@@ -95,7 +95,7 @@ export const getAdminGames = async (title: string, genreIDs: number[], jwtToken:
   httpRequest({
     method: "GET",
     url: "/admin/games",
-    params: { title, genreIDs: genreIDs.join(",") },
+    params: { title, genreIds: genreIDs.join(",") },
     authorization: true,
     jwtToken: jwtToken,
   }) as Promise<Game[]>
@@ -111,7 +111,7 @@ export const postGameToGames = async (game: ApiGame, jwtToken: string): Promise<
       title: game.title,
       image: game.image,
       releaseDate: game.releaseDate,
-      genreIDs: game.genreIds,
+      genreIds: game.genreIds,
     },
   }) as Promise<Game>
 
@@ -125,7 +125,7 @@ export const putGameByGameId = async (gameId: number, game: Omit<ApiGame, "id">,
       title: game.title,
       image: game.image,
       releaseDate: game.releaseDate,
-      genreIDs: game.genreIds,
+      genreIds: game.genreIds,
     },
   }) as Promise<Game>
 
