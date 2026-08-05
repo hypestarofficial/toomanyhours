@@ -8,6 +8,8 @@
     "start": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=0",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "check-format": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
@@ -56,6 +58,7 @@
     "vite": "^7.2.4",
     "vite-plugin-image-optimizer": "^2.0.3",
     "vite-plugin-svgr": "^4.5.0",
-    "vite-plugin-vue-tailwind-auto-reference": "^2.0.1"
+    "vite-plugin-vue-tailwind-auto-reference": "^2.0.1",
+    "vitest": "^4.1.10"
   }
 }
