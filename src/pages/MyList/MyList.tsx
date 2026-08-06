@@ -144,7 +144,10 @@ const MyList: React.FC = () => {
   // should render three empty sections, not an error message.
   return (
     <Page align="start">
-      <MotionContainer type="ease" className="fixed bottom-6 left-6">
+      {/* z-40 puts it above the cards but below the navbar and modal, both
+          z-50. Without a stacking order of its own a fixed element still
+          paints in document order, so the taller portrait cards covered it. */}
+      <MotionContainer type="ease" className="fixed bottom-6 left-6 z-40">
         <MotionButton
           variant="success"
           className="rounded-full"
