@@ -19,7 +19,7 @@ import type { UpdateUserGameRequestCategory } from "./updateUserGameRequestCateg
 export interface UpdateUserGameRequest {
   category?: UpdateUserGameRequestCategory
   /**
-   * 1-10 to set, 0 to clear.
+   * 0.5-10 in half-steps to set, 0 to clear.
    * @minimum 0
    * @maximum 10
    */

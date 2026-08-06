@@ -22,8 +22,8 @@ export interface UserGame {
   gameId: number
   category: UserGameCategory
   /**
-   * 1-10, or null when unrated.
-   * @minimum 1
+   * 0.5-10 in half-steps, or null when unrated. Ten stars at half-step resolution, so 6.5 stars is a rating of 6.5.
+   * @minimum 0.5
    * @maximum 10
    * @nullable
    */
