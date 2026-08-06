@@ -23,4 +23,8 @@ export type GetGamesParams = {
    * Comma-separated genre ids, for example `1,4,12`. A string, not an array — the handler splits on commas itself. Games matching any of the ids are returned, and unparseable entries are skipped silently.
    */
   genreIds?: GenreIdsQueryParameter
+  /**
+   * When `true`, omits games already in the caller's list. Opt-in: this endpoint otherwise describes the whole catalog. The user is taken from the bearer token, not from the request.
+   */
+  excludeMine?: boolean
 }
