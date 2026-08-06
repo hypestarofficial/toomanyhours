@@ -16,12 +16,14 @@ import { patchMe } from "./users"
 // and 401 on every boot.
 
 // Public endpoints
-export const useGamesQuery = ({ title, genreIDs }: { title?: string; genreIDs?: number[] } = {}) => {
+export const useGamesQuery = ({ title, genreIDs, excludeMine }: { title?: string; genreIDs?: number[]; excludeMine?: boolean } = {}) => {
   const { jwtToken } = useAuthStore()
 
   return useQuery<Game[], Error>({
-    queryKey: ["games", title, genreIDs],
-    queryFn: () => getGames(title ?? "", genreIDs ?? []),
+    // excludeMine is part of the key: filtered and unfiltered results are
+    // different responses and must not share a cache entry.
+    queryKey: ["games", title, genreIDs, excludeMine],
+    queryFn: () => getGames(title ?? "", genreIDs ?? [], excludeMine ?? false),
     enabled: !!jwtToken,
   })
 }
