@@ -50,8 +50,14 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
             space, which is what reads as one piece of type rather than two. */}
         <div className="flex items-baseline gap-2">
           <h1 className={styles.title}>tooManyHours</h1>
-          {/* IGDB asks to be credited where their data is used. */}
-          <span className={styles.attribution}>powered by IGDB</span>
+          {/* Version above the credit: two facts about the build, stacked so
+              they read as metadata rather than competing with the wordmark.
+              The version comes from package.json via Vite's define. */}
+          <div className="flex flex-col leading-tight">
+            <span className={styles.attribution}>v{__APP_VERSION__}</span>
+            {/* IGDB asks to be credited where their data is used. */}
+            <span className={styles.attribution}>powered by IGDB</span>
+          </div>
         </div>
       </div>
       {authenticated ? <AuthenticatedNavbar /> : <UnauthenticatedNavbar />}
