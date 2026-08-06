@@ -8,6 +8,10 @@
   @apply text-2xl font-semibold select-none;
 }
 
+.attribution {
+  @apply text-xs font-normal opacity-60 select-none;
+}
+
 .navContent {
   @apply flex items-center gap-3;
 }

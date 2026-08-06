@@ -34,7 +34,6 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
   return (
     <nav ref={ref} {...props} className={styles.nav}>
       <div className="flex items-center justify-start gap-3">
-        <h1 className={styles.title}>tooManyHours</h1>
         <motion.a
           initial={{ color: colors.text }}
           whileHover={{ color: colors.primary }}
@@ -47,6 +46,14 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
         >
           <GithubIcon className="h-5 w-5" />
         </motion.a>
+        {/* Baseline-aligned rather than bottom-aligned: the attribution sits on
+            the same line as the title instead of dropping into its descender
+            space, which is what reads as one piece of type rather than two. */}
+        <div className="flex items-baseline gap-2">
+          <h1 className={styles.title}>tooManyHours</h1>
+          {/* IGDB asks to be credited where their data is used. */}
+          <span className={styles.attribution}>powered by IGDB</span>
+        </div>
       </div>
       {authenticated ? <AuthenticatedNavbar /> : <UnauthenticatedNavbar />}
     </nav>
