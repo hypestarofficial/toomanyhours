@@ -10,22 +10,14 @@ import styles from "./ListSection.module.css"
 type ListSectionProps = {
   title: string
   category: LIST_TYPE
-  defaultOpen?: boolean
-  setDefaultOpen?: (open: boolean) => void
+  open: boolean
+  onOpenChange: (open: boolean) => void
   entries?: UserGame[]
   onSelectItem: (entry: UserGame) => void
   isLoading?: boolean
 }
 
-const ListSection: React.FC<ListSectionProps> = ({
-  title,
-  category,
-  entries,
-  onSelectItem,
-  defaultOpen = false,
-  setDefaultOpen,
-  isLoading,
-}) => {
+const ListSection: React.FC<ListSectionProps> = ({ title, category, entries, onSelectItem, open, onOpenChange, isLoading }) => {
   const { setNodeRef, isOver } = useDroppable({ id: category })
 
   return (
@@ -34,7 +26,7 @@ const ListSection: React.FC<ListSectionProps> = ({
     // Inside the collapsible content, dropping onto a closed section would be
     // impossible.
     <div ref={setNodeRef} className={cn("rounded-xl transition-colors", isOver && "bg-highlight/10 ring-highlight ring-2")}>
-      <MotionCollapse defaultOpen={defaultOpen} title={title} setDefaultOpen={setDefaultOpen} isLoading={isLoading}>
+      <MotionCollapse title={title} open={open} onOpenChange={onOpenChange} isLoading={isLoading}>
         {entries && entries.length > 0 ? (
           <div className={styles.gamesGrid}>
             {/* Keyed by the entry, not the game: the entry is what is being

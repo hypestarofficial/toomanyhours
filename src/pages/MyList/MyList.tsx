@@ -93,24 +93,24 @@ const MyList: React.FC = () => {
             category={LIST_TYPE.FINISHED}
             entries={byCategory(LIST_TYPE.FINISHED)}
             onSelectItem={setSelectedEntry}
-            defaultOpen={defaultListConfig.finished}
-            setDefaultOpen={(open) => setDefaultListConfig({ ...defaultListConfig, finished: open })}
+            open={defaultListConfig.finished}
+            onOpenChange={(next) => setDefaultListConfig({ ...defaultListConfig, finished: next })}
           />
           <ListSection
             title="currently playing"
             category={LIST_TYPE.CURRENTLY_PLAYING}
             entries={byCategory(LIST_TYPE.CURRENTLY_PLAYING)}
             onSelectItem={setSelectedEntry}
-            defaultOpen={defaultListConfig.currentlyPlaying}
-            setDefaultOpen={(open) => setDefaultListConfig({ ...defaultListConfig, currentlyPlaying: open })}
+            open={defaultListConfig.currentlyPlaying}
+            onOpenChange={(next) => setDefaultListConfig({ ...defaultListConfig, currentlyPlaying: next })}
           />
           <ListSection
             title="want to play"
             category={LIST_TYPE.WANT_TO_PLAY}
             entries={byCategory(LIST_TYPE.WANT_TO_PLAY)}
             onSelectItem={setSelectedEntry}
-            defaultOpen={defaultListConfig.wantToPlay}
-            setDefaultOpen={(open) => setDefaultListConfig({ ...defaultListConfig, wantToPlay: open })}
+            open={defaultListConfig.wantToPlay}
+            onOpenChange={(next) => setDefaultListConfig({ ...defaultListConfig, wantToPlay: next })}
           />
         </MotionContainer>
 
