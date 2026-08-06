@@ -101,10 +101,14 @@ const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onCl
       {...listeners}
       {...attributes}
     >
+      {/* Both shapes are 3:4, matching IGDB cover art (t_cover_big is 264x352).
+          A landscape box here threw away the top and bottom of every cover:
+          IGDB does publish horizontal screenshots and artworks, but the cover
+          is the box art and box art is portrait. */}
       <Image
         src={image || placeholderImage}
         alt={title}
-        className={cn("pointer-events-none z-0 rounded-md object-cover", isRow ? "h-10 w-16 shrink-0" : "h-18 w-full")}
+        className={cn("pointer-events-none z-0 rounded-md object-cover", isRow ? "h-14 w-10 shrink-0" : "aspect-3/4 w-full")}
       />
       <span className={cn("line-clamp-1 text-sm", isRow ? "flex-1 text-left" : "text-center")}>{title}</span>
       {/* Solid, matching the filled stars in the modal. The icon inherits
