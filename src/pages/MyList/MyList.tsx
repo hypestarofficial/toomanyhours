@@ -11,9 +11,10 @@ import useUserSettingsAuthStore from "../../store/useUserSettingsAuth"
 import useAuthStore from "../../store/useAuthStore"
 import { useGetMeGames } from "../../api/generated/user-games/user-games"
 import type { UserGame } from "../../api/generated/models"
-import { LIST_TYPE } from "../../helpers/enums"
-import { DndContext, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
-import type { DragEndEvent } from "@dnd-kit/core"
+import { LIST_TYPE, LIST_TYPE_LABEL } from "../../helpers/enums"
+import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
+import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core"
+import GameContainer from "../../components/myList/GameContainer"
 import { useMoveEntry } from "../../api/userGames"
 import { toast } from "sonner"
 
@@ -35,7 +36,17 @@ const MyList: React.FC = () => {
   // modal stops opening.
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
+  // Held so the drag overlay knows which card to render under the cursor.
+  const [draggedEntry, setDraggedEntry] = useState<UserGame | null>(null)
+
+  const handleDragStart = ({ active }: DragStartEvent) => {
+    setDraggedEntry(entries?.find((entry) => entry.id === active.id) ?? null)
+  }
+
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    const moved = draggedEntry
+    setDraggedEntry(null)
+
     if (!over) return
 
     const category = over.id as LIST_TYPE
@@ -46,7 +57,15 @@ const MyList: React.FC = () => {
     // cost a request and a refetch to change nothing.
     if (!gameId || from === category) return
 
-    moveEntry({ gameId, data: { category } }, { onError: () => toast.error("Could not move that game") })
+    moveEntry(
+      { gameId, data: { category } },
+      {
+        // Names the destination because the card may have landed in a
+        // collapsed section, where the move is otherwise invisible.
+        onSuccess: () => toast.success(`${moved?.game?.title ?? "Game"} → ${LIST_TYPE_LABEL[category]}`),
+        onError: () => toast.error("Could not move that game"),
+      },
+    )
   }
 
   if (isLoading) {
@@ -67,7 +86,7 @@ const MyList: React.FC = () => {
           Add Game
         </MotionButton>
       </MotionContainer>
-      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={() => setDraggedEntry(null)}>
         <MotionContainer className="flex w-full flex-col gap-2 pb-10">
           <ListSection
             title="finished"
@@ -94,6 +113,17 @@ const MyList: React.FC = () => {
             setDefaultOpen={(open) => setDefaultListConfig({ ...defaultListConfig, wantToPlay: open })}
           />
         </MotionContainer>
+
+        {/* Follows the cursor while dragging. Without it the only cue is the
+            origin card fading, which is easy to miss and says nothing about
+            what you are carrying. */}
+        <DragOverlay dropAnimation={null}>
+          {draggedEntry ? (
+            <div className="w-36">
+              <GameContainer title={draggedEntry.game?.title} image={draggedEntry.game?.image} index={0} overlay />
+            </div>
+          ) : null}
+        </DragOverlay>
       </DndContext>
 
       {/* Add Game Modal */}
