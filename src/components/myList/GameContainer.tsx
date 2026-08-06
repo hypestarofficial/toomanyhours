@@ -1,6 +1,7 @@
 import { motion } from "motion/react"
 import type { Variants } from "motion/react"
 import { Image } from "@heroui/image"
+import { StarIcon } from "@heroicons/react/24/solid"
 import { useDraggable } from "@dnd-kit/core"
 import { cn } from "../../utils/cn"
 import placeholderImage from "../../assets/images/placeholder.webp"
@@ -106,7 +107,14 @@ const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onCl
         className={cn("pointer-events-none z-0 rounded-md object-cover", isRow ? "h-10 w-16 shrink-0" : "h-18 w-full")}
       />
       <span className={cn("line-clamp-1 text-sm", isRow ? "flex-1 text-left" : "text-center")}>{title}</span>
-      {isRow && rating != null && <span className="text-primary shrink-0 pr-2 text-sm font-semibold">{rating}/10</span>}
+      {/* Solid, matching the filled stars in the modal. The icon inherits
+          text-primary from the span, so number and star are the same colour. */}
+      {isRow && rating != null && (
+        <span className="text-primary flex shrink-0 items-center gap-1 pr-2 text-sm font-semibold">
+          {rating}/10
+          <StarIcon className="h-4 w-4" />
+        </span>
+      )}
     </motion.button>
   )
 }
