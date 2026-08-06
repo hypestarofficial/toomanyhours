@@ -12,14 +12,11 @@ export const useAddGames = () => {
 
   return useAddMeGames({
     mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getGetMeGamesQueryKey() })
-        // The picker's catalog query is a separate cache entry. Without this
-        // you add three games, reopen the modal, and they are still listed —
-        // now guaranteed to 409. The bare ["games"] prefix matches every title
-        // and genre combination, which is what is wanted: all are now stale.
-        queryClient.invalidateQueries({ queryKey: ["games"] })
-      },
+      // Invalidating the list is what re-greys the row you just added: the
+      // picker derives its owned set from this query, so nothing else needs
+      // touching. Search results are IGDB's and do not change when you add a
+      // game, which is why the old ["games"] catalog invalidation is gone.
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetMeGamesQueryKey() }),
     },
   })
 }

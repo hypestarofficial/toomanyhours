@@ -19,6 +19,8 @@ import type { IGDBTag } from "./iGDBTag"
 export interface IGDBGame {
   igdbId: number
   title: string
+  /** IGDB's release type — main_game, dlc, expansion, bundle, remaster, expanded_game and so on, or unknown. Deliberately not called category, which in this API means finished/currently_playing/ want_to_play. */
+  kind: string
   /**
    * Cover URL, or null when IGDB has no cover for the game.
    * @nullable
