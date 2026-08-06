@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Page from "../../components/page/Page"
 import Loader from "../../components/loader/Loader"
 import MotionContainer from "../../components/motionContainer/MotionContainer"
@@ -17,18 +17,71 @@ import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core"
 import GameContainer from "../../components/myList/GameContainer"
 import { useMoveEntry } from "../../api/userGames"
 import { toast } from "sonner"
+import Input from "../../components/form/input/Input"
+import MultiSelect from "../../components/form/multiSelect/MultiSelect"
+import LayoutToggle from "./layoutToggle/LayoutToggle"
+// useGetGenres is an overloaded `export function`, not an `export const` —
+// worth knowing if you grep for it and come up empty.
+import { useGetGenres } from "../../api/generated/genres/genres"
+import { matchesFilters } from "./filters"
 
 const MyList: React.FC = () => {
   const [selectedEntry, setSelectedEntry] = useState<UserGame | null>(null)
   const [isAddGameOpen, setIsAddGameOpen] = useState(false)
-  const { defaultListConfig, setDefaultListConfig, layout } = useUserSettingsAuthStore()
+  const [search, setSearch] = useState("")
+  const { defaultListConfig, setDefaultListConfig, layout, filterGenres, setFilterGenres } = useUserSettingsAuthStore()
   const { jwtToken } = useAuthStore()
 
   // Generated hooks need `enabled` passed explicitly, or they fire before a
   // token exists and 401 on boot.
   const { data: entries, isLoading } = useGetMeGames({ query: { enabled: !!jwtToken } })
+  const { data: genres } = useGetGenres({ query: { enabled: !!jwtToken } })
 
-  const byCategory = (category: LIST_TYPE) => entries?.filter((entry) => entry.category === category) ?? []
+  const genreOptions = genres?.map((genre) => ({ label: genre.genre, value: genre.id })) ?? []
+
+  const isFiltering = search.trim() !== "" || filterGenres.length > 0
+
+  // The open/closed state from before filtering started, so clearing the
+  // filter puts things back. Deliberately not the mid-filter state: a section
+  // collapsed during a search was collapsed about the search.
+  const preFilterConfig = useRef(defaultListConfig)
+  const wasFiltering = useRef(false)
+
+  useEffect(() => {
+    // Only on the transition. Without this guard the effect writes to the
+    // store on mount, and including defaultListConfig in the deps would fight
+    // the user every time they collapsed a section mid-search.
+    //
+    // Snapshot and restore live in the same effect on purpose. Two effects
+    // keyed on the same value work only because React runs them in
+    // declaration order — a correctness dependency on line ordering.
+    if (isFiltering === wasFiltering.current) return
+
+    if (isFiltering) {
+      preFilterConfig.current = defaultListConfig
+      // A match can be in a collapsed section, so filtering has to reveal it.
+      setDefaultListConfig({ finished: true, currentlyPlaying: true, wantToPlay: true })
+    } else {
+      setDefaultListConfig(preFilterConfig.current)
+    }
+
+    wasFiltering.current = isFiltering
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFiltering])
+
+  // One pass over the loaded list. ~14 microseconds for 500 entries, so this
+  // re-runs freely on every keystroke — see the design doc for why this is not
+  // a server-side query.
+  const visible = useMemo(
+    () => entries?.filter((entry) => matchesFilters(entry, search, filterGenres)) ?? [],
+    [entries, search, filterGenres],
+  )
+
+  const byCategory = (category: LIST_TYPE) => visible.filter((entry) => entry.category === category)
+
+  // An open, empty section is ambiguous while filtering — no matches, or no
+  // games in that category at all?
+  const sectionTitle = (label: string, category: LIST_TYPE) => (isFiltering ? `${label} (${byCategory(category).length})` : label)
 
   const { mutate: moveEntry } = useMoveEntry()
 
@@ -88,32 +141,52 @@ const MyList: React.FC = () => {
       </MotionContainer>
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={() => setDraggedEntry(null)}>
         <MotionContainer className="flex w-full flex-col gap-2 pb-10">
+          <div className="mb-4 flex w-full flex-wrap items-center gap-2">
+            <div className="min-w-48 flex-1">
+              <Input
+                type="text"
+                id="listSearch"
+                placeholder="Search your list..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                sideLabel={false}
+                clearable
+              />
+            </div>
+            <div className="w-56">
+              <MultiSelect options={genreOptions} value={filterGenres} onChange={setFilterGenres} placeholder="Filter by genres" />
+            </div>
+            <LayoutToggle />
+          </div>
           <ListSection
-            title="finished"
+            title={sectionTitle("finished", LIST_TYPE.FINISHED)}
             category={LIST_TYPE.FINISHED}
             entries={byCategory(LIST_TYPE.FINISHED)}
             onSelectItem={setSelectedEntry}
             open={defaultListConfig.finished}
             onOpenChange={(next) => setDefaultListConfig({ ...defaultListConfig, finished: next })}
             layout={layout}
+            isFiltering={isFiltering}
           />
           <ListSection
-            title="currently playing"
+            title={sectionTitle("currently playing", LIST_TYPE.CURRENTLY_PLAYING)}
             category={LIST_TYPE.CURRENTLY_PLAYING}
             entries={byCategory(LIST_TYPE.CURRENTLY_PLAYING)}
             onSelectItem={setSelectedEntry}
             open={defaultListConfig.currentlyPlaying}
             onOpenChange={(next) => setDefaultListConfig({ ...defaultListConfig, currentlyPlaying: next })}
             layout={layout}
+            isFiltering={isFiltering}
           />
           <ListSection
-            title="want to play"
+            title={sectionTitle("want to play", LIST_TYPE.WANT_TO_PLAY)}
             category={LIST_TYPE.WANT_TO_PLAY}
             entries={byCategory(LIST_TYPE.WANT_TO_PLAY)}
             onSelectItem={setSelectedEntry}
             open={defaultListConfig.wantToPlay}
             onOpenChange={(next) => setDefaultListConfig({ ...defaultListConfig, wantToPlay: next })}
             layout={layout}
+            isFiltering={isFiltering}
           />
         </MotionContainer>
 

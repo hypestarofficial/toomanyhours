@@ -14,12 +14,23 @@ type ListSectionProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   layout: LIST_LAYOUT
+  isFiltering?: boolean
   entries?: UserGame[]
   onSelectItem: (entry: UserGame) => void
   isLoading?: boolean
 }
 
-const ListSection: React.FC<ListSectionProps> = ({ title, category, entries, onSelectItem, open, onOpenChange, layout, isLoading }) => {
+const ListSection: React.FC<ListSectionProps> = ({
+  title,
+  category,
+  entries,
+  onSelectItem,
+  open,
+  onOpenChange,
+  layout,
+  isFiltering,
+  isLoading,
+}) => {
   const { setNodeRef, isOver } = useDroppable({ id: category })
 
   return (
@@ -47,7 +58,7 @@ const ListSection: React.FC<ListSectionProps> = ({ title, category, entries, onS
             ))}
           </div>
         ) : (
-          <Empty message="Nothing here yet" fullPage />
+          <Empty message={isFiltering ? "No matches" : "Nothing here yet"} fullPage />
         )}
       </MotionCollapse>
     </div>
