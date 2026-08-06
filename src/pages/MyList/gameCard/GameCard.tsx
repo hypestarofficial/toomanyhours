@@ -120,7 +120,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
             <div className="flex w-full flex-wrap items-center justify-start gap-1">
               {entry.game.genres.map((genre) => (
                 <Badge variant="dark" key={genre.id}>
-                  {genre.genre}
+                  {genre.name}
                 </Badge>
               ))}
             </div>

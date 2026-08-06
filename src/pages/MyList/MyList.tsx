@@ -37,7 +37,7 @@ const MyList: React.FC = () => {
   const { data: entries, isLoading } = useGetMeGames({ query: { enabled: !!jwtToken } })
   const { data: genres } = useGetGenres({ query: { enabled: !!jwtToken } })
 
-  const genreOptions = genres?.map((genre) => ({ label: genre.genre, value: genre.id })) ?? []
+  const genreOptions = genres?.map((genre) => ({ label: genre.name, value: genre.id })) ?? []
 
   const isFiltering = search.trim() !== "" || filterGenres.length > 0
 

@@ -27,7 +27,7 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query"
 
-import type { DeleteGame200, ErrorResponse, Game, GameRequest, GetAdminGamesParams } from ".././models"
+import type { DeleteGame200, ErrorResponse, Game, GetAdminGamesParams } from ".././models"
 
 import { customFetch } from "../../mutator"
 
@@ -119,107 +119,6 @@ export function useGetAdminGames<TData = Awaited<ReturnType<typeof getAdminGames
   return query
 }
 
-/**
- * Effectively an upsert by Steam app ID: if a row with the supplied id already exists, that row is returned unchanged rather than an error, but its genre associations are still replaced by genreIds.
- * @summary Add a game to the catalog
- */
-export const createGame = (gameRequest: GameRequest, options?: SecondParameter<typeof customFetch>, signal?: AbortSignal) => {
-  return customFetch<Game>(
-    { url: `/admin/games`, method: "POST", headers: { "Content-Type": "application/json" }, data: gameRequest, signal },
-    options,
-  )
-}
-
-export const getCreateGameMutationOptions = <TError = ErrorResponse | ErrorResponse | ErrorResponse, TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof createGame>>, TError, { data: GameRequest }, TContext>
-  request?: SecondParameter<typeof customFetch>
-}): UseMutationOptions<Awaited<ReturnType<typeof createGame>>, TError, { data: GameRequest }, TContext> => {
-  const mutationKey = ["createGame"]
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined }
-
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof createGame>>, { data: GameRequest }> = (props) => {
-    const { data } = props ?? {}
-
-    return createGame(data, requestOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type CreateGameMutationResult = NonNullable<Awaited<ReturnType<typeof createGame>>>
-export type CreateGameMutationBody = GameRequest
-export type CreateGameMutationError = ErrorResponse | ErrorResponse | ErrorResponse
-
-/**
- * @summary Add a game to the catalog
- */
-export const useCreateGame = <TError = ErrorResponse | ErrorResponse | ErrorResponse, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<Awaited<ReturnType<typeof createGame>>, TError, { data: GameRequest }, TContext>
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<Awaited<ReturnType<typeof createGame>>, TError, { data: GameRequest }, TContext> => {
-  const mutationOptions = getCreateGameMutationOptions(options)
-
-  return useMutation(mutationOptions, queryClient)
-}
-/**
- * Updates title, image and release date, then replaces all genre associations with genreIds. Omitting genreIds clears them: this is a full replace, not a merge.
- * @summary Update a game
- */
-export const updateGame = (id: number, gameRequest: GameRequest, options?: SecondParameter<typeof customFetch>) => {
-  return customFetch<Game>(
-    { url: `/admin/games/${id}`, method: "PUT", headers: { "Content-Type": "application/json" }, data: gameRequest },
-    options,
-  )
-}
-
-export const getUpdateGameMutationOptions = <
-  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateGame>>, TError, { id: number; data: GameRequest }, TContext>
-  request?: SecondParameter<typeof customFetch>
-}): UseMutationOptions<Awaited<ReturnType<typeof updateGame>>, TError, { id: number; data: GameRequest }, TContext> => {
-  const mutationKey = ["updateGame"]
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined }
-
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateGame>>, { id: number; data: GameRequest }> = (props) => {
-    const { id, data } = props ?? {}
-
-    return updateGame(id, data, requestOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type UpdateGameMutationResult = NonNullable<Awaited<ReturnType<typeof updateGame>>>
-export type UpdateGameMutationBody = GameRequest
-export type UpdateGameMutationError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse
-
-/**
- * @summary Update a game
- */
-export const useUpdateGame = <TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateGame>>, TError, { id: number; data: GameRequest }, TContext>
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<Awaited<ReturnType<typeof updateGame>>, TError, { id: number; data: GameRequest }, TContext> => {
-  const mutationOptions = getUpdateGameMutationOptions(options)
-
-  return useMutation(mutationOptions, queryClient)
-}
 /**
  * Hard delete. Cascades to games_genres via foreign key, but is refused with 409 when any user has the game in their list.
  * @summary Delete a game

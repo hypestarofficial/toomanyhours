@@ -11,8 +11,8 @@ const entry = (title: string, genreIDs: number[]): UserGame =>
     review: null,
     createdAt: "",
     updatedAt: "",
-    game: { id: 100, title, genres: genreIDs.map((id) => ({ id, genre: `Genre ${id}` })) },
-  }) as UserGame
+    game: { id: 100, title, genres: genreIDs.map((id) => ({ id, name: `Genre ${id}` })) },
+  }) as unknown as UserGame
 
 describe("matchesFilters", () => {
   it("passes everything when no filters are set", () => {
@@ -55,13 +55,13 @@ describe("matchesFilters", () => {
   // both `game` and `genres` optional. A real row can therefore arrive without
   // them — and tidy fixtures would never catch it.
   it("does not match a genre filter when the game has no genres", () => {
-    const noGenres = { ...entry("Doom", []), game: { id: 100, title: "Doom" } } as UserGame
+    const noGenres = { ...entry("Doom", []), game: { id: 100, title: "Doom" } } as unknown as UserGame
     expect(matchesFilters(noGenres, "", [1])).toBe(false)
     expect(matchesFilters(noGenres, "doom", [])).toBe(true)
   })
 
   it("does not throw when the game is missing entirely", () => {
-    const noGame = { ...entry("Doom", []), game: undefined } as UserGame
+    const noGame = { ...entry("Doom", []), game: undefined } as unknown as UserGame
     expect(matchesFilters(noGame, "doom", [])).toBe(false)
     expect(matchesFilters(noGame, "", [1])).toBe(false)
     expect(matchesFilters(noGame, "", [])).toBe(true)

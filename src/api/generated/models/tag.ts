@@ -12,7 +12,10 @@ block is genuinely public.
  * OpenAPI spec version: 0.2.0
  */
 
-export interface Genre {
+/**
+ * A genre, theme or game mode. IGDB attaches all three to a game and they behave identically, so they share one table and one type here.
+ */
+export interface Tag {
   id: number
-  genre: string
+  name: string
 }

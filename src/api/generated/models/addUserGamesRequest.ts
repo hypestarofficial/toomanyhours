@@ -13,11 +13,21 @@ block is genuinely public.
  */
 import type { AddUserGamesRequestCategory } from "./addUserGamesRequestCategory"
 
+/**
+ * Exactly one of gameIds and igdbIds is required; sending both is a 400, because there is no good answer to what should happen when they disagree about the same game.
+ */
 export interface AddUserGamesRequest {
   /**
+   * Local catalog ids, as the current Add Game modal sends. Disappears when that modal moves to IGDB search.
    * @minItems 1
    * @maxItems 50
    */
-  gameIds: number[]
+  gameIds?: number[]
+  /**
+   * IGDB ids. Any game the catalog has not seen is fetched from IGDB and imported before the list entry is created. An id IGDB does not know is a 404.
+   * @minItems 1
+   * @maxItems 50
+   */
+  igdbIds?: number[]
   category: AddUserGamesRequestCategory
 }

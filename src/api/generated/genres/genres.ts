@@ -24,7 +24,7 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query"
 
-import type { ErrorResponse, Genre } from ".././models"
+import type { ErrorResponse, Tag } from ".././models"
 
 import { customFetch } from "../../mutator"
 
@@ -34,7 +34,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
  * @summary List all genres
  */
 export const getGenres = (options?: SecondParameter<typeof customFetch>, signal?: AbortSignal) => {
-  return customFetch<Genre[]>({ url: `/genres`, method: "GET", signal }, options)
+  return customFetch<Tag[]>({ url: `/genres`, method: "GET", signal }, options)
 }
 
 export const getGetGenresQueryKey = () => {

@@ -11,17 +11,23 @@ block is genuinely public.
 
  * OpenAPI spec version: 0.2.0
  */
-import type { Genre } from "./genre"
+import type { Tag } from "./tag"
 
 export interface Game {
-  /** Steam app ID, supplied by the client rather than generated. */
+  /** Surrogate key, generated. It means nothing outside this database — use igdbId to identify the game anywhere else. */
   id: number
+  /** IGDB's identifier for the game. Unique. */
+  igdbId: number
   title: string
-  /** Absolute URL to cover art. */
+  /** Absolute URL to cover art, from IGDB. */
   image: string
+  /** IGDB's release type — main_game, dlc, expansion, bundle, remaster, expanded_game and so on, or unknown. Deliberately not called category, which in this API means finished/currently_playing/ want_to_play. */
+  kind: string
   releaseDate: string
-  /** Present on reads, omitted when empty. */
-  genres?: Genre[]
-  /** Write-only, and never present in a response — the Go field is gorm:"-", so it is transport only. */
-  genreIds?: number[]
+  /** Always present; empty when the game has none. */
+  genres: Tag[]
+  /** Always present; empty when the game has none. */
+  themes: Tag[]
+  /** Always present; empty when the game has none. */
+  gameModes: Tag[]
 }
