@@ -79,11 +79,17 @@ const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onCl
       variants={overlay ? undefined : containerVariants}
       initial={overlay ? undefined : "hidden"}
       animate={overlay ? undefined : "visible"}
-      whileTap={overlay ? undefined : "tap"}
-      whileHover={overlay ? undefined : "hover"}
+      // Rows opt out of the scale variants: a card has slack around it in the
+      // grid, but a row is full width, so scaling it up pushes it past the
+      // container edge. They get a background change instead, which reads the
+      // same and cannot overflow.
+      whileTap={overlay || isRow ? undefined : "tap"}
+      whileHover={overlay || isRow ? undefined : "hover"}
       className={cn(
         "bg-secondaryBg flex rounded-xl select-none",
-        isRow ? "w-full items-center justify-start gap-3 p-2!" : "flex-col items-center justify-start gap-4 p-3!",
+        isRow
+          ? "hover:bg-highlight w-full items-center justify-start gap-3 p-2! transition-colors"
+          : "flex-col items-center justify-start gap-4 p-3!",
         drag && !overlay && "cursor-grab active:cursor-grabbing",
         overlay && "ring-highlight scale-105 rotate-3 cursor-grabbing shadow-2xl ring-2",
       )}
