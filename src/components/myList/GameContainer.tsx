@@ -4,6 +4,9 @@ import { Image } from "@heroui/image"
 import { useDraggable } from "@dnd-kit/core"
 import { cn } from "../../utils/cn"
 import placeholderImage from "../../assets/images/placeholder.webp"
+// One import covers both uses: LIST_LAYOUT is declared as a const *and* a type
+// of the same name.
+import { LIST_LAYOUT } from "../../store/useUserSettingsAuth"
 
 // Presentational on purpose. It has two callers with different data — MyList
 // renders list entries, Admin renders raw catalog games — so taking the two
@@ -22,6 +25,9 @@ type GameContainerProps = {
   // time a drag starts, and takes lifted styling so it reads as picked up
   // rather than merely duplicated.
   overlay?: boolean
+  layout?: LIST_LAYOUT
+  /** Shown at the row's right edge. Rows have horizontal room cards do not. */
+  rating?: number | null
 }
 
 // Cards past this index all arrive together, 0.6s in.
@@ -54,7 +60,7 @@ const containerVariants: Variants = {
   },
 }
 
-const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onClick, drag, overlay }) => {
+const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onClick, drag, overlay, layout, rating }) => {
   // Hooks cannot be conditional, so this always runs and is disabled when the
   // caller passes no drag payload. The fallback id is never used for a real
   // drop; it only keeps the id stable and unique among non-draggable cards.
@@ -63,6 +69,8 @@ const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onCl
     data: drag,
     disabled: !drag,
   })
+
+  const isRow = layout === LIST_LAYOUT.ROWS
 
   return (
     <motion.button
@@ -74,7 +82,8 @@ const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onCl
       whileTap={overlay ? undefined : "tap"}
       whileHover={overlay ? undefined : "hover"}
       className={cn(
-        "bg-secondaryBg flex flex-col items-center justify-start gap-4 rounded-xl p-3! select-none",
+        "bg-secondaryBg flex rounded-xl select-none",
+        isRow ? "w-full items-center justify-start gap-3 p-2!" : "flex-col items-center justify-start gap-4 p-3!",
         drag && !overlay && "cursor-grab active:cursor-grabbing",
         overlay && "ring-highlight scale-105 rotate-3 cursor-grabbing shadow-2xl ring-2",
       )}
@@ -85,8 +94,13 @@ const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onCl
       {...listeners}
       {...attributes}
     >
-      <Image src={image || placeholderImage} alt={title} className="pointer-events-none z-0 h-18 w-full rounded-md object-cover" />
-      <span className="line-clamp-1 text-center text-sm">{title}</span>
+      <Image
+        src={image || placeholderImage}
+        alt={title}
+        className={cn("pointer-events-none z-0 rounded-md object-cover", isRow ? "h-10 w-16 shrink-0" : "h-18 w-full")}
+      />
+      <span className={cn("line-clamp-1 text-sm", isRow ? "flex-1 text-left" : "text-center")}>{title}</span>
+      {isRow && rating != null && <span className="text-primary shrink-0 pr-2 text-sm font-semibold">{rating}/10</span>}
     </motion.button>
   )
 }

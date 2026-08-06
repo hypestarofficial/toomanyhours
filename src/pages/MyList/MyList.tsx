@@ -21,7 +21,7 @@ import { toast } from "sonner"
 const MyList: React.FC = () => {
   const [selectedEntry, setSelectedEntry] = useState<UserGame | null>(null)
   const [isAddGameOpen, setIsAddGameOpen] = useState(false)
-  const { defaultListConfig, setDefaultListConfig } = useUserSettingsAuthStore()
+  const { defaultListConfig, setDefaultListConfig, layout } = useUserSettingsAuthStore()
   const { jwtToken } = useAuthStore()
 
   // Generated hooks need `enabled` passed explicitly, or they fire before a
@@ -95,6 +95,7 @@ const MyList: React.FC = () => {
             onSelectItem={setSelectedEntry}
             open={defaultListConfig.finished}
             onOpenChange={(next) => setDefaultListConfig({ ...defaultListConfig, finished: next })}
+            layout={layout}
           />
           <ListSection
             title="currently playing"
@@ -103,6 +104,7 @@ const MyList: React.FC = () => {
             onSelectItem={setSelectedEntry}
             open={defaultListConfig.currentlyPlaying}
             onOpenChange={(next) => setDefaultListConfig({ ...defaultListConfig, currentlyPlaying: next })}
+            layout={layout}
           />
           <ListSection
             title="want to play"
@@ -111,6 +113,7 @@ const MyList: React.FC = () => {
             onSelectItem={setSelectedEntry}
             open={defaultListConfig.wantToPlay}
             onOpenChange={(next) => setDefaultListConfig({ ...defaultListConfig, wantToPlay: next })}
+            layout={layout}
           />
         </MotionContainer>
 

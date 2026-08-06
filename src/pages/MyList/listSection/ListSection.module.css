@@ -3,3 +3,7 @@
 .gamesGrid {
   @apply grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8;
 }
+
+.gamesRows {
+  @apply flex flex-col gap-1;
+}
