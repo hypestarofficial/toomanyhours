@@ -24,7 +24,7 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query"
 
-import type { ErrorResponse, Game, GetGamesParams } from ".././models"
+import type { ErrorResponse, Game, GetGamesParams, IGDBGame, SearchGamesParams } from ".././models"
 
 import { customFetch } from "../../mutator"
 
@@ -101,6 +101,107 @@ export function useGetGames<TData = Awaited<ReturnType<typeof getGames>>, TError
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getGetGamesQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * Free-text search against IGDB, sorted by relevance. Results are pure IGDB and are not catalog rows: the key is igdbId, and a result may or may not correspond to a local game. Cover art and release date are absent for games that have neither.
+ * @summary Search IGDB for games
+ */
+export const searchGames = (params: SearchGamesParams, options?: SecondParameter<typeof customFetch>, signal?: AbortSignal) => {
+  return customFetch<IGDBGame[]>({ url: `/games/search`, method: "GET", params, signal }, options)
+}
+
+export const getSearchGamesQueryKey = (params?: SearchGamesParams) => {
+  return [`/games/search`, ...(params ? [params] : [])] as const
+}
+
+export const getSearchGamesQueryOptions = <
+  TData = Awaited<ReturnType<typeof searchGames>>,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
+>(
+  params: SearchGamesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchGames>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getSearchGamesQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof searchGames>>> = ({ signal }) => searchGames(params, requestOptions, signal)
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof searchGames>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+}
+
+export type SearchGamesQueryResult = NonNullable<Awaited<ReturnType<typeof searchGames>>>
+export type SearchGamesQueryError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse
+
+export function useSearchGames<
+  TData = Awaited<ReturnType<typeof searchGames>>,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
+>(
+  params: SearchGamesParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchGames>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<Awaited<ReturnType<typeof searchGames>>, TError, Awaited<ReturnType<typeof searchGames>>>,
+        "initialData"
+      >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchGames<
+  TData = Awaited<ReturnType<typeof searchGames>>,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
+>(
+  params: SearchGamesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchGames>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<Awaited<ReturnType<typeof searchGames>>, TError, Awaited<ReturnType<typeof searchGames>>>,
+        "initialData"
+      >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearchGames<
+  TData = Awaited<ReturnType<typeof searchGames>>,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
+>(
+  params: SearchGamesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchGames>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Search IGDB for games
+ */
+
+export function useSearchGames<
+  TData = Awaited<ReturnType<typeof searchGames>>,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
+>(
+  params: SearchGamesParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchGames>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getSearchGamesQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
