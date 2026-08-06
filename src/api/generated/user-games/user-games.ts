@@ -113,7 +113,7 @@ export function useGetMeGames<TData = Awaited<ReturnType<typeof getMeGames>>, TE
 }
 
 /**
- * Upserts on (user, game): adding a game already in the list moves it to the new category and leaves its rating and review untouched.
+ * Adds games to the list. A game already in the list is rejected with 409 rather than moved — use PATCH to change a game's category. The Add Game picker asks for `/games?excludeMine=true`, so this is only reachable from a stale client.
  * @summary Add games to the list
  */
 export const addMeGames = (
@@ -128,7 +128,7 @@ export const addMeGames = (
 }
 
 export const getAddMeGamesMutationOptions = <
-  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof addMeGames>>, TError, { data: AddUserGamesRequest }, TContext>
@@ -152,12 +152,12 @@ export const getAddMeGamesMutationOptions = <
 
 export type AddMeGamesMutationResult = NonNullable<Awaited<ReturnType<typeof addMeGames>>>
 export type AddMeGamesMutationBody = AddUserGamesRequest
-export type AddMeGamesMutationError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse
+export type AddMeGamesMutationError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse
 
 /**
  * @summary Add games to the list
  */
-export const useAddMeGames = <TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse, TContext = unknown>(
+export const useAddMeGames = <TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof addMeGames>>, TError, { data: AddUserGamesRequest }, TContext>
     request?: SecondParameter<typeof customFetch>

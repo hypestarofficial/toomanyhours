@@ -61,11 +61,13 @@ export const httpRequest = async ({ method, url, params, body, authorization = f
   })
 
 // ENDPOINTS - These are now just simple functions
-export const getGames = async (title: string, genreIds: number[]): Promise<Game[]> =>
+// excludeMine is spread in rather than always sent, so an unfiltered call's URL
+// is byte-for-byte what it was before.
+export const getGames = async (title: string, genreIds: number[], excludeMine = false): Promise<Game[]> =>
   httpRequest({
     method: "GET",
     url: "/games",
-    params: { title, genreIds: genreIds.join(",") },
+    params: { title, genreIds: genreIds.join(","), ...(excludeMine ? { excludeMine: "true" } : {}) },
     authorization: true,
   }) as Promise<Game[]>
 

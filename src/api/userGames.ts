@@ -12,7 +12,14 @@ export const useAddGames = () => {
 
   return useAddMeGames({
     mutation: {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetMeGamesQueryKey() }),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetMeGamesQueryKey() })
+        // The picker's catalog query is a separate cache entry. Without this
+        // you add three games, reopen the modal, and they are still listed —
+        // now guaranteed to 409. The bare ["games"] prefix matches every title
+        // and genre combination, which is what is wanted: all are now stale.
+        queryClient.invalidateQueries({ queryKey: ["games"] })
+      },
     },
   })
 }

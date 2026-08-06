@@ -9,6 +9,7 @@ import GameRow from "./GameRow"
 import { MAX_SELECTED_GAMES } from "../../../helpers/constants"
 import { toast } from "sonner"
 import { useGamesQuery } from "../../../api/endpoints/useQuery"
+import { ApiError } from "../../../api/apiError"
 import { useAddGames } from "../../../api/userGames"
 import Loader from "../../../components/loader/Loader"
 import Select from "../../../components/form/select/Select"
@@ -25,7 +26,7 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
   const [selectedGames, setSelectedGames] = useState<number[]>([])
   const [disabledRows, setDisabledRows] = useState(false)
   const [listType, setListType] = useState<LIST_TYPE | null>(null)
-  const { data: searchResults, isLoading: isLoadingSearchResults } = useGamesQuery({ title: searchQuery })
+  const { data: searchResults, isLoading: isLoadingSearchResults } = useGamesQuery({ title: searchQuery, excludeMine: true })
   const { mutateAsync: addGames, isPending } = useAddGames()
 
   const listTypeOptions = Object.values(LIST_TYPE).map((value) => ({ label: LIST_TYPE_LABEL[value], value }))
@@ -62,7 +63,18 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
       // keeps their selection and can retry, rather than having to find the
       // games again. The old version cleared and toasted success before doing
       // any work, so it reported success unconditionally.
-      handleError({ error, userMessage: "An error occurred while adding games", componentName: "AddGameModal" })
+      //
+      // A 409 is only reachable from a stale modal, since the picker no longer
+      // offers games already in the list — so the message points at the fix.
+      const alreadyListed = error instanceof ApiError && error.status === 409
+
+      handleError({
+        error,
+        userMessage: alreadyListed
+          ? "Some of those are already in your list — close and reopen to refresh"
+          : "An error occurred while adding games",
+        componentName: "AddGameModal",
+      })
     }
   }
 
