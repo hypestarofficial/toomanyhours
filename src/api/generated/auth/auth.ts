@@ -136,7 +136,11 @@ export const useAuthenticate = <TError = ErrorResponse | ErrorResponse | ErrorRe
   return useMutation(mutationOptions, queryClient)
 }
 /**
- * Authenticated by the `__Host-refresh_token` cookie rather than a bearer token, so the caller must send credentials with the request.
+ * Authenticated by the `__Host-refresh_token` cookie rather than a bearer token, so the caller must send credentials with the request. The cookie carries only a token id; the server decides validity from its own records, which is what makes logout able to revoke it.
+
+Single use: each refresh consumes its token and returns a successor. Presenting an already-consumed token more than a few seconds later, while the session is still live, is treated as a leaked copy and revokes every token from that login.
+
+An access token is not accepted here. Access tokens carry no token id, and this endpoint requires one.
  * @summary Exchange the refresh cookie for a new token pair
  */
 export const refreshToken = (options?: SecondParameter<typeof customFetch>, signal?: AbortSignal) => {
@@ -218,8 +222,10 @@ export function useRefreshToken<TData = Awaited<ReturnType<typeof refreshToken>>
 }
 
 /**
- * Always succeeds. The access token lives in client memory and is discarded there.
- * @summary Clear the refresh cookie
+ * Revokes every refresh token from this login and expires the cookie. Always succeeds, including when the cookie is missing or unreadable — an unauthenticated caller should not learn which.
+
+The access token lives in client memory and is discarded there, so it stays technically valid until it expires, at most 15 minutes. Checking the database on every authenticated request would be the only way to make that instant, which would discard the reason for using JWTs.
+ * @summary End the session
  */
 export const logout = (options?: SecondParameter<typeof customFetch>, signal?: AbortSignal) => {
   return customFetch<Logout200>({ url: `/logout`, method: "GET", signal }, options)
@@ -271,7 +277,7 @@ export function useLogout<TData = Awaited<ReturnType<typeof logout>>, TError = u
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Clear the refresh cookie
+ * @summary End the session
  */
 
 export function useLogout<TData = Awaited<ReturnType<typeof logout>>, TError = unknown>(
