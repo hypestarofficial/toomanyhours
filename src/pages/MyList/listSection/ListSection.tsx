@@ -18,6 +18,9 @@ type ListSectionProps = {
   entries?: UserGame[]
   onSelectItem: (entry: UserGame) => void
   isLoading?: boolean
+  // Someone else's list: no dropping, no dragging. Clicking still opens a
+  // detail, which is the whole point of a shared list.
+  readOnly?: boolean
 }
 
 const ListSection: React.FC<ListSectionProps> = ({
@@ -30,8 +33,11 @@ const ListSection: React.FC<ListSectionProps> = ({
   layout,
   isFiltering,
   isLoading,
+  readOnly,
 }) => {
-  const { setNodeRef, isOver } = useDroppable({ id: category })
+  // disabled rather than skipping the hook: hooks cannot be conditional, and a
+  // droppable nobody can drag to is inert anyway.
+  const { setNodeRef, isOver } = useDroppable({ id: category, disabled: readOnly })
 
   return (
     // The drop ref sits on this wrapper rather than inside MotionCollapse's
@@ -53,7 +59,7 @@ const ListSection: React.FC<ListSectionProps> = ({
                 layout={layout}
                 index={index}
                 onClick={() => onSelectItem(entry)}
-                drag={{ id: entry.id, gameId: entry.gameId, category: entry.category }}
+                drag={readOnly ? undefined : { id: entry.id, gameId: entry.gameId, category: entry.category }}
               />
             ))}
           </div>
