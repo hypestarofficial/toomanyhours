@@ -69,6 +69,21 @@ const MyList: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFiltering])
 
+  // The same restore, for the other way a filter can end: navigating away.
+  // `search` is component state, so it resets on remount and isFiltering comes
+  // back false — the transition effect above never fires, and the store is
+  // left holding the all-open state the filter wrote. Both refs, so this can
+  // depend only on the store setter, which zustand keeps stable; the cleanup
+  // therefore runs on unmount and nowhere else.
+  useEffect(
+    () => () => {
+      if (wasFiltering.current) {
+        setDefaultListConfig(preFilterConfig.current)
+      }
+    },
+    [setDefaultListConfig],
+  )
+
   // One pass over the loaded list. ~14 microseconds for 500 entries, so this
   // re-runs freely on every keystroke — see the design doc for why this is not
   // a server-side query.
