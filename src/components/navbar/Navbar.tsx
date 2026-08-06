@@ -8,13 +8,12 @@ import MotionContainer from "../motionContainer/MotionContainer"
 import { motion } from "motion/react"
 import { colors } from "../../utils/colors"
 import GithubIcon from "../../assets/github.svg?react"
-import { adminRoutes, routes } from "../../helpers/routes"
+import { routes } from "../../helpers/routes"
 
 type NavbarProps = ComponentPropsWithoutRef<"nav">
 
 const AuthenticatedNavbar = () => (
   <MotionContainer type="ease" className={styles.navContent}>
-    <MotionLink to={adminRoutes.games}>Admin</MotionLink>
     <MotionLink to={routes.myList}>My list</MotionLink>
     <UserMenu />
   </MotionContainer>

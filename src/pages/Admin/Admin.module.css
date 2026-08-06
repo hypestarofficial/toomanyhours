@@ -1,5 +1,0 @@
-@reference "../../index.css";
-
-.gamesList {
-  @apply grid grid-cols-2 gap-2 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8;
-}

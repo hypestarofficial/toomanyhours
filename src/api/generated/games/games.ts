@@ -24,90 +24,11 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query"
 
-import type { ErrorResponse, Game, GetGamesParams, IGDBGame, SearchGamesParams } from ".././models"
+import type { ErrorResponse, IGDBGame, SearchGamesParams } from ".././models"
 
 import { customFetch } from "../../mutator"
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
-
-/**
- * @summary List games
- */
-export const getGames = (params?: GetGamesParams, options?: SecondParameter<typeof customFetch>, signal?: AbortSignal) => {
-  return customFetch<Game[]>({ url: `/games`, method: "GET", params, signal }, options)
-}
-
-export const getGetGamesQueryKey = (params?: GetGamesParams) => {
-  return [`/games`, ...(params ? [params] : [])] as const
-}
-
-export const getGetGamesQueryOptions = <TData = Awaited<ReturnType<typeof getGames>>, TError = ErrorResponse | ErrorResponse>(
-  params?: GetGamesParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGames>>, TError, TData>>
-    request?: SecondParameter<typeof customFetch>
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey = queryOptions?.queryKey ?? getGetGamesQueryKey(params)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getGames>>> = ({ signal }) => getGames(params, requestOptions, signal)
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getGames>>, TError, TData> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
-}
-
-export type GetGamesQueryResult = NonNullable<Awaited<ReturnType<typeof getGames>>>
-export type GetGamesQueryError = ErrorResponse | ErrorResponse
-
-export function useGetGames<TData = Awaited<ReturnType<typeof getGames>>, TError = ErrorResponse | ErrorResponse>(
-  params: undefined | GetGamesParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGames>>, TError, TData>> &
-      Pick<DefinedInitialDataOptions<Awaited<ReturnType<typeof getGames>>, TError, Awaited<ReturnType<typeof getGames>>>, "initialData">
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetGames<TData = Awaited<ReturnType<typeof getGames>>, TError = ErrorResponse | ErrorResponse>(
-  params?: GetGamesParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGames>>, TError, TData>> &
-      Pick<UndefinedInitialDataOptions<Awaited<ReturnType<typeof getGames>>, TError, Awaited<ReturnType<typeof getGames>>>, "initialData">
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetGames<TData = Awaited<ReturnType<typeof getGames>>, TError = ErrorResponse | ErrorResponse>(
-  params?: GetGamesParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGames>>, TError, TData>>
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary List games
- */
-
-export function useGetGames<TData = Awaited<ReturnType<typeof getGames>>, TError = ErrorResponse | ErrorResponse>(
-  params?: GetGamesParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGames>>, TError, TData>>
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetGamesQueryOptions(params, options)
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-  query.queryKey = queryOptions.queryKey
-
-  return query
-}
 
 /**
  * Free-text search against IGDB, sorted by relevance. Results are pure IGDB and are not catalog rows: the key is igdbId, and a result may or may not correspond to a local game. Cover art and release date are absent for games that have neither.
@@ -202,94 +123,6 @@ export function useSearchGames<
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getSearchGamesQueryOptions(params, options)
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-  query.queryKey = queryOptions.queryKey
-
-  return query
-}
-
-/**
- * Returns 500 both for a non-integer id and for a game that does not exist. That is what the handler does today; it is documented rather than corrected so the generated client matches the running server.
- * @summary Get a game by id
- */
-export const getGameById = (id: number, options?: SecondParameter<typeof customFetch>, signal?: AbortSignal) => {
-  return customFetch<Game>({ url: `/games/${id}`, method: "GET", signal }, options)
-}
-
-export const getGetGameByIdQueryKey = (id?: number) => {
-  return [`/games/${id}`] as const
-}
-
-export const getGetGameByIdQueryOptions = <TData = Awaited<ReturnType<typeof getGameById>>, TError = ErrorResponse | ErrorResponse>(
-  id: number,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGameById>>, TError, TData>>
-    request?: SecondParameter<typeof customFetch>
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey = queryOptions?.queryKey ?? getGetGameByIdQueryKey(id)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getGameById>>> = ({ signal }) => getGameById(id, requestOptions, signal)
-
-  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getGameById>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetGameByIdQueryResult = NonNullable<Awaited<ReturnType<typeof getGameById>>>
-export type GetGameByIdQueryError = ErrorResponse | ErrorResponse
-
-export function useGetGameById<TData = Awaited<ReturnType<typeof getGameById>>, TError = ErrorResponse | ErrorResponse>(
-  id: number,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGameById>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<Awaited<ReturnType<typeof getGameById>>, TError, Awaited<ReturnType<typeof getGameById>>>,
-        "initialData"
-      >
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetGameById<TData = Awaited<ReturnType<typeof getGameById>>, TError = ErrorResponse | ErrorResponse>(
-  id: number,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGameById>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<Awaited<ReturnType<typeof getGameById>>, TError, Awaited<ReturnType<typeof getGameById>>>,
-        "initialData"
-      >
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetGameById<TData = Awaited<ReturnType<typeof getGameById>>, TError = ErrorResponse | ErrorResponse>(
-  id: number,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGameById>>, TError, TData>>
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get a game by id
- */
-
-export function useGetGameById<TData = Awaited<ReturnType<typeof getGameById>>, TError = ErrorResponse | ErrorResponse>(
-  id: number,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGameById>>, TError, TData>>
-    request?: SecondParameter<typeof customFetch>
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetGameByIdQueryOptions(id, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 

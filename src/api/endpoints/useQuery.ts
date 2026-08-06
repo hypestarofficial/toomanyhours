@@ -1,9 +1,8 @@
 // Hand-written hooks for the endpoints not yet on the generated client.
 // Admin's endpoints now come from src/api/generated; these are what remains.
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { getGames, getGameById, getUserById } from "./api"
+import { getUserById } from "./api"
 import useAuthStore from "../../store/useAuthStore"
-import type { Game } from "../../types/games"
 import type { User, Visibility } from "../../types/users"
 import { patchMe } from "./users"
 
@@ -14,29 +13,6 @@ import { patchMe } from "./users"
 //
 // `enabled: !!jwtToken` stays: without it, queries fire before a token exists
 // and 401 on every boot.
-
-// Public endpoints
-export const useGamesQuery = ({ title, genreIDs, excludeMine }: { title?: string; genreIDs?: number[]; excludeMine?: boolean } = {}) => {
-  const { jwtToken } = useAuthStore()
-
-  return useQuery<Game[], Error>({
-    // excludeMine is part of the key: filtered and unfiltered results are
-    // different responses and must not share a cache entry.
-    queryKey: ["games", title, genreIDs, excludeMine],
-    queryFn: () => getGames(title ?? "", genreIDs ?? [], excludeMine ?? false),
-    enabled: !!jwtToken,
-  })
-}
-
-export const useGameByIdQuery = ({ id }: { id: number | null }) => {
-  const { jwtToken } = useAuthStore()
-
-  return useQuery<Game, Error>({
-    queryKey: ["game", id],
-    queryFn: () => getGameById(id!),
-    enabled: id !== null && id > 0 && !!jwtToken,
-  })
-}
 
 export const usePatchMeMutation = () => {
   const { setUser } = useAuthStore()

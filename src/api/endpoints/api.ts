@@ -1,6 +1,5 @@
 // Hand-written fetch wrapper and the endpoints not yet on the generated
 // client. Admin's endpoints moved to src/api/generated; MyList's remain here.
-import type { Game } from "../../types/games"
 import type { User } from "../../types/users"
 import useAuthStore from "../../store/useAuthStore"
 import { ApiError } from "../apiError"
@@ -59,24 +58,6 @@ export const httpRequest = async ({ method, url, params, body, authorization = f
 
     return await response.json()
   })
-
-// ENDPOINTS - These are now just simple functions
-// excludeMine is spread in rather than always sent, so an unfiltered call's URL
-// is byte-for-byte what it was before.
-export const getGames = async (title: string, genreIds: number[], excludeMine = false): Promise<Game[]> =>
-  httpRequest({
-    method: "GET",
-    url: "/games",
-    params: { title, genreIds: genreIds.join(","), ...(excludeMine ? { excludeMine: "true" } : {}) },
-    authorization: true,
-  }) as Promise<Game[]>
-
-export const getGameById = async (gameId: number): Promise<Game> =>
-  httpRequest({
-    method: "GET",
-    url: `/games/${gameId}`,
-    authorization: true,
-  }) as Promise<Game>
 
 export const getUserById = async (userId: number): Promise<User> =>
   httpRequest({

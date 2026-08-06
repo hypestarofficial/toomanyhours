@@ -9,17 +9,18 @@ import placeholderImage from "../../assets/images/placeholder.webp"
 // of the same name.
 import { LIST_LAYOUT } from "../../store/useUserSettingsAuth"
 
-// Presentational on purpose. It has two callers with different data — MyList
-// renders list entries, Admin renders raw catalog games — so taking the two
-// fields it actually displays keeps one card style instead of two components
-// that drift apart.
+// Presentational on purpose: it takes the fields it displays rather than an
+// entry. It had two callers with different data until the admin page was
+// deleted, and MyList is now the only one — but a card that takes a title and
+// an image is still the right shape, and the drag payload stays opt-in so a
+// second read-only caller costs nothing.
 type GameContainerProps = {
   title?: string
   image?: string
   index: number
   onClick?: () => void
-  // Present only in MyList: makes the card draggable and carries what the drop
-  // handler needs. Admin's catalog cards pass nothing and stay inert.
+  // Opt-in: makes the card draggable and carries what the drop handler needs.
+  // A caller that passes nothing gets an inert card.
   drag?: { id: number; gameId: number; category: string }
   // Rendered inside dnd-kit's DragOverlay — the card that follows the cursor.
   // Skips the entrance animation, which would otherwise fade the card in every

@@ -7,12 +7,11 @@ import LoginForm from "./pages/Auth/LoginForm.tsx"
 import RegisterForm from "./pages/Auth/RegisterForm.tsx"
 import useAuthStore from "./store/useAuthStore.ts"
 import MyList from "./pages/MyList/MyList.tsx"
-import { adminRoutes, routes } from "./helpers/routes.ts"
+import { routes } from "./helpers/routes.ts"
 import Profile from "./pages/Profile/Profile.tsx"
 import { useEffect } from "react"
 import useGlobalStore from "./store/useGlobalStore.ts"
 import Loader from "./components/loader/Loader.tsx"
-import Admin from "./pages/Admin/Admin.tsx"
 import { refreshToken } from "./api/endpoints/auth.ts"
 import { getMe } from "./api/endpoints/users.ts"
 import { handleError } from "./utils/errors.ts"
@@ -125,7 +124,6 @@ const AppLayout = () => {
                 <Route path={routes.myList} element={<MyList />} />
                 <Route path={routes.profile} element={<Profile />} />
                 <Route path={routes.userList} element={<UserList />} />
-                <Route path={adminRoutes.games} element={<Admin />} />
               </Route>
 
               {/* Outside both guards on purpose: an unknown URL should say so
