@@ -4,12 +4,16 @@
   @apply bg-secondaryBg fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-10 pt-5 pb-3;
 }
 
-/* text-3xl gives a 36px line box, which is what makes the two-line version and
-   credit stack (2 x 15px at leading-tight) sit *inside* the wordmark's own line
-   rather than hanging below it. Shrinking the attribution instead would have
-   worked too, but it is already text-xs. */
 .title {
-  @apply text-3xl font-semibold select-none;
+  @apply text-2xl font-semibold select-none;
+}
+
+/* A build badge rather than body text, next to the repo link. The page
+   background against the navbar's own is enough to read as a chip, so it needs
+   no border. Deliberately not beside the title: stacking it over the credit
+   there made a two-line block that hung below the wordmark. */
+.versionChip {
+  @apply bg-bg rounded px-1.5 py-px text-[10px] leading-[1.2] font-medium tracking-wide opacity-80 select-none;
 }
 
 .attribution {
