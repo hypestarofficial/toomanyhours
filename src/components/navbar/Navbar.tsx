@@ -37,6 +37,9 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
             rather than the product, and grouping them keeps the version out of
             the wordmark, where a second line dragged this icon out of line. */}
         <div className="flex items-center gap-2">
+          {/* From package.json via Vite's define, so it is a literal in the
+              bundle and moves on rebuild with nothing to configure. */}
+          <span className={styles.versionChip}>v{__APP_VERSION__}</span>
           <motion.a
             initial={{ color: colors.text }}
             whileHover={{ color: colors.primary }}
@@ -49,9 +52,6 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
           >
             <GithubIcon className="h-5 w-5" />
           </motion.a>
-          {/* From package.json via Vite's define, so it is a literal in the
-              bundle and moves on rebuild with nothing to configure. */}
-          <span className={styles.versionChip}>v{__APP_VERSION__}</span>
         </div>
         {/* Baseline-aligned rather than bottom-aligned: the credit sits on the
             same line as the title instead of dropping into its descender space,
