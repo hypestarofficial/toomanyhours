@@ -9,9 +9,10 @@ import GameRow from "./GameRow"
 import { MAX_SELECTED_GAMES } from "../../../helpers/constants"
 import { toast } from "sonner"
 import { useGamesQuery } from "../../../api/endpoints/useQuery"
+import { useAddGames } from "../../../api/userGames"
 import Loader from "../../../components/loader/Loader"
 import Select from "../../../components/form/select/Select"
-import { LIST_TYPE } from "../../../helpers/enums"
+import { LIST_TYPE, LIST_TYPE_LABEL } from "../../../helpers/enums"
 import Empty from "../../../components/empty/Empty"
 
 type AddGameModalProps = {
@@ -25,12 +26,9 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
   const [disabledRows, setDisabledRows] = useState(false)
   const [listType, setListType] = useState<LIST_TYPE | null>(null)
   const { data: searchResults, isLoading: isLoadingSearchResults } = useGamesQuery({ title: searchQuery })
+  const { mutateAsync: addGames, isPending } = useAddGames()
 
-  const listTypeOptions = [
-    { label: "Finished", value: LIST_TYPE.FINISHED },
-    { label: "Currently playing", value: LIST_TYPE.CURRENTLY_PLAYING },
-    { label: "Want to play", value: LIST_TYPE.WANT_TO_PLAY },
-  ]
+  const listTypeOptions = Object.values(LIST_TYPE).map((value) => ({ label: LIST_TYPE_LABEL[value], value }))
 
   useEffect(() => {
     setDisabledRows(selectedGames.length >= MAX_SELECTED_GAMES)
@@ -51,14 +49,20 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
     onClose()
   }
 
-  const handleAddGames = () => {
+  const handleAddGames = async () => {
+    if (!listType) return
+
     try {
+      await addGames({ data: { gameIds: selectedGames, category: listType } })
+      toast.success(selectedGames.length > 1 ? "Games added" : "Game added")
       clearSelection()
-      toast.success("Games added successfully")
-    } catch (error: unknown) {
-      handleError({ error, userMessage: "An error occurred while adding games", componentName: "AddGameModal" })
-    } finally {
       onClose()
+    } catch (error: unknown) {
+      // Deliberately no clearSelection or onClose here. On failure the user
+      // keeps their selection and can retry, rather than having to find the
+      // games again. The old version cleared and toasted success before doing
+      // any work, so it reported success unconditionally.
+      handleError({ error, userMessage: "An error occurred while adding games", componentName: "AddGameModal" })
     }
   }
 
@@ -103,7 +107,7 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
             <MotionButton variant="text" onClick={clearSelection} disabled={selectedGames.length === 0}>
               Clear
             </MotionButton>
-            <MotionButton flex onClick={handleAddGames} disabled={isDisabled} variant="success">
+            <MotionButton flex onClick={handleAddGames} disabled={isDisabled || isPending} variant="success">
               {selectedGames.length > 1 ? "Add Games" : "Add Game"}
             </MotionButton>
           </div>

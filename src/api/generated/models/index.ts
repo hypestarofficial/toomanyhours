@@ -12,6 +12,8 @@ block is genuinely public.
  * OpenAPI spec version: 0.2.0
  */
 
+export * from "./addUserGamesRequest"
+export * from "./addUserGamesRequestCategory"
 export * from "./authenticateRequest"
 export * from "./deleteGame200"
 export * from "./errorResponse"
@@ -28,5 +30,9 @@ export * from "./patchMeRequestVisibility"
 export * from "./registerRequest"
 export * from "./titleQueryParameter"
 export * from "./tokenPairs"
+export * from "./updateUserGameRequest"
+export * from "./updateUserGameRequestCategory"
 export * from "./user"
+export * from "./userGame"
+export * from "./userGameCategory"
 export * from "./userVisibility"

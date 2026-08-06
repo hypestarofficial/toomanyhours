@@ -221,14 +221,14 @@ export const useUpdateGame = <TError = ErrorResponse | ErrorResponse | ErrorResp
   return useMutation(mutationOptions, queryClient)
 }
 /**
- * Hard delete. Cascades to games_genres via foreign key.
+ * Hard delete. Cascades to games_genres via foreign key, but is refused with 409 when any user has the game in their list.
  * @summary Delete a game
  */
 export const deleteGame = (id: number, options?: SecondParameter<typeof customFetch>) => {
   return customFetch<DeleteGame200>({ url: `/admin/games/${id}`, method: "DELETE" }, options)
 }
 
-export const getDeleteGameMutationOptions = <TError = ErrorResponse | ErrorResponse, TContext = unknown>(options?: {
+export const getDeleteGameMutationOptions = <TError = ErrorResponse | ErrorResponse | ErrorResponse, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteGame>>, TError, { id: number }, TContext>
   request?: SecondParameter<typeof customFetch>
 }): UseMutationOptions<Awaited<ReturnType<typeof deleteGame>>, TError, { id: number }, TContext> => {
@@ -250,12 +250,12 @@ export const getDeleteGameMutationOptions = <TError = ErrorResponse | ErrorRespo
 
 export type DeleteGameMutationResult = NonNullable<Awaited<ReturnType<typeof deleteGame>>>
 
-export type DeleteGameMutationError = ErrorResponse | ErrorResponse
+export type DeleteGameMutationError = ErrorResponse | ErrorResponse | ErrorResponse
 
 /**
  * @summary Delete a game
  */
-export const useDeleteGame = <TError = ErrorResponse | ErrorResponse, TContext = unknown>(
+export const useDeleteGame = <TError = ErrorResponse | ErrorResponse | ErrorResponse, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteGame>>, TError, { id: number }, TContext>
     request?: SecondParameter<typeof customFetch>

@@ -1,14 +1,31 @@
 import { motion } from "motion/react"
 import type { Variants } from "motion/react"
 import { Image } from "@heroui/image"
-import type { Game } from "../../types/games"
+import { useDraggable } from "@dnd-kit/core"
+import { cn } from "../../utils/cn"
 import placeholderImage from "../../assets/images/placeholder.webp"
 
+// Presentational on purpose. It has two callers with different data — MyList
+// renders list entries, Admin renders raw catalog games — so taking the two
+// fields it actually displays keeps one card style instead of two components
+// that drift apart.
 type GameContainerProps = {
-  game: Game
+  title?: string
+  image?: string
   index: number
   onClick?: () => void
+  // Present only in MyList: makes the card draggable and carries what the drop
+  // handler needs. Admin's catalog cards pass nothing and stay inert.
+  drag?: { id: number; gameId: number; category: string }
+  // Rendered inside dnd-kit's DragOverlay — the card that follows the cursor.
+  // Skips the entrance animation, which would otherwise fade the card in every
+  // time a drag starts, and takes lifted styling so it reads as picked up
+  // rather than merely duplicated.
+  overlay?: boolean
 }
+
+// Cards past this index all arrive together, 0.6s in.
+const STAGGER_CAP = 12
 
 const containerVariants: Variants = {
   hidden: { opacity: 0, y: 10 },
@@ -16,7 +33,13 @@ const containerVariants: Variants = {
     opacity: 1,
     y: 0,
     transition: {
-      delay: i * 0.05,
+      // Capped. The delay is per card, so an uncapped stagger scales linearly
+      // with the section: with a hundred games the last card appeared five
+      // seconds after the first, which read as the page being slow when the
+      // data had in fact already arrived. A dozen cards is enough to register
+      // as a cascade; past that it is just waiting. Lists shorter than the cap
+      // animate exactly as they did before.
+      delay: Math.min(i, STAGGER_CAP) * 0.05,
       duration: 1,
       ease: "easeInOut",
       type: "spring",
@@ -31,20 +54,41 @@ const containerVariants: Variants = {
   },
 }
 
-const GameContainer: React.FC<GameContainerProps> = ({ game, index, onClick }) => (
-  <motion.button
-    custom={index}
-    variants={containerVariants}
-    initial="hidden"
-    animate="visible"
-    whileTap="tap"
-    whileHover="hover"
-    className="bg-secondaryBg flex flex-col items-center justify-start gap-4 rounded-xl p-3! select-none"
-    onClick={onClick}
-  >
-    <Image src={game.image || placeholderImage} alt={game.title} className="pointer-events-none z-0 h-18 w-full rounded-md object-cover" />
-    <span className="line-clamp-1 text-center text-sm">{game.title}</span>
-  </motion.button>
-)
+const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onClick, drag, overlay }) => {
+  // Hooks cannot be conditional, so this always runs and is disabled when the
+  // caller passes no drag payload. The fallback id is never used for a real
+  // drop; it only keeps the id stable and unique among non-draggable cards.
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: drag?.id ?? `static-${index}`,
+    data: drag,
+    disabled: !drag,
+  })
+
+  return (
+    <motion.button
+      ref={setNodeRef}
+      custom={index}
+      variants={overlay ? undefined : containerVariants}
+      initial={overlay ? undefined : "hidden"}
+      animate={overlay ? undefined : "visible"}
+      whileTap={overlay ? undefined : "tap"}
+      whileHover={overlay ? undefined : "hover"}
+      className={cn(
+        "bg-secondaryBg flex flex-col items-center justify-start gap-4 rounded-xl p-3! select-none",
+        drag && !overlay && "cursor-grab active:cursor-grabbing",
+        overlay && "ring-highlight scale-105 rotate-3 cursor-grabbing shadow-2xl ring-2",
+      )}
+      onClick={onClick}
+      // The card left behind is faded rather than hidden: removing it from the
+      // grid mid-drag would reflow the other cards under the cursor.
+      style={{ opacity: isDragging ? 0.3 : 1 }}
+      {...listeners}
+      {...attributes}
+    >
+      <Image src={image || placeholderImage} alt={title} className="pointer-events-none z-0 h-18 w-full rounded-md object-cover" />
+      <span className="line-clamp-1 text-center text-sm">{title}</span>
+    </motion.button>
+  )
+}
 
 export default GameContainer
