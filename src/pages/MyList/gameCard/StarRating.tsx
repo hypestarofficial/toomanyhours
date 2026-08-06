@@ -20,7 +20,10 @@ const starVariants: Variants = {
 const StarRating = ({ maxStars = 5, disabled = false, value = 0, onChange }: StarRatingProps) => {
   const [hover, setHover] = useState(0)
 
-  const starSize = "h-10 w-10"
+  // Ten stars at h-10 plus padding is about 480px, which overflows the modal on
+  // a phone (min-w-md is 448px, max-w is 90%). At h-7 the row lands near 360px
+  // and fits at the modal's minimum width on any screen.
+  const starSize = "h-7 w-7"
   const activeValue = hover || value
 
   return (

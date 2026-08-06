@@ -23,15 +23,13 @@ type GameCardForm = {
   review: string
 }
 
-// StarRating shows 5 stars with half-steps, so the form value runs 0-5 in
-// increments of 0.5. The API stores an integer 1-10. Doubling is the mapping
-// VISION.md anticipated when it chose a 10-point scale that keeps the existing
-// star component viable — half a star is 1, five stars is 10.
+// There is no scale conversion. StarRating renders ten stars with half-steps
+// and the API stores 0.5-10 in half-steps, so the form value is the API value.
+// The formRatingToApi/apiRatingToForm pair that doubled a five-star control
+// into a ten-point scale is gone, and should not come back.
 //
-// Zero survives the round trip in both directions, which matters: 0 is the
-// API's "clear my rating" sentinel.
-const formRatingToApi = (value: number) => Math.round(value * 2)
-const apiRatingToForm = (value: number | null | undefined) => (value ?? 0) / 2
+// 0 still means unrated in both directions, which matters: it is the API's
+// "clear my rating" sentinel.
 
 const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
   const { mutateAsync: updateEntry } = useUpdateEntry()
@@ -63,7 +61,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
   // playthrough. Starting blank there would submit an empty review over a real
   // one, so the kept data would survive only until the next Finish.
   useEffect(() => {
-    reset({ rating: apiRatingToForm(entry?.rating), review: entry?.review ?? "" })
+    reset({ rating: entry?.rating ?? 0, review: entry?.review ?? "" })
   }, [entry, reset])
 
   const close = (skip?: boolean) => {
@@ -102,7 +100,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
         gameId: entry.gameId,
         data: {
           ...(finishing ? { category: LIST_TYPE.FINISHED } : {}),
-          rating: formRatingToApi(data.rating),
+          rating: data.rating,
           review: data.review,
         },
       })
@@ -148,7 +146,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
               // so the API cannot require one and must keep accepting unrated
               // finished entries.
               rules={{ validate: (value: number) => value > 0 || "Pick a rating" }}
-              render={({ field }) => <StarRating maxStars={5} value={field.value} onChange={field.onChange} />}
+              render={({ field }) => <StarRating maxStars={10} value={field.value} onChange={field.onChange} />}
             />
           </div>
         )}
