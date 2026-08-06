@@ -33,6 +33,8 @@ const Profile: React.FC = () => {
     )
   }
 
+  const isPrivate = user?.visibility === "private"
+
   const handleVisibilityChange = (value: string | number) => {
     patchMe.mutate(
       { visibility: value as Visibility },
@@ -70,9 +72,7 @@ const Profile: React.FC = () => {
             onChange={handleVisibilityChange}
             disabled={patchMe.isPending}
           />
-          <p className="text-xs opacity-70">
-            {user?.visibility === "private" ? "Only you can see your list." : "Anyone with your link can see your list."}
-          </p>
+          <p className="text-xs opacity-70">{isPrivate ? "Only you can see your list." : "Anyone with your link can see your list."}</p>
         </div>
 
         <MotionButton size="default" variant="error" onClick={() => {}} flex>
