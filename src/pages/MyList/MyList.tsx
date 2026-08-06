@@ -20,6 +20,7 @@ import { toast } from "sonner"
 import Input from "../../components/form/input/Input"
 import MultiSelect from "../../components/form/multiSelect/MultiSelect"
 import LayoutToggle from "./layoutToggle/LayoutToggle"
+import ShareListButton from "./ShareListButton"
 // useGetGenres is an overloaded `export function`, not an `export const` —
 // worth knowing if you grep for it and come up empty.
 import { useGetGenres } from "../../api/generated/genres/genres"
@@ -175,6 +176,7 @@ const MyList: React.FC = () => {
               <MultiSelect options={genreOptions} value={filterGenres} onChange={setFilterGenres} placeholder="Filter by genres" />
             </div>
             <LayoutToggle />
+            <ShareListButton />
           </div>
           <ListSection
             title={sectionTitle("finished", LIST_TYPE.FINISHED)}
