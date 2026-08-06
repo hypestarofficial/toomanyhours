@@ -1,6 +1,7 @@
 import { motion } from "motion/react"
 import type { Variants } from "motion/react"
 import { Image } from "@heroui/image"
+import { useDraggable } from "@dnd-kit/core"
 import placeholderImage from "../../assets/images/placeholder.webp"
 
 // Presentational on purpose. It has two callers with different data — MyList
@@ -12,6 +13,9 @@ type GameContainerProps = {
   image?: string
   index: number
   onClick?: () => void
+  // Present only in MyList: makes the card draggable and carries what the drop
+  // handler needs. Admin's catalog cards pass nothing and stay inert.
+  drag?: { id: number; gameId: number; category: string }
 }
 
 const containerVariants: Variants = {
@@ -35,20 +39,37 @@ const containerVariants: Variants = {
   },
 }
 
-const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onClick }) => (
-  <motion.button
-    custom={index}
-    variants={containerVariants}
-    initial="hidden"
-    animate="visible"
-    whileTap="tap"
-    whileHover="hover"
-    className="bg-secondaryBg flex flex-col items-center justify-start gap-4 rounded-xl p-3! select-none"
-    onClick={onClick}
-  >
-    <Image src={image || placeholderImage} alt={title} className="pointer-events-none z-0 h-18 w-full rounded-md object-cover" />
-    <span className="line-clamp-1 text-center text-sm">{title}</span>
-  </motion.button>
-)
+const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onClick, drag }) => {
+  // Hooks cannot be conditional, so this always runs and is disabled when the
+  // caller passes no drag payload. The fallback id is never used for a real
+  // drop; it only keeps the id stable and unique among non-draggable cards.
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: drag?.id ?? `static-${index}`,
+    data: drag,
+    disabled: !drag,
+  })
+
+  return (
+    <motion.button
+      ref={setNodeRef}
+      custom={index}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      whileTap="tap"
+      whileHover="hover"
+      className="bg-secondaryBg flex flex-col items-center justify-start gap-4 rounded-xl p-3! select-none"
+      onClick={onClick}
+      // Faded rather than hidden: removing it from the grid mid-drag would
+      // reflow the other cards under the cursor.
+      style={{ opacity: isDragging ? 0.4 : 1 }}
+      {...listeners}
+      {...attributes}
+    >
+      <Image src={image || placeholderImage} alt={title} className="pointer-events-none z-0 h-18 w-full rounded-md object-cover" />
+      <span className="line-clamp-1 text-center text-sm">{title}</span>
+    </motion.button>
+  )
+}
 
 export default GameContainer

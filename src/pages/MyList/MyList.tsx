@@ -12,6 +12,10 @@ import useAuthStore from "../../store/useAuthStore"
 import { useGetMeGames } from "../../api/generated/user-games/user-games"
 import type { UserGame } from "../../api/generated/models"
 import { LIST_TYPE } from "../../helpers/enums"
+import { DndContext, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
+import type { DragEndEvent } from "@dnd-kit/core"
+import { useMoveEntry } from "../../api/userGames"
+import { toast } from "sonner"
 
 const MyList: React.FC = () => {
   const [selectedEntry, setSelectedEntry] = useState<UserGame | null>(null)
@@ -24,6 +28,26 @@ const MyList: React.FC = () => {
   const { data: entries, isLoading } = useGetMeGames({ query: { enabled: !!jwtToken } })
 
   const byCategory = (category: LIST_TYPE) => entries?.filter((entry) => entry.category === category) ?? []
+
+  const { mutate: moveEntry } = useMoveEntry()
+
+  // Without a distance constraint every click counts as a drag and the detail
+  // modal stops opening.
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over) return
+
+    const category = over.id as LIST_TYPE
+    const gameId = active.data.current?.gameId as number | undefined
+    const from = active.data.current?.category as LIST_TYPE | undefined
+
+    // Dropping a game back where it started is not a move; sending it would
+    // cost a request and a refetch to change nothing.
+    if (!gameId || from === category) return
+
+    moveEntry({ gameId, data: { category } }, { onError: () => toast.error("Could not move that game") })
+  }
 
   if (isLoading) {
     return <Loader fullPage />
@@ -43,29 +67,34 @@ const MyList: React.FC = () => {
           Add Game
         </MotionButton>
       </MotionContainer>
-      <MotionContainer className="flex w-full flex-col gap-2 pb-10">
-        <ListSection
-          title="finished"
-          entries={byCategory(LIST_TYPE.FINISHED)}
-          onSelectItem={setSelectedEntry}
-          defaultOpen={defaultListConfig.finished}
-          setDefaultOpen={(open) => setDefaultListConfig({ ...defaultListConfig, finished: open })}
-        />
-        <ListSection
-          title="currently playing"
-          entries={byCategory(LIST_TYPE.CURRENTLY_PLAYING)}
-          onSelectItem={setSelectedEntry}
-          defaultOpen={defaultListConfig.currentlyPlaying}
-          setDefaultOpen={(open) => setDefaultListConfig({ ...defaultListConfig, currentlyPlaying: open })}
-        />
-        <ListSection
-          title="want to play"
-          entries={byCategory(LIST_TYPE.WANT_TO_PLAY)}
-          onSelectItem={setSelectedEntry}
-          defaultOpen={defaultListConfig.wantToPlay}
-          setDefaultOpen={(open) => setDefaultListConfig({ ...defaultListConfig, wantToPlay: open })}
-        />
-      </MotionContainer>
+      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+        <MotionContainer className="flex w-full flex-col gap-2 pb-10">
+          <ListSection
+            title="finished"
+            category={LIST_TYPE.FINISHED}
+            entries={byCategory(LIST_TYPE.FINISHED)}
+            onSelectItem={setSelectedEntry}
+            defaultOpen={defaultListConfig.finished}
+            setDefaultOpen={(open) => setDefaultListConfig({ ...defaultListConfig, finished: open })}
+          />
+          <ListSection
+            title="currently playing"
+            category={LIST_TYPE.CURRENTLY_PLAYING}
+            entries={byCategory(LIST_TYPE.CURRENTLY_PLAYING)}
+            onSelectItem={setSelectedEntry}
+            defaultOpen={defaultListConfig.currentlyPlaying}
+            setDefaultOpen={(open) => setDefaultListConfig({ ...defaultListConfig, currentlyPlaying: open })}
+          />
+          <ListSection
+            title="want to play"
+            category={LIST_TYPE.WANT_TO_PLAY}
+            entries={byCategory(LIST_TYPE.WANT_TO_PLAY)}
+            onSelectItem={setSelectedEntry}
+            defaultOpen={defaultListConfig.wantToPlay}
+            setDefaultOpen={(open) => setDefaultListConfig({ ...defaultListConfig, wantToPlay: open })}
+          />
+        </MotionContainer>
+      </DndContext>
 
       {/* Add Game Modal */}
       <AddGameModal isOpen={isAddGameOpen} onClose={() => setIsAddGameOpen(false)} />
