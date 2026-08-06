@@ -1,6 +1,7 @@
-// Hand-written fetch wrapper and the endpoints not yet on the generated
-// client. Admin's endpoints moved to src/api/generated; MyList's remain here.
-import type { User } from "../../types/users"
+// The hand-written fetch wrapper. Everything that reads or writes cached
+// server data is generated now; what stays here is httpRequest itself, which
+// the generated mutator does not replace, plus the auth and /me calls that
+// manage cookies and store state rather than cached data.
 import useAuthStore from "../../store/useAuthStore"
 import { ApiError } from "../apiError"
 import { withAuthRetry } from "../session"
@@ -58,10 +59,3 @@ export const httpRequest = async ({ method, url, params, body, authorization = f
 
     return await response.json()
   })
-
-export const getUserById = async (userId: number): Promise<User> =>
-  httpRequest({
-    method: "GET",
-    url: `/users/${userId}`,
-    authorization: true,
-  }) as Promise<User>

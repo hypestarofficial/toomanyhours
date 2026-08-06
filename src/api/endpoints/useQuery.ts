@@ -1,7 +1,6 @@
-// Hand-written hooks for the endpoints not yet on the generated client.
-// Admin's endpoints now come from src/api/generated; these are what remains.
-import { useMutation, useQuery } from "@tanstack/react-query"
-import { getUserById } from "./api"
+// Hand-written hooks for the endpoints that are deliberately not generated:
+// they manage store state rather than cached server data.
+import { useMutation } from "@tanstack/react-query"
 import useAuthStore from "../../store/useAuthStore"
 import type { User, Visibility } from "../../types/users"
 import { patchMe } from "./users"
@@ -22,15 +21,5 @@ export const usePatchMeMutation = () => {
     // useAuthStore.user is what the whole app renders from, so without this
     // the profile and navbar keep showing the old game tag until a reload.
     onSuccess: (updated) => setUser(updated),
-  })
-}
-
-export const useGetUserByIdQuery = ({ id }: { id: number }) => {
-  const { jwtToken } = useAuthStore()
-
-  return useQuery<User, Error>({
-    queryKey: ["user", id],
-    queryFn: () => getUserById(id),
-    enabled: !!jwtToken,
   })
 }

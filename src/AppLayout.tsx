@@ -18,7 +18,7 @@ import { handleError } from "./utils/errors.ts"
 import NavigationRegistrar from "./api/NavigationRegistrar.tsx"
 import ProtectedRoutes from "./router/ProtectedRoutes.tsx"
 import PublicRoutes from "./router/PublicRoutes.tsx"
-import UserList from "./pages/UserList/UserList.tsx"
+import PublicProfile from "./pages/PublicProfile/PublicProfile.tsx"
 
 const AppLayout = () => {
   const { setAuthenticated, jwtToken, setJwtToken, setUser, user } = useAuthStore()
@@ -123,8 +123,12 @@ const AppLayout = () => {
               <Route element={<ProtectedRoutes />}>
                 <Route path={routes.myList} element={<MyList />} />
                 <Route path={routes.profile} element={<Profile />} />
-                <Route path={routes.userList} element={<UserList />} />
               </Route>
+
+              {/* Outside both guards on purpose: ProtectedRoutes would send an
+                  anonymous visitor to /login, and PublicRoutes would send a
+                  logged-in one to /myList. Either breaks a shared link. */}
+              <Route path={routes.publicProfile} element={<PublicProfile />} />
 
               {/* Outside both guards on purpose: an unknown URL should say so
                   rather than bounce the visitor to login. */}
