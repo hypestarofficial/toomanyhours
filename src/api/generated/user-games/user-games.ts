@@ -169,7 +169,7 @@ export const useAddMeGames = <TError = ErrorResponse | ErrorResponse | ErrorResp
   return useMutation(mutationOptions, queryClient)
 }
 /**
- * Moving a game between categories is a category-only PATCH. Rating and review are not touched unless named.
+ * Moving a game between categories is a category-only PATCH. Rating and review are not touched unless named, and are accepted only when the resulting category is finished — the patched category when the request names one, otherwise the entry's current category. Finishing a game therefore moves it and rates it in a single request. A rating already stored on an entry is kept when that entry moves out of finished.
  * @summary Update an entry's category, rating or review
  */
 export const updateMeGame = (
