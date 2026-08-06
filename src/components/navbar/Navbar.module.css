@@ -4,8 +4,12 @@
   @apply bg-secondaryBg fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-10 pt-5 pb-3;
 }
 
+/* text-3xl gives a 36px line box, which is what makes the two-line version and
+   credit stack (2 x 15px at leading-tight) sit *inside* the wordmark's own line
+   rather than hanging below it. Shrinking the attribution instead would have
+   worked too, but it is already text-xs. */
 .title {
-  @apply text-2xl font-semibold select-none;
+  @apply text-3xl font-semibold select-none;
 }
 
 .attribution {

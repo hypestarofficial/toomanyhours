@@ -9,6 +9,9 @@ import Page from "../../components/page/Page"
 import useAuthStore from "../../store/useAuthStore"
 import { usePatchMeMutation } from "../../api/endpoints/useQuery"
 import { handleError } from "../../utils/errors"
+import { copyText } from "../../utils/clipboard"
+import { profileShareUrl } from "../../helpers/shareUrl"
+import { LinkIcon } from "@heroicons/react/24/outline"
 import type { Visibility } from "../../types/users"
 
 const visibilityOptions: { label: string; value: Visibility }[] = [
@@ -31,6 +34,21 @@ const Profile: React.FC = () => {
         onError: (error) => handleError({ error, userMessage: "Could not update game tag", componentName: "Profile" }),
       },
     )
+  }
+
+  // The saved username, not the input's: typing a new tag must not change the
+  // link until it is saved, or the copied URL 404s.
+  const shareUrl = profileShareUrl(window.location.origin, user?.username ?? "")
+  const isPrivate = user?.visibility === "private"
+
+  const handleCopyLink = async () => {
+    if (await copyText(shareUrl)) {
+      toast.success("Link copied")
+      return
+    }
+    // Not a thrown error: the field beside the button still holds the link, so
+    // the user has a way through.
+    toast.error("Could not copy — select the link and copy it manually")
   }
 
   const handleVisibilityChange = (value: string | number) => {
@@ -70,9 +88,38 @@ const Profile: React.FC = () => {
             onChange={handleVisibilityChange}
             disabled={patchMe.isPending}
           />
-          <p className="text-xs opacity-70">
-            {user?.visibility === "private" ? "Only you can see your list." : "Anyone with your link can see your list."}
-          </p>
+          <p className="text-xs opacity-70">{isPrivate ? "Only you can see your list." : "Anyone with your link can see your list."}</p>
+        </div>
+
+        <div className="flex w-full flex-col gap-2">
+          <p className="text-sm">Share your list</p>
+          <div className="flex w-full items-center gap-2">
+            {/* min-w-0 so a long link shrinks the field instead of pushing the
+                button off the card. */}
+            <div className="min-w-0 flex-1">
+              <Input
+                type="text"
+                id="shareLink"
+                value={shareUrl}
+                readOnly
+                // Select on focus so the link is copyable by hand wherever the
+                // clipboard API is unavailable or refused.
+                onFocus={(event) => event.currentTarget.select()}
+              />
+            </div>
+            <MotionButton
+              onClick={handleCopyLink}
+              disabled={isPrivate || !shareUrl}
+              icon={<LinkIcon className="h-4 w-4" />}
+              title={isPrivate ? "Make your profile public to share it" : "Copy your profile link"}
+            >
+              Copy
+            </MotionButton>
+          </div>
+          {/* Copying is blocked rather than warned about: a private profile
+              answers 403 to everyone else, so a shared link would look broken
+              to the friend and give the owner no clue why. */}
+          {isPrivate && <p className="text-xs opacity-70">Make your profile public to share this link.</p>}
         </div>
 
         <MotionButton size="default" variant="error" onClick={() => {}} flex>
