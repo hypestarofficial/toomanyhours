@@ -1,5 +1,6 @@
+import { useEffect } from "react"
 import Modal from "../../../components/modal/Modal"
-import type { Game } from "../../../types/games"
+import type { UserGame } from "../../../api/generated/models"
 import { Image } from "@heroui/image"
 import StarRating from "./StarRating"
 import TextArea from "../../../components/form/textArea/TextArea"
@@ -8,9 +9,10 @@ import { Controller, Form, useForm } from "react-hook-form"
 import { handleError } from "../../../utils/errors"
 import { toast } from "sonner"
 import Badge from "../../../components/badge/Badge"
+import { useUpdateEntry } from "../../../api/userGames"
 
 type GameCardProps = {
-  game: Game | null
+  entry: UserGame | null
   onClose: () => void
 }
 
@@ -19,7 +21,19 @@ type GameCardForm = {
   review: string
 }
 
-const GameCard: React.FC<GameCardProps> = ({ game, onClose }) => {
+// StarRating shows 5 stars with half-steps, so the form value runs 0-5 in
+// increments of 0.5. The API stores an integer 1-10. Doubling is the mapping
+// VISION.md anticipated when it chose a 10-point scale that keeps the existing
+// star component viable — half a star is 1, five stars is 10.
+//
+// Zero survives the round trip in both directions, which matters: 0 is the
+// API's "clear my rating" sentinel.
+const formRatingToApi = (value: number) => Math.round(value * 2)
+const apiRatingToForm = (value: number | null | undefined) => (value ?? 0) / 2
+
+const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
+  const { mutateAsync: updateEntry } = useUpdateEntry()
+
   const {
     control,
     handleSubmit,
@@ -32,6 +46,13 @@ const GameCard: React.FC<GameCardProps> = ({ game, onClose }) => {
       review: "",
     },
   })
+
+  // defaultValues are only read on first mount, so without this the form keeps
+  // whatever the previously opened game had — and saving would overwrite this
+  // entry's review with the last one's.
+  useEffect(() => {
+    reset({ rating: apiRatingToForm(entry?.rating), review: entry?.review ?? "" })
+  }, [entry, reset])
 
   const validateAtLeastOne = () => {
     const values = getValues()
@@ -47,9 +68,16 @@ const GameCard: React.FC<GameCardProps> = ({ game, onClose }) => {
   }
 
   const onSubmit = async (data: GameCardForm) => {
+    if (!entry) return
+
     try {
-      console.log(data)
-      toast.success("Game rated and reviewed successfully")
+      // Sent as-is otherwise: rating 0 and review "" are the API's clear
+      // sentinels, so removing a rating in the form clears it on the server.
+      await updateEntry({
+        gameId: entry.gameId,
+        data: { rating: formRatingToApi(data.rating), review: data.review },
+      })
+      toast.success("Saved")
       close()
     } catch (error: unknown) {
       handleError({ error, userMessage: "An error occurred while rating and reviewing the game", componentName: "GameCard" })
@@ -57,13 +85,13 @@ const GameCard: React.FC<GameCardProps> = ({ game, onClose }) => {
   }
 
   return (
-    <Modal isOpen={!!game} onClose={() => close(false)}>
+    <Modal isOpen={!!entry} onClose={() => close(false)}>
       <Form control={control} className="flex w-full flex-col items-center justify-center gap-6 p-6">
         <div className="flex w-full flex-col items-center justify-center gap-3">
-          {game?.image && <Image src={game?.image} alt={game?.title} className="rounded-md" />}
-          {game?.genres && (
+          {entry?.game?.image && <Image src={entry.game.image} alt={entry.game.title} className="rounded-md" />}
+          {entry?.game?.genres && (
             <div className="flex w-full flex-wrap items-center justify-start gap-1">
-              {game.genres.map((genre) => (
+              {entry.game.genres.map((genre) => (
                 <Badge variant="dark" key={genre.id}>
                   {genre.genre}
                 </Badge>

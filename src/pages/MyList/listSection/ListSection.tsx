@@ -1,28 +1,36 @@
 import Empty from "../../../components/empty/Empty"
 import MotionCollapse from "../../../components/motionCollapse/MotionCollapse"
 import GameContainer from "../../../components/myList/GameContainer"
-import type { Game } from "../../../types/games"
+import type { UserGame } from "../../../api/generated/models"
 import styles from "./ListSection.module.css"
 
 type ListSectionProps = {
   title: string
   defaultOpen?: boolean
   setDefaultOpen?: (open: boolean) => void
-  games?: Game[]
-  onSelectItem: (game: Game) => void
+  entries?: UserGame[]
+  onSelectItem: (entry: UserGame) => void
   isLoading?: boolean
 }
 
-const ListSection: React.FC<ListSectionProps> = ({ title, games, onSelectItem, defaultOpen = false, setDefaultOpen, isLoading }) => (
+const ListSection: React.FC<ListSectionProps> = ({ title, entries, onSelectItem, defaultOpen = false, setDefaultOpen, isLoading }) => (
   <MotionCollapse defaultOpen={defaultOpen} title={title} setDefaultOpen={setDefaultOpen} isLoading={isLoading}>
-    {games && games.length > 0 ? (
+    {entries && entries.length > 0 ? (
       <div className={styles.gamesGrid}>
-        {games.map((game, index) => (
-          <GameContainer key={game.id} game={game} index={index} onClick={() => onSelectItem(game)} />
+        {/* Keyed by the entry, not the game: the entry is what is being rendered,
+            and its id is the stable identity across a category move. */}
+        {entries.map((entry, index) => (
+          <GameContainer
+            key={entry.id}
+            title={entry.game?.title}
+            image={entry.game?.image}
+            index={index}
+            onClick={() => onSelectItem(entry)}
+          />
         ))}
       </div>
     ) : (
-      <Empty message="No games found" fullPage />
+      <Empty message="Nothing here yet" fullPage />
     )}
   </MotionCollapse>
 )

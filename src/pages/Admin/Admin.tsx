@@ -56,7 +56,7 @@ const Admin: React.FC = () => {
           {games && games.length > 0 ? (
             <div className={styles.gamesList}>
               {games.map((game, index) => (
-                <GameContainer key={game.id} game={game} index={index} onClick={() => handleToggleModal(game)} />
+                <GameContainer key={game.id} title={game.title} image={game.image} index={index} onClick={() => handleToggleModal(game)} />
               ))}
             </div>
           ) : isLoadingGames ? (
