@@ -24,13 +24,22 @@ type GameContainerProps = {
   overlay?: boolean
 }
 
+// Cards past this index all arrive together, 0.6s in.
+const STAGGER_CAP = 12
+
 const containerVariants: Variants = {
   hidden: { opacity: 0, y: 10 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
     transition: {
-      delay: i * 0.05,
+      // Capped. The delay is per card, so an uncapped stagger scales linearly
+      // with the section: with a hundred games the last card appeared five
+      // seconds after the first, which read as the page being slow when the
+      // data had in fact already arrived. A dozen cards is enough to register
+      // as a cascade; past that it is just waiting. Lists shorter than the cap
+      // animate exactly as they did before.
+      delay: Math.min(i, STAGGER_CAP) * 0.05,
       duration: 1,
       ease: "easeInOut",
       type: "spring",
