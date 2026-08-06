@@ -10,12 +10,18 @@ type MotionButtonProps = {
   className?: string
   disabled?: boolean
   flex?: boolean
-  size?: "menu" | "default" | "icon"
+  size?: "menu" | "default" | "icon" | "square"
   variant?: MotionButtonVariant
   ref?: RefObject<HTMLButtonElement | null>
   type?: "button" | "submit" | "reset"
   icon?: React.ReactNode
   noTap?: boolean
+  /**
+   * Required in practice for an icon-only button: with no text content there
+   * is nothing for a screen reader to announce, and nothing on hover.
+   */
+  ariaLabel?: string
+  title?: string
 }
 
 const MotionButton: React.FC<MotionButtonProps> = ({
@@ -30,11 +36,16 @@ const MotionButton: React.FC<MotionButtonProps> = ({
   type = "button",
   noTap = false,
   icon,
+  ariaLabel,
+  title,
 }) => {
   const sizeMap = {
     menu: icon ? "px-1.5! py-0.5! text-sm!" : "px-3! py-0.5! text-sm!",
     default: icon ? "px-4! py-1.5!" : "px-6! py-2!",
     icon: "p-0!",
+    // A tight rounded square. `icon` is p-0, which leaves an icon flush to the
+    // edge; this is the same idea with breathing room.
+    square: "p-1.5!",
   }
 
   return (
@@ -56,6 +67,8 @@ const MotionButton: React.FC<MotionButtonProps> = ({
       onClick={onClick}
       ref={ref}
       disabled={disabled}
+      aria-label={ariaLabel}
+      title={title}
     >
       {icon && icon}
       {children}
