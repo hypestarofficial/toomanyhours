@@ -10,6 +10,8 @@ import { handleError } from "../../../utils/errors"
 import { toast } from "sonner"
 import Badge from "../../../components/badge/Badge"
 import { useUpdateEntry } from "../../../api/userGames"
+import { gameCardMode, GAME_CARD_MODE } from "./gameCardMode"
+import { LIST_TYPE, LIST_TYPE_LABEL } from "../../../helpers/enums"
 
 type GameCardProps = {
   entry: UserGame | null
@@ -34,13 +36,19 @@ const apiRatingToForm = (value: number | null | undefined) => (value ?? 0) / 2
 const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
   const { mutateAsync: updateEntry } = useUpdateEntry()
 
+  const mode = gameCardMode(entry?.category)
+  const showsForm = mode !== GAME_CARD_MODE.PLAY
+
   const {
     control,
     handleSubmit,
-    getValues,
     reset,
-    formState: { isValid, errors },
+    formState: { isValid },
   } = useForm<GameCardForm>({
+    // isValid must be live: the primary button is disabled until a rating is
+    // picked, and with the default onSubmit mode it would only become accurate
+    // after the first rejected submit.
+    mode: "onChange",
     defaultValues: {
       rating: 0,
       review: "",
@@ -50,14 +58,13 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
   // defaultValues are only read on first mount, so without this the form keeps
   // whatever the previously opened game had — and saving would overwrite this
   // entry's review with the last one's.
+  //
+  // Prefills in FINISH mode too, where the stored values may be from an earlier
+  // playthrough. Starting blank there would submit an empty review over a real
+  // one, so the kept data would survive only until the next Finish.
   useEffect(() => {
     reset({ rating: apiRatingToForm(entry?.rating), review: entry?.review ?? "" })
   }, [entry, reset])
-
-  const validateAtLeastOne = () => {
-    const values = getValues()
-    return values.rating > 0 || values.review.trim().length > 0 || "Fill at least one"
-  }
 
   const close = (skip?: boolean) => {
     if (skip) {
@@ -67,17 +74,39 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
     onClose()
   }
 
-  const onSubmit = async (data: GameCardForm) => {
+  // Play! is a category-only PATCH — the same request dragging sends, which the
+  // API's rating rule already permits.
+  const onPlay = async () => {
     if (!entry) return
 
     try {
-      // Sent as-is otherwise: rating 0 and review "" are the API's clear
-      // sentinels, so removing a rating in the form clears it on the server.
+      await updateEntry({ gameId: entry.gameId, data: { category: LIST_TYPE.CURRENTLY_PLAYING } })
+      toast.success(`${entry.game?.title ?? "Game"} → ${LIST_TYPE_LABEL[LIST_TYPE.CURRENTLY_PLAYING]}`)
+      close()
+    } catch (error: unknown) {
+      handleError({ error, userMessage: "Could not start that game", componentName: "GameCard" })
+    }
+  }
+
+  const onSubmit = async (data: GameCardForm) => {
+    if (!entry) return
+
+    const finishing = mode === GAME_CARD_MODE.FINISH
+
+    try {
+      // The category rides along when finishing, so the move and the rating are
+      // one request. Two would leave the entry finished-but-unrated if the
+      // second failed — and the API judges the resulting category precisely so
+      // this does not have to be split.
       await updateEntry({
         gameId: entry.gameId,
-        data: { rating: formRatingToApi(data.rating), review: data.review },
+        data: {
+          ...(finishing ? { category: LIST_TYPE.FINISHED } : {}),
+          rating: formRatingToApi(data.rating),
+          review: data.review,
+        },
       })
-      toast.success("Saved")
+      toast.success(finishing ? `${entry.game?.title ?? "Game"} → ${LIST_TYPE_LABEL[LIST_TYPE.FINISHED]}` : "Saved")
       close()
     } catch (error: unknown) {
       handleError({ error, userMessage: "An error occurred while rating and reviewing the game", componentName: "GameCard" })
@@ -99,30 +128,53 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
             </div>
           )}
         </div>
-        <div className="flex w-full flex-col items-center justify-center gap-4">
-          <Controller
-            name="review"
-            control={control}
-            rules={{
-              validate: validateAtLeastOne,
-            }}
-            render={({ field }) => (
-              <TextArea id={"review"} label="Review" placeholder="Write your review here..." sideLabel={false} {...field} />
-            )}
-          />
-          <Controller
-            name="rating"
-            rules={{ validate: validateAtLeastOne }}
-            control={control}
-            render={({ field }) => <StarRating maxStars={5} value={field.value} onChange={field.onChange} />}
-          />
-        </div>
-        {errors.root?.message && <p className="errorStr">{errors.root?.message}</p>}
+
+        {/* PLAY mode shows neither field, even when the row holds a rating from
+            a previous stint in finished. */}
+        {showsForm && (
+          <div className="flex w-full flex-col items-center justify-center gap-4">
+            <Controller
+              name="review"
+              control={control}
+              render={({ field }) => (
+                <TextArea id={"review"} label="Review" placeholder="Write your review here..." sideLabel={false} {...field} />
+              )}
+            />
+            <Controller
+              name="rating"
+              control={control}
+              // Required, replacing the old "at least one of rating or review".
+              // A form rule only: dragging a card into finished sets no rating,
+              // so the API cannot require one and must keep accepting unrated
+              // finished entries.
+              rules={{ validate: (value: number) => value > 0 || "Pick a rating" }}
+              render={({ field }) => <StarRating maxStars={5} value={field.value} onChange={field.onChange} />}
+            />
+          </div>
+        )}
+
         <div className="flex w-full gap-2">
-          <MotionButton onClick={() => close(true)}>Skip</MotionButton>
-          <MotionButton variant="success" flex onClick={handleSubmit(onSubmit)} disabled={!isValid}>
-            Rate and Review
-          </MotionButton>
+          {mode === GAME_CARD_MODE.FINISH ? (
+            <MotionButton onClick={() => close(true)}>Skip</MotionButton>
+          ) : (
+            <MotionButton onClick={() => close(false)}>Cancel</MotionButton>
+          )}
+
+          {mode === GAME_CARD_MODE.PLAY && (
+            <MotionButton variant="success" flex onClick={onPlay}>
+              Play!
+            </MotionButton>
+          )}
+          {mode === GAME_CARD_MODE.FINISH && (
+            <MotionButton variant="success" flex onClick={handleSubmit(onSubmit)} disabled={!isValid}>
+              Finish
+            </MotionButton>
+          )}
+          {mode === GAME_CARD_MODE.EDIT && (
+            <MotionButton variant="success" flex onClick={handleSubmit(onSubmit)} disabled={!isValid}>
+              Save
+            </MotionButton>
+          )}
         </div>
       </Form>
     </Modal>
