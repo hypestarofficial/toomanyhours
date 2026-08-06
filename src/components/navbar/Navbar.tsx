@@ -45,10 +45,12 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
         >
           <GithubIcon className="h-5 w-5" />
         </motion.a>
-        {/* Baseline-aligned rather than bottom-aligned: the attribution sits on
-            the same line as the title instead of dropping into its descender
-            space, which is what reads as one piece of type rather than two. */}
-        <div className="flex items-baseline gap-2">
+        {/* Centred, not baseline-aligned. Baseline alignment was right while the
+            credit was a single line, but it aligns a block's *first* line — so
+            the second line hung below the title, pushing the whole group taller
+            than the wordmark and dragging the GitHub icon (centred on that
+            group) visibly low. Centring makes the stack straddle the title. */}
+        <div className="flex items-center gap-2">
           <h1 className={styles.title}>tooManyHours</h1>
           {/* Version above the credit: two facts about the build, stacked so
               they read as metadata rather than competing with the wordmark.
