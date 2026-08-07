@@ -58,7 +58,11 @@ const AppLayout = () => {
     }
 
     checkSession()
-  }, [jwtToken])
+    // Zustand store actions are stable references, created once when the
+    // store is defined, so listing them cannot make this effect re-run. The
+    // boot-time refresh stays one-shot. The second effect in this file
+    // already lists the same setters, which is the precedent.
+  }, [jwtToken, setAuthenticated, setJwtToken, setUser, setIsGlobalLoading])
 
   useEffect(() => {
     const fetchUserProfile = async () => {

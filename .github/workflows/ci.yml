@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # npm ci, not npm install: it installs exactly the lockfile and fails if
+      # package.json and package-lock.json disagree, which is the check worth
+      # having.
+      - run: npm ci
+
+      # Format first. Prettier runs as an eslint rule here, so a formatting
+      # violation would otherwise surface as a confusing lint error.
+      - run: npm run check-format
+
+      - run: npm run lint
+
+      - run: npm test
+
+      - run: npm run build
