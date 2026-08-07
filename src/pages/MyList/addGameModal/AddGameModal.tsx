@@ -17,7 +17,7 @@ import useAuthStore from "../../../store/useAuthStore"
 import { useSearchGames } from "../../../api/generated/games/games"
 import { useGetMeGames } from "../../../api/generated/user-games/user-games"
 import { ownedIgdbIds, rowState } from "./rows"
-import { useDebouncedValue } from "./useDebouncedValue"
+import { useDebouncedValue } from "../../../hooks/useDebouncedValue"
 
 // The API answers 400 below two characters, and one character matches most of
 // IGDB anyway.

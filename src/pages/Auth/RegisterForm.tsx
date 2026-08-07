@@ -10,6 +10,7 @@ import MotionLink from "../../components/motionLink/MotionLink"
 import styles from "./Auth.module.css"
 import { useNavigate } from "react-router"
 import useAuthStore from "../../store/useAuthStore"
+import UsernameStatus from "../../components/form/UsernameStatus"
 import { beginSession } from "../../api/session"
 import { register } from "../../api/endpoints/auth"
 import { routes } from "../../helpers/routes"
@@ -80,20 +81,29 @@ const RegisterForm: React.FC = () => {
                 rules={{
                   required: "Game tag is required",
                   minLength: { value: 3, message: "At least 3 characters" },
-                  // Uppercase is accepted because the server lowercases it.
-                  // Rejecting it here would be a lie about what's allowed.
-                  pattern: { value: /^[a-zA-Z0-9_]+$/, message: "Letters, numbers and underscores only" },
+                  // Lowercase only, and the input below makes uppercase
+                  // untypeable rather than transforming it after the fact.
+                  // This used to accept A-Z because the server lowercased it —
+                  // which meant the value you submitted was not the value you
+                  // typed, and you found out afterwards.
+                  pattern: { value: /^[a-z0-9_]+$/, message: "Lowercase letters, numbers and underscores only" },
                 }}
                 render={({ field, formState: { errors } }) => (
-                  <Input
-                    type="text"
-                    maxLength={16}
-                    label="Game tag"
-                    id="username"
-                    placeholder="john_doe"
-                    {...field}
-                    error={errors.username?.message}
-                  />
+                  <>
+                    <Input
+                      type="text"
+                      maxLength={16}
+                      label="Game tag"
+                      id="username"
+                      placeholder="john_doe"
+                      {...field}
+                      // After the spread, or field's own handler wins it and
+                      // the lowercasing silently never runs.
+                      onChange={(event) => field.onChange(event.currentTarget.value.toLowerCase())}
+                      error={errors.username?.message}
+                    />
+                    <UsernameStatus value={field.value} />
+                  </>
                 )}
               />
               <Controller
