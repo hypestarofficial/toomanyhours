@@ -9,6 +9,7 @@ import Page from "../../components/page/Page"
 import useAuthStore from "../../store/useAuthStore"
 import { usePatchMeMutation } from "../../api/endpoints/useQuery"
 import { handleError } from "../../utils/errors"
+import UsernameStatus from "../../components/form/UsernameStatus"
 import type { Visibility } from "../../types/users"
 
 const visibilityOptions: { label: string; value: Visibility }[] = [
@@ -57,8 +58,10 @@ const Profile: React.FC = () => {
             label="Game tag"
             maxLength={16}
             value={username}
-            onChange={(event) => setUsername(event.currentTarget.value)}
+            onChange={(event) => setUsername(event.currentTarget.value.toLowerCase())}
           />
+          {/* currentUsername is what stops your own name reading as taken. */}
+          <UsernameStatus value={username} currentUsername={user?.username} />
           <MotionButton flex disabled={!usernameChanged || patchMe.isPending} onClick={handleSaveUsername}>
             Save
           </MotionButton>
