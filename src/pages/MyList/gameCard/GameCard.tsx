@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import Modal from "../../../components/modal/Modal"
 import type { UserGame } from "../../../api/generated/models"
 import { Image } from "@heroui/image"
@@ -9,7 +9,7 @@ import { Controller, Form, useForm } from "react-hook-form"
 import { handleError } from "../../../utils/errors"
 import { toast } from "sonner"
 import Badge from "../../../components/badge/Badge"
-import { useUpdateEntry } from "../../../api/userGames"
+import { useUpdateEntry, useRemoveEntry } from "../../../api/userGames"
 import { gameCardMode, GAME_CARD_MODE } from "./gameCardMode"
 import { LIST_TYPE, LIST_TYPE_LABEL } from "../../../helpers/enums"
 
@@ -33,6 +33,18 @@ type GameCardForm = {
 
 const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
   const { mutateAsync: updateEntry } = useUpdateEntry()
+  const { mutateAsync: removeEntry, isPending: removing } = useRemoveEntry()
+
+  // Removal confirms in its own dialog, because an entry can hold a rating and
+  // a review the user wrote — words worth naming the game before destroying.
+  //
+  // Which game is being confirmed, not a bare boolean, so the flag is *derived*
+  // against the open entry. A different game cannot inherit an open dialog: it
+  // is structurally impossible rather than something a cleanup has to
+  // remember. It also keeps setState out of an effect body, which
+  // react-hooks/set-state-in-effect rejects for causing cascading renders.
+  const [confirmingGameId, setConfirmingGameId] = useState<number | null>(null)
+  const confirmOpen = confirmingGameId !== null && confirmingGameId === entry?.gameId
 
   const mode = gameCardMode(entry?.category)
   const showsForm = mode !== GAME_CARD_MODE.PLAY
@@ -69,6 +81,10 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
       toast.info("No worries, you can rate and review it later")
     }
     reset()
+    // Reopening the *same* game with the dialog still open would be
+    // surprising, and the derivation above cannot catch that one — the game id
+    // has not changed.
+    setConfirmingGameId(null)
     onClose()
   }
 
@@ -83,6 +99,21 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
       close()
     } catch (error: unknown) {
       handleError({ error, userMessage: "Could not start that game", componentName: "GameCard" })
+    }
+  }
+
+  const onConfirmRemove = async () => {
+    if (!entry) return
+
+    try {
+      await removeEntry({ gameId: entry.gameId })
+      toast.success(`${entry.game?.title ?? "Game"} removed from your list`)
+      close()
+    } catch (error: unknown) {
+      // Disarm on failure, so a failed attempt does not leave a primed
+      // destructive control behind.
+      setConfirmingGameId(null)
+      handleError({ error, userMessage: "Could not remove that game", componentName: "GameCard" })
     }
   }
 
@@ -152,11 +183,20 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
         )}
 
         <div className="flex w-full gap-2">
-          {mode === GAME_CARD_MODE.FINISH ? (
-            <MotionButton onClick={() => close(true)}>Skip</MotionButton>
-          ) : (
-            <MotionButton onClick={() => close(false)}>Cancel</MotionButton>
-          )}
+          {/* First, not last. The primary action carries `flex` and takes the
+              remaining width, so it sits hard against the right edge — a
+              Remove placed after it would be directly adjacent to the button
+              clicked every single time. Shown in all three modes: a
+              want-to-play you have gone off is the likeliest thing anyone
+              removes. */}
+          <MotionButton variant="error" onClick={() => entry && setConfirmingGameId(entry.gameId)} disabled={removing}>
+            Remove
+          </MotionButton>
+
+          {/* Skip survives where Cancel did not: it is not "close this", it is
+              "I am not rating this now", and it says so with a toast. Plain
+              dismissal is the header's × and the backdrop. */}
+          {mode === GAME_CARD_MODE.FINISH && <MotionButton onClick={() => close(true)}>Skip</MotionButton>}
 
           {mode === GAME_CARD_MODE.PLAY && (
             <MotionButton variant="success" flex onClick={onPlay}>
@@ -175,6 +215,30 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
           )}
         </div>
       </Form>
+
+      {/* A second Modal, nested inside the first. Both portal to document.body
+          and both are z-50, so the later-mounted one paints on top; there is no
+          Escape handler anywhere in Modal, so closing this one cannot close its
+          parent by accident. Its own × and backdrop dismiss it.
+
+          Naming the game is the point of a dialog over an inline confirm: the
+          thing about to be destroyed says what it is. */}
+      <Modal isOpen={confirmOpen} onClose={() => setConfirmingGameId(null)} size="xs">
+        <div className="flex w-full flex-col gap-6 p-6">
+          <p className="text-center">
+            Remove <span className="font-semibold">{entry?.game?.title ?? "this game"}</span> from your list? Your rating and review go with
+            it.
+          </p>
+          <div className="flex w-full gap-2">
+            <MotionButton variant="error" flex onClick={onConfirmRemove} disabled={removing}>
+              Really delete
+            </MotionButton>
+            <MotionButton flex onClick={() => setConfirmingGameId(null)} disabled={removing}>
+              Close
+            </MotionButton>
+          </div>
+        </div>
+      </Modal>
     </Modal>
   )
 }

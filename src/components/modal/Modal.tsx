@@ -16,15 +16,24 @@ interface ModalProps {
   footer?: React.ReactNode
 }
 
+// How many modals are open. `document.body.style.overflow` is one global
+// value, so a nested modal — the remove confirmation inside the game detail
+// modal — would unlock scrolling for its parent when it closed. The lock has
+// to be counted, not toggled.
+let openModalCount = 0
+
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, backdrop = true, footer, size = "md", closeBtn = true }) => {
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = "unset"
-    }
+    if (!isOpen) return
+
+    openModalCount += 1
+    document.body.style.overflow = "hidden"
+
     return () => {
-      document.body.style.overflow = "unset"
+      openModalCount -= 1
+      if (openModalCount === 0) {
+        document.body.style.overflow = "unset"
+      }
     }
   }, [isOpen])
 

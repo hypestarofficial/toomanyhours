@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query"
 import type { QueryClient } from "@tanstack/react-query"
-import { useAddMeGames, useUpdateMeGame, getGetMeGamesQueryKey } from "./generated/user-games/user-games"
+import { useAddMeGames, useUpdateMeGame, useRemoveMeGame, getGetMeGamesQueryKey } from "./generated/user-games/user-games"
 import type { UserGame, UpdateUserGameRequest } from "./generated/models"
 
 // Invalidation goes through the generated key helper, never a string literal.
@@ -25,6 +25,20 @@ export const useUpdateEntry = () => {
   const queryClient = useQueryClient()
 
   return useUpdateMeGame({
+    mutation: {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetMeGamesQueryKey() }),
+    },
+  })
+}
+
+// Invalidate rather than update optimistically, unlike useMoveEntry below.
+// A move is watched — the card travels under the cursor and a round trip
+// would show. A removal happens behind a closing modal, so optimism would buy
+// nothing and cost a rollback path that has to be tested to be worth trusting.
+export const useRemoveEntry = () => {
+  const queryClient = useQueryClient()
+
+  return useRemoveMeGame({
     mutation: {
       onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetMeGamesQueryKey() }),
     },
