@@ -9,6 +9,7 @@ import { motion } from "motion/react"
 import { colors } from "../../utils/colors"
 import GithubIcon from "../../assets/github.svg?react"
 import { routes } from "../../helpers/routes"
+import { Link } from "react-router"
 
 type NavbarProps = ComponentPropsWithoutRef<"nav">
 
@@ -39,7 +40,11 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
         <div className="flex items-center gap-2">
           {/* From package.json via Vite's define, so it is a literal in the
               bundle and moves on rebuild with nothing to configure. */}
-          <span className={styles.versionChip}>v{__APP_VERSION__}</span>
+          {/* The version number is the thing someone clicks to ask what
+              changed, so it should answer. */}
+          <Link to={routes.changelog} className={styles.versionChip} title="What's new">
+            v{__APP_VERSION__}
+          </Link>
           <motion.a
             initial={{ color: colors.text }}
             whileHover={{ color: colors.primary }}
