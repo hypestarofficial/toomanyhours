@@ -19,6 +19,7 @@ import NavigationRegistrar from "./api/NavigationRegistrar.tsx"
 import ProtectedRoutes from "./router/ProtectedRoutes.tsx"
 import PublicRoutes from "./router/PublicRoutes.tsx"
 import PublicProfile from "./pages/PublicProfile/PublicProfile.tsx"
+import Changelog from "./pages/Changelog/Changelog.tsx"
 
 const AppLayout = () => {
   const { setAuthenticated, jwtToken, setJwtToken, setUser, user } = useAuthStore()
@@ -133,6 +134,12 @@ const AppLayout = () => {
                   anonymous visitor to /login, and PublicRoutes would send a
                   logged-in one to /myList. Either breaks a shared link. */}
               <Route path={routes.publicProfile} element={<PublicProfile />} />
+
+              {/* Outside both guards for the same reason as the profile above:
+                  ProtectedRoutes would send a logged-out reader to login, and
+                  PublicRoutes would send a logged-in one to their list. Either
+                  breaks a link to a release note. */}
+              <Route path={routes.changelog} element={<Changelog />} />
 
               {/* Outside both guards on purpose: an unknown URL should say so
                   rather than bounce the visitor to login. */}
