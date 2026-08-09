@@ -26,33 +26,26 @@ describe("rowState", () => {
   const owned = new Set([1942])
 
   it("is selectable when nothing applies", () => {
-    expect(rowState(9630, owned, [], 3)).toBe(ROW_STATE.SELECTABLE)
+    expect(rowState(9630, owned, null)).toBe(ROW_STATE.SELECTABLE)
   })
 
   it("is owned when already in the list", () => {
-    expect(rowState(1942, owned, [], 3)).toBe(ROW_STATE.OWNED)
+    expect(rowState(1942, owned, null)).toBe(ROW_STATE.OWNED)
   })
 
   it("is selected when picked", () => {
-    expect(rowState(9630, owned, [9630], 3)).toBe(ROW_STATE.SELECTED)
+    expect(rowState(9630, owned, 9630)).toBe(ROW_STATE.SELECTED)
   })
 
-  it("is blocked when the cap is reached and this row is not chosen", () => {
-    expect(rowState(9630, owned, [1, 2, 3], 3)).toBe(ROW_STATE.BLOCKED)
-  })
-
-  it("stays selected at the cap when this row is one of the chosen", () => {
-    expect(rowState(2, owned, [1, 2, 3], 3)).toBe(ROW_STATE.SELECTED)
+  // Selecting is single, so another row being chosen leaves this one
+  // selectable rather than blocking it — picking it simply replaces the choice.
+  it("stays selectable while a different row is chosen", () => {
+    expect(rowState(9630, owned, 1020)).toBe(ROW_STATE.SELECTABLE)
   })
 
   // Owned wins over everything. Without this precedence a game you already
-  // have could be selected at the moment the cap frees up, and the add would
-  // fail with a 409 that rejects the whole request.
+  // have could be selected, and the add would fail with a 409.
   it("reports owned even when the id is somehow also selected", () => {
-    expect(rowState(1942, owned, [1942], 3)).toBe(ROW_STATE.OWNED)
-  })
-
-  it("reports owned even at the cap", () => {
-    expect(rowState(1942, owned, [1, 2, 3], 3)).toBe(ROW_STATE.OWNED)
+    expect(rowState(1942, owned, 1942)).toBe(ROW_STATE.OWNED)
   })
 })

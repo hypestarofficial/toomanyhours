@@ -5,7 +5,6 @@ import { toast } from "sonner"
 import Badge from "../../../components/badge/Badge"
 import { colors } from "../../../utils/colors"
 import { cn } from "../../../utils/cn"
-import { MAX_SELECTED_GAMES } from "../../../helpers/constants"
 import placeholderImage from "../../../assets/images/placeholder.webp"
 import type { IGDBGame } from "../../../api/generated/models"
 import { ROW_STATE } from "./rows"
@@ -39,9 +38,8 @@ type GameRowProps = {
 
 const GameRow: React.FC<GameRowProps> = ({ game, state, onCheck }) => {
   const isOwned = state === ROW_STATE.OWNED
-  const isBlocked = state === ROW_STATE.BLOCKED
   const isChecked = state === ROW_STATE.SELECTED
-  const disabled = isOwned || isBlocked
+  const disabled = isOwned
 
   // A search for "Grand Theft Auto V" returns three entries with identical
   // titles; the year is one of the two things that separates them.
@@ -51,10 +49,6 @@ const GameRow: React.FC<GameRowProps> = ({ game, state, onCheck }) => {
   const handleClick = () => {
     if (isOwned) {
       toast.info("That one is already in your list")
-      return
-    }
-    if (isBlocked) {
-      toast.info(`You can only select up to ${MAX_SELECTED_GAMES} games`)
       return
     }
     onCheck()

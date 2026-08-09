@@ -3,14 +3,13 @@ import type { UserGame } from "../../../api/generated/models"
 /**
  * What the picker may do with one search result.
  *
- * A pure function rather than three conditions tangled in JSX, because owned,
- * selected and at-the-cap interact and that interaction is where the bug goes.
+ * A pure function rather than conditions tangled in JSX, because owned and
+ * selected interact and that interaction is where the bug goes.
  */
 export const ROW_STATE = {
   OWNED: "owned",
   SELECTED: "selected",
   SELECTABLE: "selectable",
-  BLOCKED: "blocked",
 } as const
 
 export type ROW_STATE = (typeof ROW_STATE)[keyof typeof ROW_STATE]
@@ -34,18 +33,14 @@ export const ownedIgdbIds = (entries: UserGame[] | undefined): Set<number> => {
   return ids
 }
 
-export const rowState = (igdbId: number, owned: Set<number>, selected: number[], max: number): ROW_STATE => {
-  // Owned wins over everything. A game already listed is not selectable no
-  // matter what else is true, and adding a duplicate fails the whole request
-  // with a 409 rather than just that one game.
+export const rowState = (igdbId: number, owned: Set<number>, selectedIgdbId: number | null): ROW_STATE => {
+  // Owned wins over everything. A game already listed is not selectable, and
+  // adding a duplicate is a 409.
   if (owned.has(igdbId)) {
     return ROW_STATE.OWNED
   }
-  if (selected.includes(igdbId)) {
+  if (selectedIgdbId === igdbId) {
     return ROW_STATE.SELECTED
-  }
-  if (selected.length >= max) {
-    return ROW_STATE.BLOCKED
   }
   return ROW_STATE.SELECTABLE
 }

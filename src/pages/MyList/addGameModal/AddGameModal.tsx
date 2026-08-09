@@ -5,7 +5,6 @@ import { handleError } from "../../../utils/errors"
 import MotionButton from "../../../components/motionButton/MotionButton"
 import MotionContainer from "../../../components/motionContainer/MotionContainer"
 import GameRow from "./GameRow"
-import { MAX_SELECTED_GAMES } from "../../../helpers/constants"
 import { toast } from "sonner"
 import { ApiError } from "../../../api/apiError"
 import { useAddGames } from "../../../api/userGames"
@@ -32,7 +31,7 @@ type AddGameModalProps = {
 
 const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedIgdbIds, setSelectedIgdbIds] = useState<number[]>([])
+  const [selectedIgdbId, setSelectedIgdbId] = useState<number | null>(null)
   const [listType, setListType] = useState<LIST_TYPE | null>(null)
 
   const { jwtToken } = useAuthStore()
@@ -63,11 +62,12 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
 
   const listTypeOptions = Object.values(LIST_TYPE).map((value) => ({ label: LIST_TYPE_LABEL[value], value }))
 
-  const toggle = (igdbId: number) =>
-    setSelectedIgdbIds((prev) => (prev.includes(igdbId) ? prev.filter((id) => id !== igdbId) : [...prev, igdbId]))
+  // Selecting is single: picking another game replaces the choice rather than
+  // adding to a set. Clicking the chosen row again clears it.
+  const select = (igdbId: number) => setSelectedIgdbId((prev) => (prev === igdbId ? null : igdbId))
 
   const clearSelection = () => {
-    setSelectedIgdbIds([])
+    setSelectedIgdbId(null)
     setSearchQuery("")
     setListType(null)
   }
@@ -78,19 +78,19 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
   }
 
   const handleAddGames = async () => {
-    if (!listType) return
+    if (!listType || selectedIgdbId === null) return
 
     try {
       // igdbIds, not gameIds: the server imports anything the catalog has not
       // seen before creating the list entry.
-      await addGames({ data: { igdbIds: selectedIgdbIds, category: listType } })
-      toast.success(selectedIgdbIds.length > 1 ? "Games added" : "Game added")
+      await addGames({ data: { igdbIds: [selectedIgdbId], category: listType } })
+      toast.success("Game added")
       clearSelection()
       onClose()
     } catch (error: unknown) {
       // Deliberately no clearSelection or onClose here. On failure the user
       // keeps their selection and can retry, rather than having to find the
-      // games again.
+      // game again.
       //
       // A 409 is only reachable from a stale modal, since owned games are
       // shown disabled — so the message points at the fix.
@@ -99,14 +99,14 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
       handleError({
         error,
         userMessage: alreadyListed
-          ? "Some of those are already in your list — close and reopen to refresh"
-          : "An error occurred while adding games",
+          ? "That game is already in your list — close and reopen to refresh"
+          : "An error occurred while adding the game",
         componentName: "AddGameModal",
       })
     }
   }
 
-  const isDisabled = selectedIgdbIds.length === 0 || !listType
+  const isDisabled = selectedIgdbId === null || !listType
 
   return (
     <Modal isOpen={isOpen} onClose={close}>
@@ -129,8 +129,8 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
               <GameRow
                 key={game.igdbId}
                 game={game}
-                state={rowState(game.igdbId, owned, selectedIgdbIds, MAX_SELECTED_GAMES)}
-                onCheck={() => toggle(game.igdbId)}
+                state={rowState(game.igdbId, owned, selectedIgdbId)}
+                onCheck={() => select(game.igdbId)}
               />
             ))
           ) : (
@@ -145,11 +145,11 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
             placeholder="Select a list type"
           />
           <div className="flex items-center justify-center gap-2">
-            <MotionButton variant="text" onClick={clearSelection} disabled={selectedIgdbIds.length === 0}>
+            <MotionButton variant="text" onClick={clearSelection} disabled={selectedIgdbId === null}>
               Clear
             </MotionButton>
             <MotionButton flex onClick={handleAddGames} disabled={isDisabled || isPending} variant="success">
-              {selectedIgdbIds.length > 1 ? "Add Games" : "Add Game"}
+              Add Game
             </MotionButton>
           </div>
         </div>
