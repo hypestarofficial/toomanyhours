@@ -2,10 +2,10 @@ import { useEffect, useState } from "react"
 import Modal from "../../../components/modal/Modal"
 import type { UserGame } from "../../../api/generated/models"
 import { Image } from "@heroui/image"
-import StarRating from "./StarRating"
-import TextArea from "../../../components/form/textArea/TextArea"
 import MotionButton from "../../../components/motionButton/MotionButton"
-import { Controller, Form, useForm } from "react-hook-form"
+import { Form, useForm } from "react-hook-form"
+import RatingFields from "../RatingFields"
+import type { RatingFormValues } from "../RatingFields"
 import { handleError } from "../../../utils/errors"
 import { toast } from "sonner"
 import Badge from "../../../components/badge/Badge"
@@ -16,11 +16,6 @@ import { LIST_TYPE, LIST_TYPE_LABEL } from "../../../helpers/enums"
 type GameCardProps = {
   entry: UserGame | null
   onClose: () => void
-}
-
-type GameCardForm = {
-  rating: number
-  review: string
 }
 
 // There is no scale conversion. StarRating renders ten stars with half-steps
@@ -49,16 +44,9 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
   const mode = gameCardMode(entry?.category)
   const showsForm = mode !== GAME_CARD_MODE.PLAY
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { isValid },
-  } = useForm<GameCardForm>({
-    // isValid must be live: the primary button is disabled until a rating is
-    // picked, and with the default onSubmit mode it would only become accurate
-    // after the first rejected submit.
-    mode: "onChange",
+  const { control, handleSubmit, reset } = useForm<RatingFormValues>({
+    // No mode: "onChange". It existed only to keep isValid live for a button
+    // disabled until a rating was picked, and there are no rules left to run.
     defaultValues: {
       rating: 0,
       review: "",
@@ -76,10 +64,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
     reset({ rating: entry?.rating ?? 0, review: entry?.review ?? "" })
   }, [entry, reset])
 
-  const close = (skip?: boolean) => {
-    if (skip) {
-      toast.info("No worries, you can rate and review it later")
-    }
+  const close = () => {
     reset()
     // Reopening the *same* game with the dialog still open would be
     // surprising, and the derivation above cannot catch that one — the game id
@@ -117,7 +102,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
     }
   }
 
-  const onSubmit = async (data: GameCardForm) => {
+  const onSubmit = async (data: RatingFormValues) => {
     if (!entry) return
 
     const finishing = mode === GAME_CARD_MODE.FINISH
@@ -143,7 +128,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
   }
 
   return (
-    <Modal isOpen={!!entry} onClose={() => close(false)}>
+    <Modal isOpen={!!entry} onClose={close}>
       <Form control={control} className="flex w-full flex-col items-center justify-center gap-6 p-6">
         <div className="flex w-full flex-col items-center justify-center gap-3">
           {entry?.game?.image && <Image src={entry.game.image} alt={entry.game.title} className="rounded-md" />}
@@ -160,27 +145,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
 
         {/* PLAY mode shows neither field, even when the row holds a rating from
             a previous stint in finished. */}
-        {showsForm && (
-          <div className="flex w-full flex-col items-center justify-center gap-4">
-            <Controller
-              name="review"
-              control={control}
-              render={({ field }) => (
-                <TextArea id={"review"} label="Review" placeholder="Write your review here..." sideLabel={false} {...field} />
-              )}
-            />
-            <Controller
-              name="rating"
-              control={control}
-              // Required, replacing the old "at least one of rating or review".
-              // A form rule only: dragging a card into finished sets no rating,
-              // so the API cannot require one and must keep accepting unrated
-              // finished entries.
-              rules={{ validate: (value: number) => value > 0 || "Pick a rating" }}
-              render={({ field }) => <StarRating maxStars={10} value={field.value} onChange={field.onChange} />}
-            />
-          </div>
-        )}
+        {showsForm && <RatingFields control={control} />}
 
         <div className="flex w-full gap-2">
           {/* First, not last. The primary action carries `flex` and takes the
@@ -193,23 +158,23 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
             Remove
           </MotionButton>
 
-          {/* Skip survives where Cancel did not: it is not "close this", it is
-              "I am not rating this now", and it says so with a toast. Plain
-              dismissal is the header's × and the backdrop. */}
-          {mode === GAME_CARD_MODE.FINISH && <MotionButton onClick={() => close(true)}>Skip</MotionButton>}
-
+          {/* No Skip. It was the escape hatch from a mandatory rating, and it
+              did not finish the game — it closed the modal with a reassuring
+              toast. With rating optional, Finish with no stars picked is the
+              honest version of that. Plain dismissal is the header's × and the
+              backdrop, as everywhere else. */}
           {mode === GAME_CARD_MODE.PLAY && (
             <MotionButton variant="success" flex onClick={onPlay}>
               Play!
             </MotionButton>
           )}
           {mode === GAME_CARD_MODE.FINISH && (
-            <MotionButton variant="success" flex onClick={handleSubmit(onSubmit)} disabled={!isValid}>
+            <MotionButton variant="success" flex onClick={handleSubmit(onSubmit)}>
               Finish
             </MotionButton>
           )}
           {mode === GAME_CARD_MODE.EDIT && (
-            <MotionButton variant="success" flex onClick={handleSubmit(onSubmit)} disabled={!isValid}>
+            <MotionButton variant="success" flex onClick={handleSubmit(onSubmit)}>
               Save
             </MotionButton>
           )}
