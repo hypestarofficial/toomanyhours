@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { useForm } from "react-hook-form"
 import Input from "../../../components/form/input/Input"
 import Modal from "../../../components/modal/Modal"
 import { handleError } from "../../../utils/errors"
@@ -7,16 +8,21 @@ import MotionContainer from "../../../components/motionContainer/MotionContainer
 import GameRow from "./GameRow"
 import { toast } from "sonner"
 import { ApiError } from "../../../api/apiError"
-import { useAddGames } from "../../../api/userGames"
+import { useAddGame } from "../../../api/userGames"
 import Loader from "../../../components/loader/Loader"
-import Select from "../../../components/form/select/Select"
 import { LIST_TYPE, LIST_TYPE_LABEL } from "../../../helpers/enums"
 import Empty from "../../../components/empty/Empty"
 import useAuthStore from "../../../store/useAuthStore"
 import { useSearchGames } from "../../../api/generated/games/games"
 import { useGetMeGames } from "../../../api/generated/user-games/user-games"
+import type { IGDBGame } from "../../../api/generated/models"
 import { ownedIgdbIds, rowState } from "./rows"
+import { addGamePayload } from "./payload"
 import { useDebouncedValue } from "../../../hooks/useDebouncedValue"
+import RatingFields from "../RatingFields"
+import type { RatingFormValues } from "../RatingFields"
+import { Image } from "@heroui/image"
+import placeholderImage from "../../../assets/images/placeholder.webp"
 
 // The API answers 400 below two characters, and one character matches most of
 // IGDB anyway.
@@ -24,15 +30,24 @@ const SEARCH_MIN_CHARS = 2
 const SEARCH_DEBOUNCE_MS = 350
 const SEARCH_LIMIT = 20
 
+// Adding is two steps: find one game, then say what it is to you. The second
+// step is where a rating and a review can be written, which a batch add could
+// never carry — "rating: 8" against five games means nothing.
+type Step = "search" | "details"
+
 type AddGameModalProps = {
   isOpen: boolean
   onClose: () => void
 }
 
 const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
+  const [step, setStep] = useState<Step>("search")
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedIgdbId, setSelectedIgdbId] = useState<number | null>(null)
-  const [listType, setListType] = useState<LIST_TYPE | null>(null)
+  // The whole game, not just its id: step 2 shows the cover, title and year,
+  // because three IGDB entries share the title "Grand Theft Auto V" and those
+  // are what separate them.
+  const [selected, setSelected] = useState<IGDBGame | null>(null)
+  const [category, setCategory] = useState<LIST_TYPE | null>(null)
 
   const { jwtToken } = useAuthStore()
   const trimmed = searchQuery.trim()
@@ -58,39 +73,57 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
   const { data: entries } = useGetMeGames({ query: { enabled: !!jwtToken } })
   const owned = useMemo(() => ownedIgdbIds(entries), [entries])
 
-  const { mutateAsync: addGames, isPending } = useAddGames()
+  const { mutateAsync: addGame, isPending } = useAddGame()
 
-  const listTypeOptions = Object.values(LIST_TYPE).map((value) => ({ label: LIST_TYPE_LABEL[value], value }))
+  const {
+    control,
+    handleSubmit,
+    reset: resetFields,
+  } = useForm<RatingFormValues>({
+    defaultValues: { rating: 0, review: "" },
+  })
 
   // Selecting is single: picking another game replaces the choice rather than
   // adding to a set. Clicking the chosen row again clears it.
-  const select = (igdbId: number) => setSelectedIgdbId((prev) => (prev === igdbId ? null : igdbId))
+  const select = (game: IGDBGame) => setSelected((prev) => (prev?.igdbId === game.igdbId ? null : game))
 
-  const clearSelection = () => {
-    setSelectedIgdbId(null)
+  const reset = () => {
+    setStep("search")
     setSearchQuery("")
-    setListType(null)
+    setSelected(null)
+    setCategory(null)
+    resetFields()
   }
 
   const close = () => {
-    clearSelection()
+    reset()
     onClose()
   }
 
-  const handleAddGames = async () => {
-    if (!listType || selectedIgdbId === null) return
+  // Back keeps the search text and the selection, so correcting a mispick
+  // costs nothing. Only the category and the fields are dropped, because they
+  // were about the game you are no longer adding.
+  const back = () => {
+    setStep("search")
+    setCategory(null)
+    resetFields()
+  }
+
+  const scored = category === LIST_TYPE.FINISHED
+
+  const onSubmit = async (data: RatingFormValues) => {
+    if (!selected || !category) return
 
     try {
-      // igdbIds, not gameIds: the server imports anything the catalog has not
-      // seen before creating the list entry.
-      await addGames({ data: { igdbIds: [selectedIgdbId], category: listType } })
-      toast.success("Game added")
-      clearSelection()
-      onClose()
+      // The omission rules live in addGamePayload, which is pure and tested:
+      // sending the form's 0 for "unrated" would 400, and that is a mistake
+      // no component test would catch.
+      await addGame({ data: addGamePayload(selected.igdbId, category, data) })
+      toast.success(`${selected.title} added`)
+      close()
     } catch (error: unknown) {
-      // Deliberately no clearSelection or onClose here. On failure the user
-      // keeps their selection and can retry, rather than having to find the
-      // game again.
+      // Deliberately no reset or close here. On failure the user keeps their
+      // selection and can retry, rather than having to find the game again.
       //
       // A 409 is only reachable from a stale modal, since owned games are
       // shown disabled — so the message points at the fix.
@@ -106,53 +139,84 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
     }
   }
 
-  const isDisabled = selectedIgdbId === null || !listType
+  const year = selected?.releaseDate?.slice(0, 4)
 
   return (
     <Modal isOpen={isOpen} onClose={close}>
       <div className="flex w-full flex-col gap-4 px-6 pb-6">
-        <Input
-          type="text"
-          id="gameTitle"
-          placeholder="Search IGDB for a game..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          clearable
-        />
-        <MotionContainer type="ease" className="flex max-h-80 min-h-60 w-full flex-col gap-1 overflow-y-auto">
-          {showPrompt ? (
-            <Empty message={`Type at least ${SEARCH_MIN_CHARS} characters`} />
-          ) : isFetching || isPendingDebounce ? (
-            <Loader fullPage />
-          ) : results && results.length > 0 ? (
-            results.map((game) => (
-              <GameRow
-                key={game.igdbId}
-                game={game}
-                state={rowState(game.igdbId, owned, selectedIgdbId)}
-                onCheck={() => select(game.igdbId)}
+        {step === "search" ? (
+          <>
+            <Input
+              type="text"
+              id="gameTitle"
+              placeholder="Search IGDB for a game..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              clearable
+            />
+            {/* min-h matches the details step so the modal does not jump
+                between them. */}
+            <MotionContainer type="ease" className="flex max-h-80 min-h-60 w-full flex-col gap-1 overflow-y-auto">
+              {showPrompt ? (
+                <Empty message={`Type at least ${SEARCH_MIN_CHARS} characters`} />
+              ) : isFetching || isPendingDebounce ? (
+                <Loader fullPage />
+              ) : results && results.length > 0 ? (
+                results.map((game) => (
+                  <GameRow
+                    key={game.igdbId}
+                    game={game}
+                    state={rowState(game.igdbId, owned, selected?.igdbId ?? null)}
+                    onCheck={() => select(game)}
+                  />
+                ))
+              ) : (
+                <Empty message="No games found" />
+              )}
+            </MotionContainer>
+            <MotionButton flex variant="success" onClick={() => setStep("details")} disabled={!selected}>
+              Next
+            </MotionButton>
+          </>
+        ) : (
+          <MotionContainer type="ease" className="flex min-h-60 w-full flex-col gap-4">
+            {/* Confirms the pick before it is committed. */}
+            <div className="flex items-center gap-3">
+              <Image
+                src={selected?.image || placeholderImage}
+                alt={selected?.title}
+                className="pointer-events-none h-16 w-12 shrink-0 rounded object-cover"
               />
-            ))
-          ) : (
-            <Empty message="No games found" />
-          )}
-        </MotionContainer>
-        <div className="flex flex-col gap-2">
-          <Select
-            options={listTypeOptions}
-            value={listType}
-            onChange={(value) => setListType(value as LIST_TYPE)}
-            placeholder="Select a list type"
-          />
-          <div className="flex items-center justify-center gap-2">
-            <MotionButton variant="text" onClick={clearSelection} disabled={selectedIgdbId === null}>
-              Clear
-            </MotionButton>
-            <MotionButton flex onClick={handleAddGames} disabled={isDisabled || isPending} variant="success">
-              Add Game
-            </MotionButton>
-          </div>
-        </div>
+              <div className="flex min-w-0 flex-col">
+                <span className="line-clamp-2 font-semibold">{selected?.title}</span>
+                <span className="text-xs opacity-60">{year ?? "Unreleased"}</span>
+              </div>
+            </div>
+
+            {/* Three buttons rather than a dropdown: choosing finished reveals
+                a form, and a reveal triggered from inside a collapsed control
+                reads as the modal growing on its own. */}
+            <div className="flex w-full flex-wrap gap-2">
+              {Object.values(LIST_TYPE).map((value) => (
+                <MotionButton key={value} flex variant={category === value ? "active" : "default"} onClick={() => setCategory(value)}>
+                  {LIST_TYPE_LABEL[value]}
+                </MotionButton>
+              ))}
+            </div>
+
+            {/* Both fields are optional; Add stays enabled with neither. */}
+            {scored && <RatingFields control={control} />}
+
+            <div className="flex w-full gap-2">
+              <MotionButton onClick={back} disabled={isPending}>
+                Back
+              </MotionButton>
+              <MotionButton flex variant="success" onClick={handleSubmit(onSubmit)} disabled={!category || isPending}>
+                Add Game
+              </MotionButton>
+            </div>
+          </MotionContainer>
+        )}
       </div>
     </Modal>
   )
