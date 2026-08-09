@@ -15,42 +15,41 @@ export type ChangelogEntry = {
  * Written for someone using the app. "Remove a game from your list", not
  * "useRemoveEntry invalidates the list key" — the commit history already says
  * the second thing, and says it better.
+ *
+ * One line per thing a person would notice, and nothing else. No mechanics
+ * ("the button is disabled while your profile is private"), no meta ("the
+ * version now shows in the top bar"), no internals. Those are true and they
+ * are not why anyone opens this page — and every line that is not worth
+ * reading makes the lines that are worth reading less likely to be read.
+ *
+ * A release with nothing a person would notice gets no entry at all. Version
+ * numbers here are therefore allowed to skip; padding them out with "various
+ * improvements" would be filler, and the point of this page is that it is not.
  */
 export const changelog: ChangelogEntry[] = [
   {
     version: "0.8.0",
     date: "2026-08-07",
-    changes: ["This page. Click the version number in the top bar to see what changed in each release."],
+    changes: ["See what's new in each update."],
   },
   {
     version: "0.7.0",
     date: "2026-08-07",
-    changes: [
-      "Game tags are lowercase everywhere — you can no longer type a capital into one.",
-      "Registering or renaming now tells you straight away whether a tag is free, taken, or reserved.",
-    ],
+    changes: ["Pick a game tag knowing straight away whether it's free."],
   },
   {
     version: "0.6.0",
     date: "2026-08-07",
-    changes: [
-      "Remove a game from your list. Open it and choose Remove — you will be asked to confirm, since your rating and review go with it.",
-    ],
+    changes: ["Remove a game from your list."],
   },
   {
     version: "0.5.0",
     date: "2026-08-07",
-    changes: [
-      "Share your list. The link button in the list toolbar copies the address of your public profile.",
-      "It stays disabled while your profile is private, because the link would not work for anyone you sent it to.",
-    ],
+    changes: ["Copy a link to your list and send it to someone."],
   },
   {
     version: "0.4.0",
     date: "2026-08-07",
-    changes: [
-      "Public profiles. Anyone with the link can read your list at /u/your-tag, as long as your profile is public.",
-      "The app's version now shows in the top bar.",
-    ],
+    changes: ["Your list has its own web address, readable by anyone you share it with."],
   },
 ]
