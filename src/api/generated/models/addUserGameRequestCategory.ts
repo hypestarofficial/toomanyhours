@@ -9,13 +9,13 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.2.0
+ * OpenAPI spec version: 0.3.0
  */
 
-export type AddUserGamesRequestCategory = (typeof AddUserGamesRequestCategory)[keyof typeof AddUserGamesRequestCategory]
+export type AddUserGameRequestCategory = (typeof AddUserGameRequestCategory)[keyof typeof AddUserGameRequestCategory]
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const AddUserGamesRequestCategory = {
+export const AddUserGameRequestCategory = {
   finished: "finished",
   currently_playing: "currently_playing",
   want_to_play: "want_to_play",

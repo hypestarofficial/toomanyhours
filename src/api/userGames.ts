@@ -1,16 +1,16 @@
 import { useQueryClient } from "@tanstack/react-query"
 import type { QueryClient } from "@tanstack/react-query"
-import { useAddMeGames, useUpdateMeGame, useRemoveMeGame, getGetMeGamesQueryKey } from "./generated/user-games/user-games"
+import { useAddMeGame, useUpdateMeGame, useRemoveMeGame, getGetMeGamesQueryKey } from "./generated/user-games/user-games"
 import type { UserGame, UpdateUserGameRequest } from "./generated/models"
 
 // Invalidation goes through the generated key helper, never a string literal.
 // A stale literal fails silently: the mutation succeeds and the list simply
 // never refreshes, which reads as a backend bug and sends you looking in the
 // wrong repository.
-export const useAddGames = () => {
+export const useAddGame = () => {
   const queryClient = useQueryClient()
 
-  return useAddMeGames({
+  return useAddMeGame({
     mutation: {
       // Invalidating the list is what re-greys the row you just added: the
       // picker derives its owned set from this query, so nothing else needs

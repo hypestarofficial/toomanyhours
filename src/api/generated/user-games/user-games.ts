@@ -9,7 +9,7 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.2.0
+ * OpenAPI spec version: 0.3.0
  */
 import { useMutation, useQuery } from "@tanstack/react-query"
 import type {
@@ -27,7 +27,7 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query"
 
-import type { AddUserGamesRequest, ErrorResponse, UpdateUserGameRequest, UserGame } from ".././models"
+import type { AddUserGameRequest, ErrorResponse, UpdateUserGameRequest, UserGame } from ".././models"
 
 import { customFetch } from "../../mutator"
 
@@ -113,58 +113,66 @@ export function useGetMeGames<TData = Awaited<ReturnType<typeof getMeGames>>, TE
 }
 
 /**
- * Adds games to the list. A game already in the list is rejected with 409 rather than moved — use PATCH to change a game's category. The Add Game picker asks for `/games?excludeMine=true`, so this is only reachable from a stale client.
- * @summary Add games to the list
+ * Adds one game to the list. A game already in the list is rejected with 409 rather than moved — use PATCH to change a game's category. The Add Game picker shows games you already have as disabled, so the 409 is reachable only from a stale client.
+
+A rating and a review may be sent with the add, and only when the category is finished. Unlike PATCH there is no clear sentinel here: there is nothing to clear on an entry that does not exist yet, so a rating of 0 is rejected as out of range.
+ * @summary Add one game to the list
  */
-export const addMeGames = (
-  addUserGamesRequest: AddUserGamesRequest,
-  options?: SecondParameter<typeof customFetch>,
-  signal?: AbortSignal,
-) => {
-  return customFetch<UserGame[]>(
-    { url: `/me/games`, method: "POST", headers: { "Content-Type": "application/json" }, data: addUserGamesRequest, signal },
+export const addMeGame = (addUserGameRequest: AddUserGameRequest, options?: SecondParameter<typeof customFetch>, signal?: AbortSignal) => {
+  return customFetch<UserGame>(
+    { url: `/me/games`, method: "POST", headers: { "Content-Type": "application/json" }, data: addUserGameRequest, signal },
     options,
   )
 }
 
-export const getAddMeGamesMutationOptions = <
-  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
+export const getAddMeGameMutationOptions = <
+  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
   TContext = unknown,
 >(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof addMeGames>>, TError, { data: AddUserGamesRequest }, TContext>
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof addMeGame>>, TError, { data: AddUserGameRequest }, TContext>
   request?: SecondParameter<typeof customFetch>
-}): UseMutationOptions<Awaited<ReturnType<typeof addMeGames>>, TError, { data: AddUserGamesRequest }, TContext> => {
-  const mutationKey = ["addMeGames"]
+}): UseMutationOptions<Awaited<ReturnType<typeof addMeGame>>, TError, { data: AddUserGameRequest }, TContext> => {
+  const mutationKey = ["addMeGame"]
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined }
 
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof addMeGames>>, { data: AddUserGamesRequest }> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof addMeGame>>, { data: AddUserGameRequest }> = (props) => {
     const { data } = props ?? {}
 
-    return addMeGames(data, requestOptions)
+    return addMeGame(data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
 }
 
-export type AddMeGamesMutationResult = NonNullable<Awaited<ReturnType<typeof addMeGames>>>
-export type AddMeGamesMutationBody = AddUserGamesRequest
-export type AddMeGamesMutationError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse
+export type AddMeGameMutationResult = NonNullable<Awaited<ReturnType<typeof addMeGame>>>
+export type AddMeGameMutationBody = AddUserGameRequest
+export type AddMeGameMutationError =
+  | ErrorResponse
+  | ErrorResponse
+  | ErrorResponse
+  | ErrorResponse
+  | ErrorResponse
+  | ErrorResponse
+  | ErrorResponse
 
 /**
- * @summary Add games to the list
+ * @summary Add one game to the list
  */
-export const useAddMeGames = <TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse, TContext = unknown>(
+export const useAddMeGame = <
+  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
+  TContext = unknown,
+>(
   options?: {
-    mutation?: UseMutationOptions<Awaited<ReturnType<typeof addMeGames>>, TError, { data: AddUserGamesRequest }, TContext>
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof addMeGame>>, TError, { data: AddUserGameRequest }, TContext>
     request?: SecondParameter<typeof customFetch>
   },
   queryClient?: QueryClient,
-): UseMutationResult<Awaited<ReturnType<typeof addMeGames>>, TError, { data: AddUserGamesRequest }, TContext> => {
-  const mutationOptions = getAddMeGamesMutationOptions(options)
+): UseMutationResult<Awaited<ReturnType<typeof addMeGame>>, TError, { data: AddUserGameRequest }, TContext> => {
+  const mutationOptions = getAddMeGameMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
