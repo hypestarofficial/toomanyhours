@@ -28,6 +28,11 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.9.0",
+    date: "2026-08-10",
+    changes: ["Add a game in two steps, and rate and review it as you add it.", "Rating a game is no longer required."],
+  },
+  {
     version: "0.8.0",
     date: "2026-08-07",
     changes: ["See what's new in each update."],
