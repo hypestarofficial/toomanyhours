@@ -222,15 +222,17 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
 
         {/* Full width beneath both columns: the actions apply to the whole
             card, not to the right-hand one. */}
-        <div className="flex w-full items-center justify-between gap-2">
-          {/* justify-between rather than a stretched primary. The primary used
-              to carry `flex`, which means w-full, and on a card this wide that
-              made a green bar the length of the modal. The separation is what
-              matters — a destructive control should not sit against the button
-              clicked every single time — and the alignment gives that without
-              inflating the button. Remove shows in all three modes: a
-              want-to-play you have gone off is the likeliest thing anyone
-              removes. */}
+        <div className="flex w-full items-center justify-center gap-3">
+          {/* Centred as a pair, at their natural size. Neither carries `flex`,
+              which means w-full and turned the primary into a green bar the
+              length of a 64rem card.
+
+              This does put Remove beside the button clicked every time, which
+              earlier layouts kept apart. It is survivable here because Remove
+              opens a confirmation naming the game rather than acting straight
+              away — the dialog is what makes the adjacency safe, so it must
+              stay. Remove shows in all three modes: a want-to-play you have
+              gone off is the likeliest thing anyone removes. */}
           <MotionButton variant="error" onClick={() => entry && setConfirmingGameId(entry.gameId)} disabled={removing}>
             Remove
           </MotionButton>
