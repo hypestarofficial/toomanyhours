@@ -4,7 +4,7 @@ import { Image } from "@heroui/image"
 import { ChatBubbleBottomCenterTextIcon, StarIcon } from "@heroicons/react/24/solid"
 import placeholderImage from "../../assets/images/placeholder.webp"
 import type { UserGame } from "../../api/generated/models"
-import { LIST_TYPE_LABEL } from "../../helpers/enums"
+import { LIST_TYPE_BADGE, LIST_TYPE_LABEL } from "../../helpers/enums"
 import { addOnsOf } from "../MyList/gameCard/dlcRows"
 
 type ProfileGameCardProps = {
@@ -59,7 +59,9 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
 
             <div className="flex flex-wrap items-center gap-2">
               <h4 className="text-lg font-semibold">{entry?.game?.title}</h4>
-              {entry?.category && <Badge variant="dark">{LIST_TYPE_LABEL[entry.category]}</Badge>}
+              {/* Not `dark`, which is what the genres wear. A status is a
+                  different kind of fact and now looks like one. */}
+              {entry?.category && <Badge variant={LIST_TYPE_BADGE[entry.category]}>{LIST_TYPE_LABEL[entry.category]}</Badge>}
             </div>
 
             {entry?.rating != null && (
@@ -93,13 +95,16 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
                     alt={addOn.game?.title}
                     className="pointer-events-none h-11 w-8 shrink-0 rounded object-cover"
                   />
-                  <div className="flex min-w-0 flex-1 flex-col">
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="line-clamp-2 text-sm leading-tight">{addOn.game?.title}</span>
-                    <span className="flex items-center gap-2 text-xs opacity-60">
-                      {addOn.category && LIST_TYPE_LABEL[addOn.category]}
+                    <span className="flex flex-wrap items-center gap-2">
+                      {/* The badge here too, not muted text. Status is the
+                          thing being scanned for in this list, and grey text
+                          is what you skip over. */}
+                      {addOn.category && <Badge variant={LIST_TYPE_BADGE[addOn.category]}>{LIST_TYPE_LABEL[addOn.category]}</Badge>}
                       {addOn.rating != null && (
-                        <span className="flex items-center gap-0.5">
-                          <StarIcon className="text-primary h-3 w-3" />
+                        <span className="text-primary flex items-center gap-0.5 text-xs font-semibold">
+                          <StarIcon className="h-3 w-3" />
                           {addOn.rating}
                         </span>
                       )}
