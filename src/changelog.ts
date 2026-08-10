@@ -30,7 +30,11 @@ export const changelog: ChangelogEntry[] = [
   {
     version: "1.3.0",
     date: "2026-08-10",
-    changes: ["Every game now carries a short description, so a list makes sense even for games you've never heard of."],
+    changes: [
+      "Every game now carries a short description, so a list makes sense even for games you've never heard of.",
+      "DLC names no longer repeat the game they belong to.",
+      "Clear a rating you have already given.",
+    ],
   },
   {
     version: "1.2.0",

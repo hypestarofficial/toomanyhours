@@ -4,7 +4,7 @@ import TextArea from "../../components/form/textArea/TextArea"
 import StarRating from "./gameCard/StarRating"
 import MotionIconButton from "../../components/motionIconButton/MotionIconButton"
 import MotionTooltip from "../../components/motionTooltip/MotionTooltip"
-import { TrashIcon } from "@heroicons/react/24/outline"
+import { XMarkIcon } from "@heroicons/react/24/outline"
 
 // One shape, shared by the detail modal and step 2 of the add flow, so the
 // component below can be typed concretely rather than generically.
@@ -44,24 +44,31 @@ const RatingFields: React.FC<RatingFieldsProps> = ({ control }) => (
       name="rating"
       control={control}
       render={({ field }) => (
-        // Relative so the clear button can sit beside the stars without taking
-        // part in centring them — the row stays centred whether or not there
-        // is a rating to clear.
-        <div className="relative flex w-full items-center justify-center">
-          <StarRating maxStars={10} value={field.value} onChange={field.onChange} />
+        <div className="flex w-full items-center justify-center">
+          {/* The relative box hugs the stars, not the row, so the button
+              anchors to the last star rather than to the far edge of the card
+              — at right-0 it sat halfway across the modal and read as
+              belonging to nothing. Keeping it out of the flex flow is still
+              what stops the stars shifting when it appears. */}
+          <div className="relative inline-flex">
+            <StarRating maxStars={10} value={field.value} onChange={field.onChange} />
 
-          {/* Only with a rating to remove. Ten stars have no "none" position,
+            {/* Only with a rating to remove. Ten stars have no "none" position,
               so without this the one thing you cannot do by clicking is take a
               score back — the score could be changed forever but never undone.
               0 is the form's unrated value and the API's clear sentinel, so
               this is exactly what saving an untouched entry would send. */}
-          {field.value > 0 && (
-            <span className="absolute top-1/2 right-0 -translate-y-1/2">
-              <MotionTooltip content="Clear rating">
-                <MotionIconButton icon={<TrashIcon className="h-5 w-5" />} onClick={() => field.onChange(0)} ariaLabel="Clear rating" />
-              </MotionTooltip>
-            </span>
-          )}
+            {field.value > 0 && (
+              <span className="absolute top-1/2 left-full ml-1 -translate-y-1/2">
+                {/* A cross, not a bin. A bin beside a game's stars reads as
+                    "delete the game"; a cross is the ordinary "clear this
+                    value". */}
+                <MotionTooltip content="Clear rating">
+                  <MotionIconButton icon={<XMarkIcon className="h-5 w-5" />} onClick={() => field.onChange(0)} ariaLabel="Clear rating" />
+                </MotionTooltip>
+              </span>
+            )}
+          </div>
         </div>
       )}
     />
