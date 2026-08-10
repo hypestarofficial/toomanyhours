@@ -151,7 +151,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
           max-width in CSS, so a large one would force horizontal overflow on a
           phone. A plain md: width lets the modal grow on a desktop and stay
           inside max-w-[90%] everywhere else. */}
-      <Form control={control} className="flex w-full flex-col gap-6 p-6 md:w-[46rem]">
+      <Form control={control} className="flex w-full flex-col gap-6 p-6 md:w-[54rem] lg:w-[64rem]">
         {/* Side by side on a desktop, stacked on a phone. The cover is the one
             thing here that is only looked at, so it goes in a column of its own
             and everything you can act on shares the other. */}

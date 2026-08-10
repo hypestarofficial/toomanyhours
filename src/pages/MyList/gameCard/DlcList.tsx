@@ -90,7 +90,7 @@ const DlcList: React.FC<DlcListProps> = ({ igdbId, onOpenEntry }) => {
         // add-ons, and without one they push the Save button off the bottom of
         // the screen. Scrolling inside keeps the card a fixed shape however
         // many IGDB returns.
-        <div className="flex max-h-72 w-full flex-col gap-1 overflow-y-auto pr-1">
+        <div className="flex max-h-80 w-full flex-col gap-1 overflow-y-auto pr-1">
           {dlcs?.map((dlc) => {
             const row = dlcRow(dlc, entries ?? [])
             const year = dlc.releaseDate?.slice(0, 4)
@@ -123,7 +123,11 @@ const DlcList: React.FC<DlcListProps> = ({ igdbId, onOpenEntry }) => {
                     className="pointer-events-none h-11 w-8 shrink-0 rounded object-cover"
                   />
                   <div className="flex min-w-0 flex-1 flex-col">
-                    <span className="line-clamp-1 text-sm">{dlc.title}</span>
+                    {/* Two lines, not one. Add-on titles repeat their parent's
+                        name before saying anything distinguishing — "Dave the
+                        Diver: Ichiban's Holiday" — so a single clamped line
+                        cuts off the only part worth reading. */}
+                    <span className="line-clamp-2 text-sm leading-tight">{dlc.title}</span>
                     <span className="flex items-center gap-2 text-xs opacity-60">
                       {year ?? "Unreleased"}
                       {/* Shown here so the list doubles as a summary of what
