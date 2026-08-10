@@ -25,13 +25,16 @@ import ShareListButton from "./ShareListButton"
 // worth knowing if you grep for it and come up empty.
 import { useGetGenres } from "../../api/generated/genres/genres"
 import { matchesFilters } from "./filters"
+import { sortEntries } from "./sort"
+import SortControl from "./sortControl/SortControl"
 import { visibleEntries } from "./visibleEntries"
 
 const MyList: React.FC = () => {
   const [selectedEntry, setSelectedEntry] = useState<UserGame | null>(null)
   const [isAddGameOpen, setIsAddGameOpen] = useState(false)
   const [search, setSearch] = useState("")
-  const { defaultListConfig, setDefaultListConfig, layout, filterGenres, setFilterGenres } = useUserSettingsAuthStore()
+  const { defaultListConfig, setDefaultListConfig, layout, filterGenres, setFilterGenres, sortField, sortDirection } =
+    useUserSettingsAuthStore()
   const { jwtToken } = useAuthStore()
 
   // Generated hooks need `enabled` passed explicitly, or they fire before a
@@ -98,7 +101,16 @@ const MyList: React.FC = () => {
     [entries, search, filterGenres],
   )
 
-  const byCategory = (category: LIST_TYPE) => visible.filter((entry) => entry.category === category)
+  // Sorted per section, over what survived the filter. Not folded into the
+  // `visible` useMemo above: each section is sorted independently, and sorting
+  // the three together then splitting would give the same answer only because
+  // no comparator here looks across categories.
+  const byCategory = (category: LIST_TYPE) =>
+    sortEntries(
+      visible.filter((entry) => entry.category === category),
+      sortField,
+      sortDirection,
+    )
 
   // An open, empty section is ambiguous while filtering — no matches, or no
   // games in that category at all?
@@ -180,6 +192,7 @@ const MyList: React.FC = () => {
             <div className="w-56">
               <MultiSelect options={genreOptions} value={filterGenres} onChange={setFilterGenres} placeholder="Filter by genres" />
             </div>
+            <SortControl />
             <LayoutToggle />
             <ShareListButton />
           </div>
