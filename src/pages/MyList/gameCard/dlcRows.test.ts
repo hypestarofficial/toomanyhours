@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { canOpenAddOn, dlcRow, parentEntryOf } from "./dlcRows"
+import { addOnsOf, canOpenAddOn, dlcRow, parentEntryOf } from "./dlcRows"
 import type { IGDBGame, UserGame } from "../../../api/generated/models"
 
 const igdbGame = (igdbId: number): IGDBGame => ({ igdbId, title: `Game ${igdbId}`, kind: "dlc" }) as unknown as IGDBGame
@@ -33,6 +33,36 @@ describe("dlcRow", () => {
     const broken = { id: 9, gameId: 9, category: "finished" } as unknown as UserGame
 
     expect(dlcRow(igdbGame(396087), [broken]).entry).toBeUndefined()
+  })
+})
+
+describe("addOnsOf", () => {
+  const borderlands = addOn(314246, "main_game")
+  const storyPack = addOn(396087, "dlc", 314246)
+  const bountyPack = addOn(396307, "dlc", 314246)
+  const unrelated = addOn(325582, "expansion", 203722)
+
+  it("collects the add-ons belonging to one game", () => {
+    const found = addOnsOf(borderlands, [borderlands, storyPack, unrelated, bountyPack])
+
+    expect(found.map((e) => e.game?.igdbId)).toEqual([396087, 396307])
+  })
+
+  it("is empty when the game has none in this list", () => {
+    expect(addOnsOf(borderlands, [borderlands, unrelated])).toEqual([])
+  })
+
+  // The same kind rule everywhere else uses. GTA V Enhanced points at GTA V,
+  // but it is a release in its own right and must not be listed beneath it.
+  it("ignores an expanded game that merely points at this one", () => {
+    const gta = addOn(1020, "main_game")
+    const enhanced = addOn(334254, "expanded_game", 1020)
+
+    expect(addOnsOf(gta, [gta, enhanced])).toEqual([])
+  })
+
+  it("is empty for no parent at all", () => {
+    expect(addOnsOf(null, [storyPack])).toEqual([])
   })
 })
 

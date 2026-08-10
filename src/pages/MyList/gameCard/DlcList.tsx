@@ -72,19 +72,17 @@ const DlcList: React.FC<DlcListProps> = ({ igdbId, onOpenEntry }) => {
     }
   }
 
-  // A game with no add-ons gets no section at all, rather than a heading over a
-  // line saying so. Most games have none, and an empty section on every one of
-  // them is noise on the cards that need it least.
-  if (!isLoading && !dlcs?.length) {
-    return null
-  }
-
   return (
     <div className="flex w-full flex-col gap-2">
       <h4 className="font-semibold select-none">DLC & expansions</h4>
 
       {isLoading ? (
         <Loader />
+      ) : !dlcs?.length ? (
+        // The heading stays and says so, rather than the section vanishing.
+        // A section that is sometimes absent makes you wonder whether you
+        // missed it; one that says "none" answers the question.
+        <p className="text-sm opacity-60">No add-ons available.</p>
       ) : (
         // A ceiling, because this list is unbounded: Dave the Diver has a dozen
         // add-ons, and without one they push the Save button off the bottom of
@@ -165,6 +163,10 @@ const DlcList: React.FC<DlcListProps> = ({ igdbId, onOpenEntry }) => {
                     <MotionButton
                       key={value}
                       size="menu"
+                      // Tighter than `menu` alone. These are three secondary
+                      // controls repeated on every row, so at the default size
+                      // they out-shout the titles they belong to.
+                      className="px-2! py-0.5! text-xs!"
                       variant={row.category === value ? "active" : "default"}
                       onClick={() => choose(dlc.igdbId, row.entry, value)}
                       title={`Move to ${LIST_TYPE_LABEL[value]}`}

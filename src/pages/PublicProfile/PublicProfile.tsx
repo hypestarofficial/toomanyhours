@@ -83,7 +83,9 @@ const PublicProfile: React.FC = () => {
         />
       </MotionContainer>
 
-      <ProfileGameCard entry={selectedEntry} onClose={() => setSelectedEntry(null)} />
+      {/* All the entries, not the filtered ones: the card shows this game's
+          add-ons, which are exactly what visibleEntries took out. */}
+      <ProfileGameCard entry={selectedEntry} entries={profile.entries} onClose={() => setSelectedEntry(null)} />
     </Page>
   )
 }

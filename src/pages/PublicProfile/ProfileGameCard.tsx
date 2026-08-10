@@ -1,12 +1,20 @@
 import Modal from "../../components/modal/Modal"
 import Badge from "../../components/badge/Badge"
 import { Image } from "@heroui/image"
-import { StarIcon } from "@heroicons/react/24/solid"
+import { ChatBubbleBottomCenterTextIcon, StarIcon } from "@heroicons/react/24/solid"
+import placeholderImage from "../../assets/images/placeholder.webp"
 import type { UserGame } from "../../api/generated/models"
 import { LIST_TYPE_LABEL } from "../../helpers/enums"
+import { addOnsOf } from "../MyList/gameCard/dlcRows"
 
 type ProfileGameCardProps = {
   entry: UserGame | null
+  /**
+   * The whole profile, so the add-ons belonging to this game can be shown
+   * beneath it. They are in here already — visibleEntries hides them from the
+   * list, and this puts them back under the game they belong to.
+   */
+  entries: UserGame[]
   onClose: () => void
 }
 
@@ -17,40 +25,99 @@ type ProfileGameCardProps = {
 //
 // This is why the phase exists: VISION.md says the unit of value is a list
 // worth reading, and a review nobody can read is not one.
-const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, onClose }) => (
-  <Modal isOpen={!!entry} onClose={onClose}>
-    <div className="flex w-full flex-col items-center gap-4 p-6">
-      {entry?.game?.image && <Image src={entry.game.image} alt={entry.game.title} className="rounded-md" />}
+const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClose }) => {
+  // Not the IGDB listing MyList's card uses. A visitor wants what this person
+  // played, not everything that exists — and could not ask IGDB anyway, since
+  // /games/:igdbId/dlcs sits behind AuthRequired and a visitor has no token.
+  const addOns = addOnsOf(entry, entries)
 
-      <div className="flex w-full flex-col gap-2">
-        <div className="flex items-center justify-between gap-2">
-          <h4 className="font-semibold">{entry?.game?.title}</h4>
-          {entry?.category && <Badge variant="dark">{LIST_TYPE_LABEL[entry.category]}</Badge>}
+  return (
+    <Modal isOpen={!!entry} onClose={onClose}>
+      <div className="flex w-full flex-col gap-6 p-6 md:w-[42rem]">
+        <div className="flex flex-col gap-5 md:flex-row md:items-start">
+          {entry?.game?.image && (
+            <Image
+              src={entry.game.image}
+              alt={entry.game.title}
+              className="w-full max-w-48 self-center rounded-md object-cover md:w-48 md:shrink-0 md:self-start"
+            />
+          )}
+
+          <div className="flex min-w-0 flex-1 flex-col gap-3">
+            {/* Genres lead. They are the fastest thing to read and they set
+                expectations for the title underneath, which is the opposite of
+                the old order where they trailed the review. */}
+            {entry?.game?.genres && entry.game.genres.length > 0 && (
+              <div className="flex w-full flex-wrap items-center gap-1">
+                {entry.game.genres.map((genre) => (
+                  <Badge variant="dark" key={genre.id}>
+                    {genre.name}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center gap-2">
+              <h4 className="text-lg font-semibold">{entry?.game?.title}</h4>
+              {entry?.category && <Badge variant="dark">{LIST_TYPE_LABEL[entry.category]}</Badge>}
+            </div>
+
+            {entry?.rating != null && (
+              <span className="text-primary flex items-center gap-1 text-sm font-semibold">
+                {entry.rating}/10
+                <StarIcon className="h-4 w-4" />
+              </span>
+            )}
+
+            {/* whitespace-pre-wrap keeps the paragraph breaks somebody typed;
+                without it a multi-paragraph review collapses into one block. */}
+            {entry?.review ? (
+              <p className="text-sm whitespace-pre-wrap">{entry.review}</p>
+            ) : (
+              <p className="text-sm opacity-60">No review.</p>
+            )}
+          </div>
         </div>
 
-        {entry?.rating != null && (
-          <span className="text-primary flex items-center gap-1 text-sm font-semibold">
-            {entry.rating}/10
-            <StarIcon className="h-4 w-4" />
-          </span>
-        )}
-
-        {entry?.game?.genres && entry.game.genres.length > 0 && (
-          <div className="flex w-full flex-wrap items-center gap-1">
-            {entry.game.genres.map((genre) => (
-              <Badge variant="dark" key={genre.id}>
-                {genre.name}
-              </Badge>
-            ))}
+        {/* Only when this person actually has some. A visitor is not owed a
+            catalogue of what exists, and an empty heading on most cards would
+            be noise on somebody else's list. */}
+        {addOns.length > 0 && (
+          <div className="flex w-full flex-col gap-2">
+            <h4 className="font-semibold select-none">DLC & expansions</h4>
+            <div className="flex max-h-64 w-full flex-col gap-1 overflow-y-auto pr-1">
+              {addOns.map((addOn) => (
+                <div key={addOn.id} className="flex items-center gap-3 rounded-md p-1.5">
+                  <Image
+                    src={addOn.game?.image || placeholderImage}
+                    alt={addOn.game?.title}
+                    className="pointer-events-none h-11 w-8 shrink-0 rounded object-cover"
+                  />
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <span className="line-clamp-2 text-sm leading-tight">{addOn.game?.title}</span>
+                    <span className="flex items-center gap-2 text-xs opacity-60">
+                      {addOn.category && LIST_TYPE_LABEL[addOn.category]}
+                      {addOn.rating != null && (
+                        <span className="flex items-center gap-0.5">
+                          <StarIcon className="text-primary h-3 w-3" />
+                          {addOn.rating}
+                        </span>
+                      )}
+                      {addOn.review && (
+                        <span title="Written review" aria-label="Written review" className="flex items-center">
+                          <ChatBubbleBottomCenterTextIcon className="text-primary h-3 w-3" />
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
-
-        {/* whitespace-pre-wrap keeps the paragraph breaks somebody typed;
-            without it a multi-paragraph review collapses into one block. */}
-        {entry?.review ? <p className="text-sm whitespace-pre-wrap">{entry.review}</p> : <p className="text-sm opacity-60">No review.</p>}
       </div>
-    </div>
-  </Modal>
-)
+    </Modal>
+  )
+}
 
 export default ProfileGameCard

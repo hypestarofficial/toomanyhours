@@ -26,6 +26,32 @@ export const dlcRow = (game: IGDBGame, entries: UserGame[]): DlcRow => {
 }
 
 /**
+ * The add-ons of one game that are in this list.
+ *
+ * The read-only counterpart to DlcList, and deliberately not the same source.
+ * DlcList asks IGDB, because its job is to show you add-ons you have *not*
+ * added. A visitor to somebody's profile wants the opposite — what that person
+ * actually played — and that is already in the entries the page loaded. It
+ * also could not ask IGDB if it wanted to: `/games/:igdbId/dlcs` sits behind
+ * AuthRequired and a visitor has no token.
+ *
+ * These are exactly the entries visibleEntries hides from the list, put back
+ * under the game they belong to.
+ */
+export const addOnsOf = (parent: UserGame | null | undefined, entries: UserGame[]): UserGame[] => {
+  const parentIgdbId = parent?.game?.igdbId
+  if (parentIgdbId == null) return []
+
+  return entries.filter((candidate) => {
+    const game = candidate.game
+    if (!game) return false
+    if (!ADD_ON_KINDS.has(game.kind)) return false
+
+    return game.parentIgdbId === parentIgdbId
+  })
+}
+
+/**
  * Whether a row should open the add-on's own card.
  *
  * Only for something you have played or are playing. A want-to-play card shows

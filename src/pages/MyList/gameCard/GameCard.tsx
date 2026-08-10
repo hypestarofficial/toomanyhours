@@ -90,6 +90,22 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
     onClose()
   }
 
+  // What a completed action does. On an add-on that means going back to the
+  // game it belongs to rather than closing everything: you opened it from
+  // there, and the next thing you want is usually the next add-on. Closing
+  // outright made rating three DLCs mean reopening the parent three times.
+  //
+  // Removal returns too — the entry is gone, and the parent's list is where
+  // you would look to confirm it.
+  const finish = () => {
+    if (parent) {
+      setConfirmingGameId(null)
+      onOpenEntry(parent)
+      return
+    }
+    close()
+  }
+
   // Play! is a category-only PATCH — the same request dragging sends, which the
   // API's rating rule already permits.
   const onPlay = async () => {
@@ -98,7 +114,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
     try {
       await updateEntry({ gameId: entry.gameId, data: { category: LIST_TYPE.CURRENTLY_PLAYING } })
       toast.success(`${entry.game?.title ?? "Game"} → ${LIST_TYPE_LABEL[LIST_TYPE.CURRENTLY_PLAYING]}`)
-      close()
+      finish()
     } catch (error: unknown) {
       handleError({ error, userMessage: "Could not start that game", componentName: "GameCard" })
     }
@@ -110,7 +126,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
     try {
       await removeEntry({ gameId: entry.gameId })
       toast.success(`${entry.game?.title ?? "Game"} removed from your list`)
-      close()
+      finish()
     } catch (error: unknown) {
       // Disarm on failure, so a failed attempt does not leave a primed
       // destructive control behind.
@@ -138,7 +154,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
         },
       })
       toast.success(finishing ? `${entry.game?.title ?? "Game"} → ${LIST_TYPE_LABEL[LIST_TYPE.FINISHED]}` : "Saved")
-      close()
+      finish()
     } catch (error: unknown) {
       handleError({ error, userMessage: "An error occurred while rating and reviewing the game", componentName: "GameCard" })
     }
