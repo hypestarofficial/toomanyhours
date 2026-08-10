@@ -36,11 +36,14 @@ type AddOnModalProps = {
  */
 const AddOnModal: React.FC<AddOnModalProps> = ({ addOn, entry, onClose }) => {
   // Both flags are keyed on *which* add-on they belong to and derived against
-  // the open one, rather than synced in an effect. A different add-on cannot
-  // inherit a previous pick or a primed delete: it is structurally impossible
-  // rather than something a cleanup has to remember. It also keeps setState
-  // out of an effect body, which react-hooks/set-state-in-effect rejects for
-  // causing cascading renders — the same shape as GameCard's remove dialog.
+  // the open one, rather than synced in an effect — which is what keeps
+  // setState out of an effect body, where react-hooks/set-state-in-effect
+  // rejects it for causing cascading renders.
+  //
+  // The key stops a *different* add-on inheriting either flag, and that is all
+  // it stops. Reopening the same one matches its own id, so `close()` below
+  // still has to clear them; this is not the structural guarantee it looks
+  // like. GameCard's remove dialog has the same shape and the same caveat.
   const [picked, setPicked] = useState<{ igdbId: number; category: LIST_TYPE } | null>(null)
   const [confirmingIgdbId, setConfirmingIgdbId] = useState<number | null>(null)
 
@@ -50,6 +53,18 @@ const AddOnModal: React.FC<AddOnModalProps> = ({ addOn, entry, onClose }) => {
   const confirming = confirmingIgdbId !== null && confirmingIgdbId === addOn?.igdbId
 
   const setCategory = (value: LIST_TYPE) => addOn && setPicked({ igdbId: addOn.igdbId, category: value })
+
+  // Both flags must be dropped on the way out, and keying them is not enough:
+  // the key only stops a *different* add-on inheriting them. Reopening the
+  // *same* one matches its own id, so a confirmation left set survived a
+  // delete, a re-add and a reopen — and greeted you with a primed delete
+  // dialog. An unsaved category pick had the same shape, quieter: it would
+  // have shown over the stored one.
+  const close = () => {
+    setPicked(null)
+    setConfirmingIgdbId(null)
+    onClose()
+  }
 
   const { mutateAsync: addGame, isPending: adding } = useAddGame()
   const { mutateAsync: updateEntry, isPending: updating } = useUpdateEntry()
@@ -86,7 +101,7 @@ const AddOnModal: React.FC<AddOnModalProps> = ({ addOn, entry, onClose }) => {
         await addGame({ data: addGamePayload(addOn.igdbId, category, fields) })
       }
       toast.success(`${addOn.title} → ${LIST_TYPE_LABEL[category]}`)
-      onClose()
+      close()
     } catch (error: unknown) {
       handleError({ error, userMessage: "Could not save that add-on", componentName: "AddOnModal" })
     }
@@ -98,7 +113,7 @@ const AddOnModal: React.FC<AddOnModalProps> = ({ addOn, entry, onClose }) => {
     try {
       await removeEntry({ gameId: entry.gameId })
       toast.success(`${addOn.title} removed from your list`)
-      onClose()
+      close()
     } catch (error: unknown) {
       // Disarm on failure, so a failed attempt does not leave a primed
       // destructive control behind.
@@ -110,7 +125,7 @@ const AddOnModal: React.FC<AddOnModalProps> = ({ addOn, entry, onClose }) => {
   const year = addOn?.releaseDate?.slice(0, 4)
 
   return (
-    <Modal isOpen={!!addOn} onClose={onClose} size="sm">
+    <Modal isOpen={!!addOn} onClose={close} size="sm">
       <div className="flex w-full flex-col gap-5 p-6">
         <div className="flex items-center gap-3">
           <Image
