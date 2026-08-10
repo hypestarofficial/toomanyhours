@@ -35,7 +35,7 @@ const TextArea: React.FC<TextAreaProps> = ({ id, label, sideLabel = true, name, 
       {label && (
         <label
           htmlFor={id}
-          className={sideLabel ? styles.sideLabel : ""}
+          className={cn(styles.label, sideLabel && styles.sideLabel)}
           style={sideLabel ? { right: inputWidth + SIDE_LABEL_GAP } : undefined}
         >
           {label}

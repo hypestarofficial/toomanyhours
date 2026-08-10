@@ -92,7 +92,7 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
         {addOns.length > 0 && (
           <div className="flex w-full flex-col gap-2">
             <div className="flex w-full items-center justify-between gap-2">
-              <h4 className="font-semibold select-none">DLC & expansions</h4>
+              <h4 className="text-sm font-semibold select-none">DLC &amp; expansions</h4>
               <span className="text-sm opacity-60 select-none">{addOns.length}</span>
             </div>
             <div className="flex max-h-64 w-full flex-col gap-1 overflow-y-auto pr-1">

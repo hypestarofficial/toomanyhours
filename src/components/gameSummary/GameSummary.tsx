@@ -33,7 +33,7 @@ const GameSummary: React.FC<GameSummaryProps> = ({ summary }) => {
 
   return (
     <div className="flex w-full flex-col gap-1">
-      <span className="select-none">About</span>
+      <span className="font-semibold select-none">About</span>
       {/* pr-1 on the inner text keeps the scrollbar off the words.
           whitespace-pre-wrap keeps IGDB's paragraph breaks; several summaries
           have them and they collapse into one block without it. */}

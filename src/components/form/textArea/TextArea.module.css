@@ -4,6 +4,13 @@
   @apply relative flex w-full flex-col gap-1;
 }
 
+/* Semibold because a TextArea's label reads as a section header wherever this
+   is used — today only the review field on the game card, which sits directly
+   beneath the About box and should match it. */
+.label {
+  @apply font-semibold;
+}
+
 .sideLabel {
   @apply absolute top-0 bottom-0 flex items-start justify-center whitespace-nowrap;
 }

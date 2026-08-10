@@ -47,7 +47,7 @@ const DlcList: React.FC<DlcListProps> = ({ igdbId }) => {
   return (
     <div className="flex w-full flex-col gap-2">
       <div className="flex w-full items-center justify-between gap-2">
-        <h4 className="font-semibold select-none">DLC & expansions</h4>
+        <h4 className="text-sm font-semibold select-none">DLC &amp; expansions</h4>
         {/* Only once they have arrived. A count of 0 mid-fetch would read as
             "none" a moment before the list appears. */}
         {!isLoading && dlcs && <span className="text-sm opacity-60 select-none">{dlcs.length}</span>}
