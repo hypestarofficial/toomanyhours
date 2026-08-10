@@ -1,6 +1,6 @@
 import { toast } from "sonner"
 import { Image } from "@heroui/image"
-import { ChevronRightIcon, StarIcon } from "@heroicons/react/24/solid"
+import { ChatBubbleBottomCenterTextIcon, ChevronRightIcon, StarIcon } from "@heroicons/react/24/solid"
 import MotionButton from "../../../components/motionButton/MotionButton"
 import Loader from "../../../components/loader/Loader"
 import placeholderImage from "../../../assets/images/placeholder.webp"
@@ -140,6 +140,14 @@ const DlcList: React.FC<DlcListProps> = ({ igdbId, onOpenEntry }) => {
                         <span className="flex items-center gap-0.5">
                           <StarIcon className="text-primary h-3 w-3" />
                           {row.entry.rating}
+                        </span>
+                      )}
+                      {/* The same mark the list cards carry, for the same
+                          reason: whether an entry has been written about is
+                          the thing worth spotting without opening it. */}
+                      {row.entry?.review && (
+                        <span title="Written review" aria-label="Written review" className="flex items-center">
+                          <ChatBubbleBottomCenterTextIcon className="text-primary h-3 w-3" />
                         </span>
                       )}
                     </span>

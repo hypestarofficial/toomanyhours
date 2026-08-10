@@ -1,7 +1,7 @@
 import { motion } from "motion/react"
 import type { Variants } from "motion/react"
 import { Image } from "@heroui/image"
-import { StarIcon } from "@heroicons/react/24/solid"
+import { ChatBubbleBottomCenterTextIcon, StarIcon } from "@heroicons/react/24/solid"
 import { useDraggable } from "@dnd-kit/core"
 import { cn } from "../../utils/cn"
 import placeholderImage from "../../assets/images/placeholder.webp"
@@ -30,6 +30,13 @@ type GameContainerProps = {
   layout?: LIST_LAYOUT
   /** Shown at the row's right edge. Rows have horizontal room cards do not. */
   rating?: number | null
+  /**
+   * Whether the entry carries a review. Shown in both layouts, unlike the
+   * rating: a review is the thing that makes a list worth reading, and whether
+   * one exists is exactly what a visitor wants to spot without opening
+   * anything.
+   */
+  hasReview?: boolean
 }
 
 // Cards past this index all arrive together, 0.6s in.
@@ -62,7 +69,7 @@ const containerVariants: Variants = {
   },
 }
 
-const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onClick, drag, overlay, layout, rating }) => {
+const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onClick, drag, overlay, layout, rating, hasReview }) => {
   // Hooks cannot be conditional, so this always runs and is disabled when the
   // caller passes no drag payload. The fallback id is never used for a real
   // drop; it only keeps the id stable and unique among non-draggable cards.
@@ -106,12 +113,34 @@ const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onCl
           A landscape box here threw away the top and bottom of every cover:
           IGDB does publish horizontal screenshots and artworks, but the cover
           is the box art and box art is portrait. */}
-      <Image
-        src={image || placeholderImage}
-        alt={title}
-        className={cn("pointer-events-none z-0 rounded-md object-cover", isRow ? "h-14 w-10 shrink-0" : "aspect-3/4 w-full")}
-      />
+      {isRow ? (
+        <Image src={image || placeholderImage} alt={title} className="pointer-events-none z-0 h-14 w-10 shrink-0 rounded-md object-cover" />
+      ) : (
+        // Relative only in the card layout, so the review mark can sit on the
+        // cover. A row has room beside the title and needs no overlay.
+        <div className="relative w-full">
+          <Image
+            src={image || placeholderImage}
+            alt={title}
+            className="pointer-events-none z-0 aspect-3/4 w-full rounded-md object-cover"
+          />
+          {hasReview && (
+            <span
+              title="Written review"
+              className="bg-bg/80 absolute top-1.5 right-1.5 z-10 rounded-md p-1 backdrop-blur-sm"
+              aria-label="Written review"
+            >
+              <ChatBubbleBottomCenterTextIcon className="text-primary h-3.5 w-3.5" />
+            </span>
+          )}
+        </div>
+      )}
       <span className={cn("line-clamp-1 text-sm", isRow ? "flex-1 text-left" : "text-center")}>{title}</span>
+      {isRow && hasReview && (
+        <span title="Written review" aria-label="Written review" className="shrink-0">
+          <ChatBubbleBottomCenterTextIcon className="text-primary h-4 w-4" />
+        </span>
+      )}
       {/* Solid, matching the filled stars in the modal. The icon inherits
           text-primary from the span, so number and star are the same colour. */}
       {isRow && rating != null && (

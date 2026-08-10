@@ -56,6 +56,9 @@ const ListSection: React.FC<ListSectionProps> = ({
                 title={entry.game?.title}
                 image={entry.game?.image}
                 rating={entry.rating}
+                // The API trims a blank review to null, so "has one" is a
+                // plain truthiness check rather than a length test.
+                hasReview={!!entry.review}
                 layout={layout}
                 index={index}
                 onClick={() => onSelectItem(entry)}
