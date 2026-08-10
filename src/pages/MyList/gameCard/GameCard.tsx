@@ -12,7 +12,11 @@ import { toast } from "sonner"
 import Badge from "../../../components/badge/Badge"
 import { useUpdateEntry, useRemoveEntry } from "../../../api/userGames"
 import { gameCardMode, GAME_CARD_MODE } from "./gameCardMode"
+import { parentEntryOf } from "./dlcRows"
 import { LIST_TYPE, LIST_TYPE_LABEL } from "../../../helpers/enums"
+import { useGetMeGames } from "../../../api/generated/user-games/user-games"
+import useAuthStore from "../../../store/useAuthStore"
+import { ArrowLeftIcon } from "@heroicons/react/24/outline"
 
 type GameCardProps = {
   entry: UserGame | null
@@ -49,6 +53,13 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
 
   const mode = gameCardMode(entry?.category)
   const showsForm = mode !== GAME_CARD_MODE.PLAY
+
+  // Opening an add-on replaces this modal's subject rather than nesting a
+  // second one, so without a way back, rating three DLCs means reopening the
+  // parent three times. Read from the cached list, so it costs no request.
+  const { jwtToken } = useAuthStore()
+  const { data: entries } = useGetMeGames({ query: { enabled: !!jwtToken } })
+  const parent = parentEntryOf(entry, entries ?? [])
 
   const { control, handleSubmit, reset } = useForm<RatingFormValues>({
     // No mode: "onChange". It existed only to keep isValid live for a button
@@ -135,31 +146,66 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
 
   return (
     <Modal isOpen={!!entry} onClose={close}>
-      <Form control={control} className="flex w-full flex-col items-center justify-center gap-6 p-6">
-        <div className="flex w-full flex-col items-center justify-center gap-3">
-          {entry?.game?.image && <Image src={entry.game.image} alt={entry.game.title} className="rounded-md" />}
-          {entry?.game?.genres && (
-            <div className="flex w-full flex-wrap items-center justify-start gap-1">
-              {entry.game.genres.map((genre) => (
-                <Badge variant="dark" key={genre.id}>
-                  {genre.name}
-                </Badge>
-              ))}
-            </div>
-          )}
+      {/* Fixed width from md up, so the two columns below have somewhere to go.
+          Not a Modal `size`: those are min-widths, and a min-width beats a
+          max-width in CSS, so a large one would force horizontal overflow on a
+          phone. A plain md: width lets the modal grow on a desktop and stay
+          inside max-w-[90%] everywhere else. */}
+      <Form control={control} className="flex w-full flex-col gap-6 p-6 md:w-[46rem]">
+        {/* Side by side on a desktop, stacked on a phone. The cover is the one
+            thing here that is only looked at, so it goes in a column of its own
+            and everything you can act on shares the other. */}
+        <div className="flex flex-col gap-6 md:flex-row md:items-start">
+          <div className="flex w-full flex-col items-center gap-3 md:w-48 md:shrink-0">
+            {/* aspect-3/4 matches IGDB cover art. Capped on a phone so the
+                cover does not fill the screen before anything else is
+                reachable. */}
+            {entry?.game?.image && (
+              <Image src={entry.game.image} alt={entry.game.title} className="w-full max-w-48 rounded-md object-cover md:max-w-none" />
+            )}
+            {entry?.game?.genres && (
+              <div className="flex w-full flex-wrap items-center justify-center gap-1 md:justify-start">
+                {entry.game.genres.map((genre) => (
+                  <Badge variant="dark" key={genre.id}>
+                    {genre.name}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* min-w-0 so a long add-on title truncates instead of widening the
+              column past the modal. */}
+          <div className="flex min-w-0 flex-1 flex-col gap-5">
+            {/* Only on an add-on whose parent you have. It turns opening a DLC
+                from a dead end into a loop: rate it, go back, rate the next. */}
+            {parent && (
+              <MotionButton
+                variant="text"
+                size="menu"
+                className="self-start px-0!"
+                icon={<ArrowLeftIcon className="h-4 w-4" />}
+                onClick={() => onOpenEntry(parent)}
+              >
+                <span className="line-clamp-1">Back to {parent.game?.title}</span>
+              </MotionButton>
+            )}
+
+            {/* PLAY mode shows neither field, even when the row holds a rating
+                from a previous stint in finished. */}
+            {showsForm && <RatingFields control={control} />}
+
+            {/* Only for a game that could have add-ons. An add-on's own card
+                does not list further add-ons — IGDB does not nest them, and a
+                DLC of a DLC is not a thing. */}
+            {entry?.game && entry.game.kind !== "dlc" && entry.game.kind !== "expansion" && (
+              <DlcList igdbId={entry.game.igdbId} onOpenEntry={onOpenEntry} />
+            )}
+          </div>
         </div>
 
-        {/* PLAY mode shows neither field, even when the row holds a rating from
-            a previous stint in finished. */}
-        {showsForm && <RatingFields control={control} />}
-
-        {/* Only for a game that could have add-ons. An add-on's own card does
-            not list further add-ons — IGDB does not nest them, and a DLC of a
-            DLC is not a thing. */}
-        {entry?.game && entry.game.kind !== "dlc" && entry.game.kind !== "expansion" && (
-          <DlcList igdbId={entry.game.igdbId} onOpenEntry={onOpenEntry} />
-        )}
-
+        {/* Full width beneath both columns: the actions apply to the whole
+            card, not to the right-hand one. */}
         <div className="flex w-full gap-2">
           {/* First, not last. The primary action carries `flex` and takes the
               remaining width, so it sits hard against the right edge — a

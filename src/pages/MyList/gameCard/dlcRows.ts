@@ -1,4 +1,5 @@
 import type { IGDBGame, UserGame } from "../../../api/generated/models"
+import { ADD_ON_KINDS } from "../visibleEntries"
 
 export type DlcRow = {
   igdbId: number
@@ -21,4 +22,25 @@ export const dlcRow = (game: IGDBGame, entries: UserGame[]): DlcRow => {
   const entry = entries.find((candidate) => candidate.game?.igdbId === game.igdbId)
 
   return { igdbId: game.igdbId, entry, category: entry?.category }
+}
+
+/**
+ * The list entry for the game this add-on belongs to, when you have it.
+ *
+ * What the card's "back" control needs. Opening an add-on from its parent
+ * replaces the modal's subject, and without a way back, rating three DLCs in a
+ * row means reopening the parent three times.
+ *
+ * Returns undefined for anything that is not an add-on, so a remaster never
+ * offers to take you "back" to the original it merely descends from — the same
+ * kind rule the list hides by, and imported rather than restated so the two
+ * cannot drift.
+ */
+export const parentEntryOf = (entry: UserGame | null | undefined, entries: UserGame[]): UserGame | undefined => {
+  const game = entry?.game
+  if (!game) return undefined
+  if (!ADD_ON_KINDS.has(game.kind)) return undefined
+  if (game.parentIgdbId == null) return undefined
+
+  return entries.find((candidate) => candidate.game?.igdbId === game.parentIgdbId)
 }

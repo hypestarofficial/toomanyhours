@@ -13,7 +13,7 @@ import { ownedIgdbIds } from "./addGameModal/rows"
  * The same two kinds are excluded from IGDB search, and that is not a
  * coincidence: an add-on is found through its parent or not at all.
  */
-const ADD_ON_KINDS = new Set(["dlc", "expansion"])
+export const ADD_ON_KINDS = new Set(["dlc", "expansion"])
 
 /**
  * The entries the list should render.

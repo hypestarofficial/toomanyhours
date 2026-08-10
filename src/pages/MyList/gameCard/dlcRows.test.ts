@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest"
-import { dlcRow } from "./dlcRows"
+import { dlcRow, parentEntryOf } from "./dlcRows"
 import type { IGDBGame, UserGame } from "../../../api/generated/models"
 
 const igdbGame = (igdbId: number): IGDBGame => ({ igdbId, title: `Game ${igdbId}`, kind: "dlc" }) as unknown as IGDBGame
 const entry = (igdbId: number, gameId: number, category: string): UserGame =>
   ({ id: gameId, gameId, category, game: { igdbId } }) as unknown as UserGame
+const addOn = (igdbId: number, kind: string, parentIgdbId?: number): UserGame =>
+  ({ id: igdbId, gameId: igdbId, category: "finished", game: { igdbId, kind, parentIgdbId } }) as unknown as UserGame
 
 describe("dlcRow", () => {
   it("reports an add-on that is not in your list", () => {
@@ -31,5 +33,36 @@ describe("dlcRow", () => {
     const broken = { id: 9, gameId: 9, category: "finished" } as unknown as UserGame
 
     expect(dlcRow(igdbGame(396087), [broken]).entry).toBeUndefined()
+  })
+})
+
+describe("parentEntryOf", () => {
+  const parent = addOn(203722, "main_game")
+
+  it("finds the parent of an add-on you own", () => {
+    expect(parentEntryOf(addOn(325582, "expansion", 203722), [parent])).toBe(parent)
+  })
+
+  it("is undefined when the parent is not in your list", () => {
+    expect(parentEntryOf(addOn(325582, "expansion", 203722), [])).toBeUndefined()
+  })
+
+  // The same kind rule the list hides by. A remaster descends from the
+  // original, but it is not an add-on to it, so it must never offer to take
+  // you "back" to a game it merely came after.
+  it("is undefined for a remaster whose original you own", () => {
+    expect(parentEntryOf(addOn(19457, "remaster", 472), [addOn(472, "main_game")])).toBeUndefined()
+  })
+
+  it("is undefined for an expanded game whose base you own", () => {
+    expect(parentEntryOf(addOn(334254, "expanded_game", 1020), [addOn(1020, "main_game")])).toBeUndefined()
+  })
+
+  it("is undefined for an add-on with no parent recorded", () => {
+    expect(parentEntryOf(addOn(325582, "expansion"), [parent])).toBeUndefined()
+  })
+
+  it("is undefined for no entry at all", () => {
+    expect(parentEntryOf(null, [parent])).toBeUndefined()
   })
 })
