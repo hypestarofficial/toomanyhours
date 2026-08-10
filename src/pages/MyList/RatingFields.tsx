@@ -49,7 +49,11 @@ const RatingFields: React.FC<RatingFieldsProps> = ({ control }) => (
               anchors to the last star rather than to the far edge of the card
               — at right-0 it sat halfway across the modal and read as
               belonging to nothing. Keeping it out of the flex flow is still
-              what stops the stars shifting when it appears. */}
+              what stops the stars shifting when it appears.
+
+              On the left, so it leads the row rather than trailing it: the
+              stars fill left to right, and a control at the end of that run
+              reads as part of the scale. */}
           <div className="relative inline-flex">
             <StarRating maxStars={10} value={field.value} onChange={field.onChange} />
 
@@ -59,7 +63,7 @@ const RatingFields: React.FC<RatingFieldsProps> = ({ control }) => (
               0 is the form's unrated value and the API's clear sentinel, so
               this is exactly what saving an untouched entry would send. */}
             {field.value > 0 && (
-              <span className="absolute top-1/2 left-full ml-1 -translate-y-1/2">
+              <span className="absolute top-1/2 right-full mr-1 -translate-y-1/2">
                 {/* A cross, not a bin. A bin beside a game's stars reads as
                     "delete the game"; a cross is the ordinary "clear this
                     value". */}

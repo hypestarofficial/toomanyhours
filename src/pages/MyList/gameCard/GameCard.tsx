@@ -46,7 +46,12 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
   const mode = gameCardMode(entry?.category)
   const showsForm = mode !== GAME_CARD_MODE.PLAY
 
-  const { control, handleSubmit, reset } = useForm<RatingFormValues>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isDirty },
+  } = useForm<RatingFormValues>({
     // No mode: "onChange". It existed only to keep isValid live for a button
     // disabled until a rating was picked, and there are no rules left to run.
     defaultValues: {
@@ -211,8 +216,18 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
               Finish
             </MotionButton>
           )}
+          {/* Save alone is disabled until something changes. There is nothing
+              to save on an untouched finished entry, and an always-live Save
+              gives no clue whether an edit registered.
+
+              Finish is not gated the same way: it moves the entry to finished,
+              which is a real change even when neither field was touched.
+
+              isDirty is honest here because the effect above resets the form to
+              the entry's own values whenever a card opens, so a freshly opened
+              card starts clean rather than counting the prefill as an edit. */}
           {mode === GAME_CARD_MODE.EDIT && (
-            <MotionButton variant="success" onClick={handleSubmit(onSubmit)}>
+            <MotionButton variant="success" onClick={handleSubmit(onSubmit)} disabled={!isDirty}>
               Save
             </MotionButton>
           )}
