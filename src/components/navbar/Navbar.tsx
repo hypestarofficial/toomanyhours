@@ -65,10 +65,12 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
             works while it is a single line — see the version chip above. */}
         <div className="flex items-baseline gap-2">
           <h1 className={styles.title}>tooManyHours</h1>
-          {/* IGDB asks to be credited where their data is used. The logo is
-              the credit now; aria-label keeps the words for a screen reader,
-              which the wordmark alone would have lost. */}
-          <IgdbLogo className={styles.attribution} role="img" aria-label="Powered by IGDB" />
+          {/* IGDB asks to be credited where their data is used. "powered by"
+              stays as text and only the name became the logo, so the credit
+              still reads as a sentence. */}
+          <span className={styles.attribution}>
+            powered by <IgdbLogo className={styles.igdbLogo} role="img" aria-label="IGDB" />
+          </span>
         </div>
       </div>
       {authenticated ? <AuthenticatedNavbar /> : <UnauthenticatedNavbar />}

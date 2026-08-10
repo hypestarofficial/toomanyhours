@@ -28,6 +28,11 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.1.0",
+    date: "2026-08-10",
+    changes: ["Manage a DLC in one place: where it goes, what you scored it, what you thought — and remove it."],
+  },
+  {
     version: "1.0.0",
     date: "2026-08-10",
     changes: [
