@@ -32,7 +32,8 @@ export const changelog: ChangelogEntry[] = [
     date: "2026-08-10",
     changes: [
       "DLC and expansions now live on their game's card instead of filling up your list.",
-      "Add or move a game's DLC without leaving that game.",
+      "Add, rate and review a game's DLC without leaving that game.",
+      "See at a glance which games you've written about.",
     ],
   },
   {
