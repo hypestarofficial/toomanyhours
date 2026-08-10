@@ -4,7 +4,7 @@ import TextArea from "../../components/form/textArea/TextArea"
 import StarRating from "./gameCard/StarRating"
 import MotionIconButton from "../../components/motionIconButton/MotionIconButton"
 import MotionTooltip from "../../components/motionTooltip/MotionTooltip"
-import { XMarkIcon } from "@heroicons/react/24/outline"
+import { TrashIcon } from "@heroicons/react/24/outline"
 
 // One shape, shared by the detail modal and step 2 of the add flow, so the
 // component below can be typed concretely rather than generically.
@@ -44,35 +44,18 @@ const RatingFields: React.FC<RatingFieldsProps> = ({ control }) => (
       name="rating"
       control={control}
       render={({ field }) => (
-        <div className="flex w-full items-center justify-center">
-          {/* The relative box hugs the stars, not the row, so the button
-              anchors to the last star rather than to the far edge of the card
-              — at right-0 it sat halfway across the modal and read as
-              belonging to nothing. Keeping it out of the flex flow is still
-              what stops the stars shifting when it appears.
-
-              On the left, so it leads the row rather than trailing it: the
-              stars fill left to right, and a control at the end of that run
-              reads as part of the scale. */}
-          <div className="relative inline-flex">
-            <StarRating maxStars={10} value={field.value} onChange={field.onChange} />
-
-            {/* Only with a rating to remove. Ten stars have no "none" position,
-              so without this the one thing you cannot do by clicking is take a
-              score back — the score could be changed forever but never undone.
-              0 is the form's unrated value and the API's clear sentinel, so
-              this is exactly what saving an untouched entry would send. */}
-            {field.value > 0 && (
-              <span className="absolute top-1/2 right-full mr-1 -translate-y-1/2">
-                {/* A cross, not a bin. A bin beside a game's stars reads as
-                    "delete the game"; a cross is the ordinary "clear this
-                    value". */}
-                <MotionTooltip content="Clear rating">
-                  <MotionIconButton icon={<XMarkIcon className="h-5 w-5" />} onClick={() => field.onChange(0)} ariaLabel="Clear rating" />
-                </MotionTooltip>
-              </span>
-            )}
-          </div>
+        // The button is in the flow rather than absolute now, so the pair
+        // is centred as a group rather than the stars being centred with the
+        // button hanging off one side. The trade is that the stars shift right
+        // by the button's width the first time a rating is set — once, and
+        // only when going from unrated to rated.
+        <div className="flex w-full items-center justify-center gap-3">
+          {field.value > 0 && (
+            <MotionTooltip content="Clear rating">
+              <MotionIconButton icon={<TrashIcon className="h-5 w-5" />} onClick={() => field.onChange(0)} ariaLabel="Clear rating" />
+            </MotionTooltip>
+          )}
+          <StarRating maxStars={10} value={field.value} onChange={field.onChange} />
         </div>
       )}
     />
