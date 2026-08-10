@@ -177,24 +177,34 @@ const MyList: React.FC = () => {
       </MotionContainer>
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={() => setDraggedEntry(null)}>
         <MotionContainer className="flex w-full flex-col gap-2 pb-10">
-          <div className="mb-4 flex w-full flex-wrap items-center gap-2">
-            <div className="min-w-48 flex-1">
-              <Input
-                type="text"
-                id="listSearch"
-                placeholder="Search your list..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                sideLabel={false}
-                clearable
-              />
+          {/* Two rows, not one. Packed into a single line, the sort arrow, the
+              two layout icons and the share icon sat side by side as four
+              adjacent icon buttons, and none of them read as belonging to
+              anything. Search takes the full width above; below it, what
+              narrows the list sits left and what changes how it is read or
+              shared sits right. */}
+          <div className="mb-4 flex w-full flex-col gap-2">
+            <Input
+              type="text"
+              id="listSearch"
+              placeholder="Search your list..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              sideLabel={false}
+              clearable
+            />
+            <div className="flex w-full flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="w-56">
+                  <MultiSelect options={genreOptions} value={filterGenres} onChange={setFilterGenres} placeholder="Filter by genres" />
+                </div>
+                <SortControl />
+              </div>
+              <div className="flex items-center gap-2">
+                <LayoutToggle />
+                <ShareListButton />
+              </div>
             </div>
-            <div className="w-56">
-              <MultiSelect options={genreOptions} value={filterGenres} onChange={setFilterGenres} placeholder="Filter by genres" />
-            </div>
-            <SortControl />
-            <LayoutToggle />
-            <ShareListButton />
           </div>
           <ListSection
             title={sectionTitle("finished", LIST_TYPE.FINISHED)}
