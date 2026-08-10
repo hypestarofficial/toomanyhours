@@ -4,6 +4,7 @@ import type { UserGame } from "../../../api/generated/models"
 import { Image } from "@heroui/image"
 import MotionButton from "../../../components/motionButton/MotionButton"
 import { Form, useForm } from "react-hook-form"
+import DlcList from "./DlcList"
 import RatingFields from "../RatingFields"
 import type { RatingFormValues } from "../RatingFields"
 import { handleError } from "../../../utils/errors"
@@ -16,6 +17,11 @@ import { LIST_TYPE, LIST_TYPE_LABEL } from "../../../helpers/enums"
 type GameCardProps = {
   entry: UserGame | null
   onClose: () => void
+  /**
+   * Swaps the open card to an add-on. MyList owns selectedEntry, so this
+   * replaces the modal's subject rather than nesting a second modal inside it.
+   */
+  onOpenEntry: (entry: UserGame) => void
 }
 
 // There is no scale conversion. StarRating renders ten stars with half-steps
@@ -26,7 +32,7 @@ type GameCardProps = {
 // 0 still means unrated in both directions, which matters: it is the API's
 // "clear my rating" sentinel.
 
-const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
+const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
   const { mutateAsync: updateEntry } = useUpdateEntry()
   const { mutateAsync: removeEntry, isPending: removing } = useRemoveEntry()
 
@@ -146,6 +152,13 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
         {/* PLAY mode shows neither field, even when the row holds a rating from
             a previous stint in finished. */}
         {showsForm && <RatingFields control={control} />}
+
+        {/* Only for a game that could have add-ons. An add-on's own card does
+            not list further add-ons — IGDB does not nest them, and a DLC of a
+            DLC is not a thing. */}
+        {entry?.game && entry.game.kind !== "dlc" && entry.game.kind !== "expansion" && (
+          <DlcList igdbId={entry.game.igdbId} onOpenEntry={onOpenEntry} />
+        )}
 
         <div className="flex w-full gap-2">
           {/* First, not last. The primary action carries `flex` and takes the

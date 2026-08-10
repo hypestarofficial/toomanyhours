@@ -231,7 +231,9 @@ const MyList: React.FC = () => {
       <AddGameModal isOpen={isAddGameOpen} onClose={() => setIsAddGameOpen(false)} />
 
       {/* Game Details Modal */}
-      <GameCard entry={selectedEntry} onClose={() => setSelectedEntry(null)} />
+      {/* onOpenEntry swaps the modal's subject to an add-on rather than
+          nesting a second card inside the first. */}
+      <GameCard entry={selectedEntry} onClose={() => setSelectedEntry(null)} onOpenEntry={setSelectedEntry} />
     </Page>
   )
 }
