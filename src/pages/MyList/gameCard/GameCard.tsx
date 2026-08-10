@@ -173,7 +173,9 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
             {/* Only for a game that could have add-ons. An add-on's own card
                 does not list further add-ons — IGDB does not nest them, and a
                 DLC of a DLC is not a thing. */}
-            {entry?.game && entry.game.kind !== "dlc" && entry.game.kind !== "expansion" && <DlcList igdbId={entry.game.igdbId} />}
+            {entry?.game && entry.game.kind !== "dlc" && entry.game.kind !== "expansion" && (
+              <DlcList igdbId={entry.game.igdbId} parentTitle={entry.game.title} />
+            )}
           </div>
         </div>
 

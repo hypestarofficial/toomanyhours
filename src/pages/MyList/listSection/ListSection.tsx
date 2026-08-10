@@ -7,7 +7,7 @@ import type { UserGame } from "../../../api/generated/models"
 import type { LIST_TYPE } from "../../../helpers/enums"
 import { LIST_LAYOUT } from "../../../store/useUserSettingsAuth"
 import { cn } from "../../../utils/cn"
-import { addOnsOf } from "../gameCard/dlcRows"
+import { addOnsOf, stripParentTitle } from "../gameCard/dlcRows"
 import styles from "./ListSection.module.css"
 
 type ListSectionProps = {
@@ -37,7 +37,7 @@ type ListSectionProps = {
 const addOnMarksFor = (entry: UserGame, allEntries: UserGame[]): AddOnMark[] =>
   addOnsOf(entry, allEntries)
     .filter((addOn) => !!addOn.game?.title)
-    .map((addOn) => ({ title: addOn.game!.title, category: addOn.category as LIST_TYPE }))
+    .map((addOn) => ({ title: stripParentTitle(addOn.game!.title, entry.game?.title), category: addOn.category as LIST_TYPE }))
 
 const ListSection: React.FC<ListSectionProps> = ({
   title,

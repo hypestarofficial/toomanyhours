@@ -49,3 +49,30 @@ export const addOnsOf = (parent: UserGame | null | undefined, entries: UserGame[
     return game.parentIgdbId === parentIgdbId
   })
 }
+
+/**
+ * An add-on's title with its parent's name taken off the front.
+ *
+ * IGDB names add-ons in full — "Payday 2: The Diamond Store Heist", "The
+ * Witcher 3: Wild Hunt - Blood and Wine" — so a list of ten under their parent
+ * repeats the same words ten times and buries the part that differs.
+ *
+ * Matches the parent's *title* as a prefix rather than splitting on
+ * punctuation, which is the whole difficulty. "The Witcher 3: Wild Hunt - New
+ * Quest: Scavenger Hunt: Wolf School Gear" has three colons; splitting on the
+ * first would leave "Wild Hunt - New Quest...", which is worse than doing
+ * nothing.
+ *
+ * Falls back to the full title whenever stripping would leave nothing, or when
+ * the add-on is not named after its parent at all — some are not, and inventing
+ * a shorter name for them is not this function's job.
+ */
+export const stripParentTitle = (title: string, parentTitle?: string): string => {
+  if (!parentTitle) return title
+  if (!title.toLowerCase().startsWith(parentTitle.toLowerCase())) return title
+
+  // Whatever punctuation joined the two: ": ", " - ", " – ", " — ".
+  const rest = title.slice(parentTitle.length).replace(/^[\s:–—-]+/, "")
+
+  return rest || title
+}

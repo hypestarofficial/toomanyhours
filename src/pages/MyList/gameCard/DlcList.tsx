@@ -9,13 +9,15 @@ import { LIST_TYPE, LIST_TYPE_BADGE, LIST_TYPE_LABEL } from "../../../helpers/en
 import { useGetGameDlcs } from "../../../api/generated/games/games"
 import { useGetMeGames } from "../../../api/generated/user-games/user-games"
 import useAuthStore from "../../../store/useAuthStore"
-import { dlcRow } from "./dlcRows"
+import { dlcRow, stripParentTitle } from "./dlcRows"
 import AddOnModal from "./AddOnModal"
 import type { IGDBGame } from "../../../api/generated/models"
 
 type DlcListProps = {
   /** The parent game's IGDB id. */
   igdbId: number
+  /** The parent game's title, so add-on rows can drop it from theirs. */
+  parentTitle?: string
 }
 
 /**
@@ -35,7 +37,7 @@ type DlcListProps = {
  * else. Everything you can change lives behind Manage, in a dialog over this
  * card.
  */
-const DlcList: React.FC<DlcListProps> = ({ igdbId }) => {
+const DlcList: React.FC<DlcListProps> = ({ igdbId, parentTitle }) => {
   const { jwtToken } = useAuthStore()
   const [managing, setManaging] = useState<IGDBGame | null>(null)
 
@@ -88,7 +90,7 @@ const DlcList: React.FC<DlcListProps> = ({ igdbId }) => {
                         name before saying anything distinguishing — "Dave the
                         Diver: Ichiban's Holiday" — so a single clamped line
                         cuts off the only part worth reading. */}
-                    <span className="line-clamp-2 text-sm leading-tight">{dlc.title}</span>
+                    <span className="line-clamp-2 text-sm leading-tight">{stripParentTitle(dlc.title, parentTitle)}</span>
                     <span className="flex flex-wrap items-center gap-2 text-xs opacity-60">
                       {year ?? "Unreleased"}
                       {/* Status, score, and whether it was written about: what

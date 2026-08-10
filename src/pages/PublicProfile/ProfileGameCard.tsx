@@ -5,7 +5,7 @@ import { ChatBubbleBottomCenterTextIcon, StarIcon } from "@heroicons/react/24/so
 import placeholderImage from "../../assets/images/placeholder.webp"
 import type { UserGame } from "../../api/generated/models"
 import { LIST_TYPE_BADGE, LIST_TYPE_LABEL } from "../../helpers/enums"
-import { addOnsOf } from "../MyList/gameCard/dlcRows"
+import { addOnsOf, stripParentTitle } from "../MyList/gameCard/dlcRows"
 import GameSummary from "../../components/gameSummary/GameSummary"
 
 type ProfileGameCardProps = {
@@ -104,7 +104,9 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
                     className="pointer-events-none h-11 w-8 shrink-0 rounded object-cover"
                   />
                   <div className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="line-clamp-2 text-sm leading-tight">{addOn.game?.title}</span>
+                    <span className="line-clamp-2 text-sm leading-tight">
+                      {stripParentTitle(addOn.game?.title ?? "", entry?.game?.title)}
+                    </span>
                     <span className="flex flex-wrap items-center gap-2">
                       {/* The badge here too, not muted text. Status is the
                           thing being scanned for in this list, and grey text
