@@ -4,6 +4,7 @@ import { Image } from "@heroui/image"
 import { ChatBubbleBottomCenterTextIcon, StarIcon } from "@heroicons/react/24/solid"
 import { useDraggable } from "@dnd-kit/core"
 import { cn } from "../../utils/cn"
+import Badge from "../badge/Badge"
 import placeholderImage from "../../assets/images/placeholder.webp"
 // One import covers both uses: LIST_LAYOUT is declared as a const *and* a type
 // of the same name.
@@ -136,9 +137,12 @@ const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onCl
         </div>
       )}
       <span className={cn("line-clamp-1 text-sm", isRow ? "flex-1 text-left" : "text-center")}>{title}</span>
+      {/* Spelled out in rows, an icon on cards. A row has the width for the
+          words and they read faster than a glyph; a grid card does not, which
+          is why the two layouts differ rather than one compromising. */}
       {isRow && hasReview && (
-        <span title="Written review" aria-label="Written review" className="shrink-0">
-          <ChatBubbleBottomCenterTextIcon className="text-primary h-4 w-4" />
+        <span className="shrink-0">
+          <Badge variant="light">Written review</Badge>
         </span>
       )}
       {/* Solid, matching the filled stars in the modal. The icon inherits

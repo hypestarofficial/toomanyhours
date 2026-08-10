@@ -86,7 +86,10 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
             be noise on somebody else's list. */}
         {addOns.length > 0 && (
           <div className="flex w-full flex-col gap-2">
-            <h4 className="font-semibold select-none">DLC & expansions</h4>
+            <div className="flex w-full items-center justify-between gap-2">
+              <h4 className="font-semibold select-none">DLC & expansions</h4>
+              <span className="text-sm opacity-60 select-none">{addOns.length}</span>
+            </div>
             <div className="flex max-h-64 w-full flex-col gap-1 overflow-y-auto pr-1">
               {addOns.map((addOn) => (
                 <div key={addOn.id} className="flex items-center gap-3 rounded-md p-1.5">

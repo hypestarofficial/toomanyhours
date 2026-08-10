@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { addOnsOf, canOpenAddOn, dlcRow, parentEntryOf } from "./dlcRows"
+import { addOnsOf, dlcRow } from "./dlcRows"
 import type { IGDBGame, UserGame } from "../../../api/generated/models"
 
 const igdbGame = (igdbId: number): IGDBGame => ({ igdbId, title: `Game ${igdbId}`, kind: "dlc" }) as unknown as IGDBGame
@@ -63,56 +63,5 @@ describe("addOnsOf", () => {
 
   it("is empty for no parent at all", () => {
     expect(addOnsOf(null, [storyPack])).toEqual([])
-  })
-})
-
-describe("canOpenAddOn", () => {
-  it("opens something you finished", () => {
-    expect(canOpenAddOn("finished")).toBe(true)
-  })
-
-  it("opens something you are playing", () => {
-    expect(canOpenAddOn("currently_playing")).toBe(true)
-  })
-
-  // The card would be empty: PLAY mode shows no rating and no review, and an
-  // add-on has no add-on list of its own to fill the space either.
-  it("does not open a want-to-play add-on", () => {
-    expect(canOpenAddOn("want_to_play")).toBe(false)
-  })
-
-  it("does not open one you do not have", () => {
-    expect(canOpenAddOn(undefined)).toBe(false)
-  })
-})
-
-describe("parentEntryOf", () => {
-  const parent = addOn(203722, "main_game")
-
-  it("finds the parent of an add-on you own", () => {
-    expect(parentEntryOf(addOn(325582, "expansion", 203722), [parent])).toBe(parent)
-  })
-
-  it("is undefined when the parent is not in your list", () => {
-    expect(parentEntryOf(addOn(325582, "expansion", 203722), [])).toBeUndefined()
-  })
-
-  // The same kind rule the list hides by. A remaster descends from the
-  // original, but it is not an add-on to it, so it must never offer to take
-  // you "back" to a game it merely came after.
-  it("is undefined for a remaster whose original you own", () => {
-    expect(parentEntryOf(addOn(19457, "remaster", 472), [addOn(472, "main_game")])).toBeUndefined()
-  })
-
-  it("is undefined for an expanded game whose base you own", () => {
-    expect(parentEntryOf(addOn(334254, "expanded_game", 1020), [addOn(1020, "main_game")])).toBeUndefined()
-  })
-
-  it("is undefined for an add-on with no parent recorded", () => {
-    expect(parentEntryOf(addOn(325582, "expansion"), [parent])).toBeUndefined()
-  })
-
-  it("is undefined for no entry at all", () => {
-    expect(parentEntryOf(null, [parent])).toBeUndefined()
   })
 })

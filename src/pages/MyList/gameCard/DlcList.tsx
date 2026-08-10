@@ -1,36 +1,21 @@
-import { toast } from "sonner"
+import { useState } from "react"
 import { Image } from "@heroui/image"
-import { ChatBubbleBottomCenterTextIcon, ChevronRightIcon, StarIcon } from "@heroicons/react/24/solid"
+import { ChatBubbleBottomCenterTextIcon, StarIcon } from "@heroicons/react/24/solid"
 import MotionButton from "../../../components/motionButton/MotionButton"
+import Badge from "../../../components/badge/Badge"
 import Loader from "../../../components/loader/Loader"
 import placeholderImage from "../../../assets/images/placeholder.webp"
-import { LIST_TYPE, LIST_TYPE_LABEL } from "../../../helpers/enums"
+import { LIST_TYPE, LIST_TYPE_BADGE, LIST_TYPE_LABEL } from "../../../helpers/enums"
 import { useGetGameDlcs } from "../../../api/generated/games/games"
 import { useGetMeGames } from "../../../api/generated/user-games/user-games"
-import { useAddGame, useUpdateEntry } from "../../../api/userGames"
 import useAuthStore from "../../../store/useAuthStore"
-import { handleError } from "../../../utils/errors"
-import { cn } from "../../../utils/cn"
-import { canOpenAddOn, dlcRow } from "./dlcRows"
-import type { UserGame } from "../../../api/generated/models"
-
-// Shorter than LIST_TYPE_LABEL, and only here. Three buttons share one line
-// with the title, and "Currently playing" spelled out either wraps the row or
-// squeezes the title to nothing. The full wording survives as the tooltip and
-// in the toast, so nothing is lost — this is the only place in the app where
-// the labels are abbreviated, which is why they live here rather than in
-// helpers/enums.
-const DLC_CATEGORY_LABEL: Record<LIST_TYPE, string> = {
-  [LIST_TYPE.FINISHED]: "Finished",
-  [LIST_TYPE.CURRENTLY_PLAYING]: "Playing",
-  [LIST_TYPE.WANT_TO_PLAY]: "Want",
-}
+import { dlcRow } from "./dlcRows"
+import AddOnModal from "./AddOnModal"
+import type { IGDBGame } from "../../../api/generated/models"
 
 type DlcListProps = {
   /** The parent game's IGDB id. */
   igdbId: number
-  /** Opens an add-on's own detail modal — see the comment on the row below. */
-  onOpenEntry: (entry: UserGame) => void
 }
 
 /**
@@ -45,36 +30,28 @@ type DlcListProps = {
  * The cost of that is a request to IGDB whenever a card opens. TanStack Query
  * caches per game, so reopening the same one is free, and the client's own
  * throttle bounds the rest.
+ *
+ * Rows report status, score and whether there is a review, and do nothing
+ * else. Everything you can change lives behind Manage, in a dialog over this
+ * card.
  */
-const DlcList: React.FC<DlcListProps> = ({ igdbId, onOpenEntry }) => {
+const DlcList: React.FC<DlcListProps> = ({ igdbId }) => {
   const { jwtToken } = useAuthStore()
+  const [managing, setManaging] = useState<IGDBGame | null>(null)
 
   // `enabled` is passed explicitly, as every generated hook in this app needs:
   // without it the query fires before a token exists and 401s on boot.
   const { data: dlcs, isLoading } = useGetGameDlcs(igdbId, { query: { enabled: !!jwtToken } })
   const { data: entries } = useGetMeGames({ query: { enabled: !!jwtToken } })
 
-  const { mutateAsync: addGame } = useAddGame()
-  const { mutateAsync: updateEntry } = useUpdateEntry()
-
-  const choose = async (targetIgdbId: number, entry: UserGame | undefined, category: LIST_TYPE) => {
-    try {
-      if (entry) {
-        await updateEntry({ gameId: entry.gameId, data: { category } })
-      } else {
-        // No rating or review: these buttons set a category and nothing else.
-        // The add-on's own card, reached by clicking the row, does the rest.
-        await addGame({ data: { igdbId: targetIgdbId, category } })
-      }
-      toast.success(`Moved to ${LIST_TYPE_LABEL[category]}`)
-    } catch (error: unknown) {
-      handleError({ error, userMessage: "Could not update that add-on", componentName: "DlcList" })
-    }
-  }
-
   return (
     <div className="flex w-full flex-col gap-2">
-      <h4 className="font-semibold select-none">DLC & expansions</h4>
+      <div className="flex w-full items-center justify-between gap-2">
+        <h4 className="font-semibold select-none">DLC & expansions</h4>
+        {/* Only once they have arrived. A count of 0 mid-fetch would read as
+            "none" a moment before the list appears. */}
+        {!isLoading && dlcs && <span className="text-sm opacity-60 select-none">{dlcs.length}</span>}
+      </div>
 
       {isLoading ? (
         <Loader />
@@ -85,64 +62,45 @@ const DlcList: React.FC<DlcListProps> = ({ igdbId, onOpenEntry }) => {
         <p className="text-sm opacity-60">No add-ons available.</p>
       ) : (
         // A ceiling, because this list is unbounded: Dave the Diver has a dozen
-        // add-ons, and without one they push the Save button off the bottom of
+        // add-ons, and without one they push the save button off the bottom of
         // the screen. Scrolling inside keeps the card a fixed shape however
         // many IGDB returns.
         <div className="flex max-h-80 w-full flex-col gap-1 overflow-y-auto pr-1">
-          {dlcs?.map((dlc) => {
+          {dlcs.map((dlc) => {
             const row = dlcRow(dlc, entries ?? [])
             const year = dlc.releaseDate?.slice(0, 4)
-            const openable = canOpenAddOn(row.category)
+            const category = row.category as LIST_TYPE | undefined
 
             return (
               <div
                 key={dlc.igdbId}
                 className="hover:bg-secondaryBg flex flex-col gap-2 rounded-md p-1.5 transition-colors sm:flex-row sm:items-center sm:gap-3"
               >
-                {/* The whole left side opens this add-on's own card, where its
-                    rating, review and Remove live. Without that route in, an
-                    add-on hidden from the list would be unreachable — Gears 5:
-                    Hivebusters already carries a rating.
-
-                    Only for something finished or being played: see
-                    canOpenAddOn. A want-to-play card has no rating, no review
-                    and no add-on list of its own, so it opens on nothing. */}
-                <button
-                  type="button"
-                  disabled={!openable}
-                  onClick={() => row.entry && onOpenEntry(row.entry)}
-                  title={openable ? `Open ${dlc.title}` : undefined}
-                  className={cn(
-                    "flex min-w-0 flex-1 items-center gap-3 text-left",
-                    openable ? "hover:text-primary cursor-pointer" : "cursor-default",
-                  )}
-                >
+                <div className="flex min-w-0 flex-1 items-center gap-3">
                   {/* 3:4, matching IGDB cover art, so the thumbnail is not cropped. */}
                   <Image
                     src={dlc.image || placeholderImage}
                     alt={dlc.title}
                     className="pointer-events-none h-11 w-8 shrink-0 rounded object-cover"
                   />
-                  <div className="flex min-w-0 flex-1 flex-col">
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
                     {/* Two lines, not one. Add-on titles repeat their parent's
                         name before saying anything distinguishing — "Dave the
                         Diver: Ichiban's Holiday" — so a single clamped line
                         cuts off the only part worth reading. */}
                     <span className="line-clamp-2 text-sm leading-tight">{dlc.title}</span>
-                    <span className="flex items-center gap-2 text-xs opacity-60">
+                    <span className="flex flex-wrap items-center gap-2 text-xs opacity-60">
                       {year ?? "Unreleased"}
-                      {/* Shown here so the list doubles as a summary of what
-                          you scored, rather than something you learn only by
-                          opening each one. */}
+                      {/* Status, score, and whether it was written about: what
+                          this list gets scanned for, so none of it needs the
+                          dialog opened to be seen. */}
+                      {category && <Badge variant={LIST_TYPE_BADGE[category]}>{LIST_TYPE_LABEL[category]}</Badge>}
                       {row.entry?.rating != null && (
-                        <span className="flex items-center gap-0.5">
-                          <StarIcon className="text-primary h-3 w-3" />
+                        <span className="text-primary flex items-center gap-0.5 font-semibold">
+                          <StarIcon className="h-3 w-3" />
                           {row.entry.rating}
                         </span>
                       )}
-                      {/* The same mark the list cards carry, for the same
-                          reason: whether an entry has been written about is
-                          the thing worth spotting without opening it. */}
                       {row.entry?.review && (
                         <span title="Written review" aria-label="Written review" className="flex items-center">
                           <ChatBubbleBottomCenterTextIcon className="text-primary h-3 w-3" />
@@ -150,36 +108,30 @@ const DlcList: React.FC<DlcListProps> = ({ igdbId, onOpenEntry }) => {
                       )}
                     </span>
                   </div>
-                  {/* The affordance. Without it, a row that silently becomes
-                      clickable reads as plain text. */}
-                  {openable && <ChevronRightIcon className="h-4 w-4 shrink-0 opacity-60" />}
-                </button>
-
-                {/* No `flex` on these: that prop means w-full, which is what
-                    stacked them into three rows apiece. Sized to their labels,
-                    they fit on one line beside the title. */}
-                <div className="flex shrink-0 gap-1">
-                  {Object.values(LIST_TYPE).map((value) => (
-                    <MotionButton
-                      key={value}
-                      size="menu"
-                      // Tighter than `menu` alone. These are three secondary
-                      // controls repeated on every row, so at the default size
-                      // they out-shout the titles they belong to.
-                      className="px-2! py-0.5! text-xs!"
-                      variant={row.category === value ? "active" : "default"}
-                      onClick={() => choose(dlc.igdbId, row.entry, value)}
-                      title={`Move to ${LIST_TYPE_LABEL[value]}`}
-                    >
-                      {DLC_CATEGORY_LABEL[value]}
-                    </MotionButton>
-                  ))}
                 </div>
+
+                {/* One control per row. It replaced three category buttons and
+                    a chevron: the dialog behind it does everything they did,
+                    plus rating, review and removal, and it works the same
+                    whether or not the add-on is already in your list. */}
+                <MotionButton
+                  size="menu"
+                  className="shrink-0 px-2! py-0.5! text-xs!"
+                  onClick={() => setManaging(dlc)}
+                  title={`Manage ${dlc.title}`}
+                >
+                  Manage
+                </MotionButton>
               </div>
             )
           })}
         </div>
       )}
+
+      {/* Nested over the game's card, so closing it returns you here rather
+          than to nothing. The entry is looked up at render rather than
+          captured, so a save is reflected the moment the list refetches. */}
+      <AddOnModal addOn={managing} entry={managing ? dlcRow(managing, entries ?? []).entry : undefined} onClose={() => setManaging(null)} />
     </div>
   )
 }

@@ -8,6 +8,7 @@ import MotionContainer from "../motionContainer/MotionContainer"
 import { motion } from "motion/react"
 import { colors } from "../../utils/colors"
 import GithubIcon from "../../assets/github.svg?react"
+import IgdbLogo from "../../assets/igdb.svg?react"
 import { routes } from "../../helpers/routes"
 import { Link } from "react-router"
 
@@ -64,8 +65,10 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
             works while it is a single line — see the version chip above. */}
         <div className="flex items-baseline gap-2">
           <h1 className={styles.title}>tooManyHours</h1>
-          {/* IGDB asks to be credited where their data is used. */}
-          <span className={styles.attribution}>powered by IGDB</span>
+          {/* IGDB asks to be credited where their data is used. The logo is
+              the credit now; aria-label keeps the words for a screen reader,
+              which the wordmark alone would have lost. */}
+          <IgdbLogo className={styles.attribution} role="img" aria-label="Powered by IGDB" />
         </div>
       </div>
       {authenticated ? <AuthenticatedNavbar /> : <UnauthenticatedNavbar />}

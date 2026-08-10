@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { addGamePayload } from "./payload"
+import { addGamePayload, editEntryPayload } from "./payload"
 import { LIST_TYPE } from "../../../helpers/enums"
 
 const blank = { rating: 0, review: "" }
@@ -42,5 +42,30 @@ describe("addGamePayload", () => {
     const payload = addGamePayload(1942, category, { rating: 8.5, review: "Great" })
 
     expect(payload).toEqual({ igdbId: 1942, category })
+  })
+})
+
+describe("editEntryPayload", () => {
+  it("carries a rating and a review on a finished entry", () => {
+    expect(editEntryPayload(LIST_TYPE.FINISHED, { rating: 8.5, review: "  Great  " })).toEqual({
+      category: "finished",
+      rating: 8.5,
+      review: "Great",
+    })
+  })
+
+  // The opposite rule to the add path, and the reason the two are separate
+  // functions. 0 and "" are the API's clear sentinels; omitting them here, as
+  // adding must, would make a rating impossible to take back once given.
+  it("sends 0 and empty to clear, rather than omitting them", () => {
+    const payload = editEntryPayload(LIST_TYPE.FINISHED, blank)
+
+    expect(payload).toEqual({ category: "finished", rating: 0, review: "" })
+  })
+
+  // The API judges the resulting category, so a rating sent alongside a move
+  // out of finished is rejected with it.
+  it.each([LIST_TYPE.WANT_TO_PLAY, LIST_TYPE.CURRENTLY_PLAYING])("sends category alone for %s", (category) => {
+    expect(editEntryPayload(category, { rating: 8.5, review: "Great" })).toEqual({ category })
   })
 })

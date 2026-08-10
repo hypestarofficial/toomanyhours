@@ -12,20 +12,11 @@ import { toast } from "sonner"
 import Badge from "../../../components/badge/Badge"
 import { useUpdateEntry, useRemoveEntry } from "../../../api/userGames"
 import { gameCardMode, GAME_CARD_MODE } from "./gameCardMode"
-import { parentEntryOf } from "./dlcRows"
 import { LIST_TYPE, LIST_TYPE_LABEL } from "../../../helpers/enums"
-import { useGetMeGames } from "../../../api/generated/user-games/user-games"
-import useAuthStore from "../../../store/useAuthStore"
-import { ArrowLeftIcon } from "@heroicons/react/24/outline"
 
 type GameCardProps = {
   entry: UserGame | null
   onClose: () => void
-  /**
-   * Swaps the open card to an add-on. MyList owns selectedEntry, so this
-   * replaces the modal's subject rather than nesting a second modal inside it.
-   */
-  onOpenEntry: (entry: UserGame) => void
 }
 
 // There is no scale conversion. StarRating renders ten stars with half-steps
@@ -36,7 +27,7 @@ type GameCardProps = {
 // 0 still means unrated in both directions, which matters: it is the API's
 // "clear my rating" sentinel.
 
-const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
+const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
   const { mutateAsync: updateEntry } = useUpdateEntry()
   const { mutateAsync: removeEntry, isPending: removing } = useRemoveEntry()
 
@@ -53,13 +44,6 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
 
   const mode = gameCardMode(entry?.category)
   const showsForm = mode !== GAME_CARD_MODE.PLAY
-
-  // Opening an add-on replaces this modal's subject rather than nesting a
-  // second one, so without a way back, rating three DLCs means reopening the
-  // parent three times. Read from the cached list, so it costs no request.
-  const { jwtToken } = useAuthStore()
-  const { data: entries } = useGetMeGames({ query: { enabled: !!jwtToken } })
-  const parent = parentEntryOf(entry, entries ?? [])
 
   const { control, handleSubmit, reset } = useForm<RatingFormValues>({
     // No mode: "onChange". It existed only to keep isValid live for a button
@@ -90,22 +74,6 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
     onClose()
   }
 
-  // What a completed action does. On an add-on that means going back to the
-  // game it belongs to rather than closing everything: you opened it from
-  // there, and the next thing you want is usually the next add-on. Closing
-  // outright made rating three DLCs mean reopening the parent three times.
-  //
-  // Removal returns too — the entry is gone, and the parent's list is where
-  // you would look to confirm it.
-  const finish = () => {
-    if (parent) {
-      setConfirmingGameId(null)
-      onOpenEntry(parent)
-      return
-    }
-    close()
-  }
-
   // Play! is a category-only PATCH — the same request dragging sends, which the
   // API's rating rule already permits.
   const onPlay = async () => {
@@ -114,7 +82,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
     try {
       await updateEntry({ gameId: entry.gameId, data: { category: LIST_TYPE.CURRENTLY_PLAYING } })
       toast.success(`${entry.game?.title ?? "Game"} → ${LIST_TYPE_LABEL[LIST_TYPE.CURRENTLY_PLAYING]}`)
-      finish()
+      close()
     } catch (error: unknown) {
       handleError({ error, userMessage: "Could not start that game", componentName: "GameCard" })
     }
@@ -126,7 +94,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
     try {
       await removeEntry({ gameId: entry.gameId })
       toast.success(`${entry.game?.title ?? "Game"} removed from your list`)
-      finish()
+      close()
     } catch (error: unknown) {
       // Disarm on failure, so a failed attempt does not leave a primed
       // destructive control behind.
@@ -154,7 +122,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
         },
       })
       toast.success(finishing ? `${entry.game?.title ?? "Game"} → ${LIST_TYPE_LABEL[LIST_TYPE.FINISHED]}` : "Saved")
-      finish()
+      close()
     } catch (error: unknown) {
       handleError({ error, userMessage: "An error occurred while rating and reviewing the game", componentName: "GameCard" })
     }
@@ -193,20 +161,6 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
           {/* min-w-0 so a long add-on title truncates instead of widening the
               column past the modal. */}
           <div className="flex min-w-0 flex-1 flex-col gap-5">
-            {/* Only on an add-on whose parent you have. It turns opening a DLC
-                from a dead end into a loop: rate it, go back, rate the next. */}
-            {parent && (
-              <MotionButton
-                variant="text"
-                size="menu"
-                className="self-start px-0!"
-                icon={<ArrowLeftIcon className="h-4 w-4" />}
-                onClick={() => onOpenEntry(parent)}
-              >
-                <span className="line-clamp-1">Back to {parent.game?.title}</span>
-              </MotionButton>
-            )}
-
             {/* PLAY mode shows neither field, even when the row holds a rating
                 from a previous stint in finished. */}
             {showsForm && <RatingFields control={control} />}
@@ -214,9 +168,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose, onOpenEntry }) => {
             {/* Only for a game that could have add-ons. An add-on's own card
                 does not list further add-ons — IGDB does not nest them, and a
                 DLC of a DLC is not a thing. */}
-            {entry?.game && entry.game.kind !== "dlc" && entry.game.kind !== "expansion" && (
-              <DlcList igdbId={entry.game.igdbId} onOpenEntry={onOpenEntry} />
-            )}
+            {entry?.game && entry.game.kind !== "dlc" && entry.game.kind !== "expansion" && <DlcList igdbId={entry.game.igdbId} />}
           </div>
         </div>
 

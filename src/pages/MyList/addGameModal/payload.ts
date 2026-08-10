@@ -1,4 +1,4 @@
-import type { AddUserGameRequest } from "../../../api/generated/models"
+import type { AddUserGameRequest, UpdateUserGameRequest } from "../../../api/generated/models"
 import type { RatingFormValues } from "../RatingFields"
 import { LIST_TYPE } from "../../../helpers/enums"
 
@@ -28,5 +28,29 @@ export const addGamePayload = (igdbId: number, category: LIST_TYPE, fields: Rati
     category,
     ...(scored && fields.rating > 0 ? { rating: fields.rating } : {}),
     ...(scored && fields.review.trim() ? { review: fields.review.trim() } : {}),
+  }
+}
+
+/**
+ * The body for PATCH /me/games/{gameId} when editing an entry you already have.
+ *
+ * The mirror image of addGamePayload, and deliberately not the same rules:
+ *
+ * - **0 and "" are sent here, not omitted.** They are the API's clear
+ *   sentinels, and they are the only way to take back a rating or a review.
+ *   Omitting them, as the add path must, would make a score impossible to
+ *   remove once given.
+ * - **Neither field survives a non-finished category**, exactly as on the add
+ *   path. The API judges the *resulting* category, so moving a finished game
+ *   to want-to-play in the same request means the rating is rejected with it.
+ *   The stored rating stays on the row regardless — category is a column, so a
+ *   move keeps it — this only governs what the request may carry.
+ */
+export const editEntryPayload = (category: LIST_TYPE, fields: RatingFormValues): UpdateUserGameRequest => {
+  const scored = category === LIST_TYPE.FINISHED
+
+  return {
+    category,
+    ...(scored ? { rating: fields.rating, review: fields.review.trim() } : {}),
   }
 }
