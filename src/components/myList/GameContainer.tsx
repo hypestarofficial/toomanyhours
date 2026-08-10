@@ -1,10 +1,12 @@
 import { motion } from "motion/react"
 import type { Variants } from "motion/react"
 import { Image } from "@heroui/image"
-import { ChatBubbleBottomCenterTextIcon, StarIcon } from "@heroicons/react/24/solid"
+import { ChatBubbleBottomCenterTextIcon, PuzzlePieceIcon, StarIcon } from "@heroicons/react/24/solid"
 import { useDraggable } from "@dnd-kit/core"
 import { cn } from "../../utils/cn"
 import Badge from "../badge/Badge"
+import MotionTooltip from "../motionTooltip/MotionTooltip"
+import { addOnSummary } from "./addOnSummary"
 import placeholderImage from "../../assets/images/placeholder.webp"
 // One import covers both uses: LIST_LAYOUT is declared as a const *and* a type
 // of the same name.
@@ -38,6 +40,12 @@ type GameContainerProps = {
    * anything.
    */
   hasReview?: boolean
+  /**
+   * Titles of the add-ons you have for this game. Titles rather than entries,
+   * so the card stays presentational — it renders these and knows nothing
+   * about what a list entry is.
+   */
+  addOnTitles?: string[]
 }
 
 // Cards past this index all arrive together, 0.6s in.
@@ -70,7 +78,19 @@ const containerVariants: Variants = {
   },
 }
 
-const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onClick, drag, overlay, layout, rating, hasReview }) => {
+const GameContainer: React.FC<GameContainerProps> = ({
+  title,
+  image,
+  index,
+  onClick,
+  drag,
+  overlay,
+  layout,
+  rating,
+  hasReview,
+  addOnTitles,
+}) => {
+  const addOns = addOnSummary(addOnTitles ?? [])
   // Hooks cannot be conditional, so this always runs and is disabled when the
   // caller passes no drag payload. The fallback id is never used for a real
   // drop; it only keeps the id stable and unique among non-draggable cards.
@@ -125,13 +145,46 @@ const GameContainer: React.FC<GameContainerProps> = ({ title, image, index, onCl
             alt={title}
             className="pointer-events-none z-0 aspect-3/4 w-full rounded-md object-cover"
           />
+          {/* Bottom right, not top. Over the cover's top edge it sat among the
+              artwork's own busiest corner and went unnoticed; the lower corner
+              is quieter and closer to the title the eye lands on next. */}
           {hasReview && (
-            <span
-              title="Written review"
-              className="bg-bg/80 absolute top-1.5 right-1.5 z-10 rounded-md p-1 backdrop-blur-sm"
-              aria-label="Written review"
-            >
-              <ChatBubbleBottomCenterTextIcon className="text-primary h-3.5 w-3.5" />
+            <span className="absolute right-2 bottom-2 z-10">
+              <MotionTooltip content="Written review">
+                <span className="bg-bg/80 flex rounded-lg p-1.5 shadow-md backdrop-blur-sm" aria-label="Written review">
+                  <ChatBubbleBottomCenterTextIcon className="text-primary h-5 w-5" />
+                </span>
+              </MotionTooltip>
+            </span>
+          )}
+
+          {/* Opposite corner from the review mark, so a game with both reads as
+              two facts rather than one cluster. */}
+          {addOnTitles && addOnTitles.length > 0 && (
+            <span className="absolute bottom-2 left-2 z-10">
+              <MotionTooltip
+                className="max-w-64"
+                content={
+                  <span className="flex flex-col gap-0.5 text-left">
+                    {addOns.titles.map((addOnTitle) => (
+                      <span key={addOnTitle} className="truncate">
+                        {addOnTitle}
+                      </span>
+                    ))}
+                    {/* Counted, not dropped: the tooltip stops naming them but
+                        never under-reports how many you have. */}
+                    {addOns.remaining > 0 && <span className="opacity-60">+{addOns.remaining} more…</span>}
+                  </span>
+                }
+              >
+                <span
+                  className="bg-bg/80 text-primary flex items-center gap-1 rounded-lg px-1.5 py-1 shadow-md backdrop-blur-sm"
+                  aria-label={`${addOnTitles.length} add-ons in your list`}
+                >
+                  <PuzzlePieceIcon className="h-5 w-5" />
+                  <span className="text-xs font-semibold">{addOnTitles.length}</span>
+                </span>
+              </MotionTooltip>
             </span>
           )}
         </div>

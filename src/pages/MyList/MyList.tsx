@@ -187,6 +187,7 @@ const MyList: React.FC = () => {
             title={sectionTitle("finished", LIST_TYPE.FINISHED)}
             category={LIST_TYPE.FINISHED}
             entries={byCategory(LIST_TYPE.FINISHED)}
+            allEntries={entries}
             onSelectItem={setSelectedEntry}
             open={defaultListConfig.finished}
             onOpenChange={(next) => setDefaultListConfig({ ...defaultListConfig, finished: next })}
@@ -197,6 +198,7 @@ const MyList: React.FC = () => {
             title={sectionTitle("currently playing", LIST_TYPE.CURRENTLY_PLAYING)}
             category={LIST_TYPE.CURRENTLY_PLAYING}
             entries={byCategory(LIST_TYPE.CURRENTLY_PLAYING)}
+            allEntries={entries}
             onSelectItem={setSelectedEntry}
             open={defaultListConfig.currentlyPlaying}
             onOpenChange={(next) => setDefaultListConfig({ ...defaultListConfig, currentlyPlaying: next })}
@@ -207,6 +209,7 @@ const MyList: React.FC = () => {
             title={sectionTitle("want to play", LIST_TYPE.WANT_TO_PLAY)}
             category={LIST_TYPE.WANT_TO_PLAY}
             entries={byCategory(LIST_TYPE.WANT_TO_PLAY)}
+            allEntries={entries}
             onSelectItem={setSelectedEntry}
             open={defaultListConfig.wantToPlay}
             onOpenChange={(next) => setDefaultListConfig({ ...defaultListConfig, wantToPlay: next })}

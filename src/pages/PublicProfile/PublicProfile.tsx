@@ -55,6 +55,7 @@ const PublicProfile: React.FC = () => {
           title="finished"
           category={LIST_TYPE.FINISHED}
           entries={byCategory(LIST_TYPE.FINISHED)}
+          allEntries={profile.entries}
           onSelectItem={setSelectedEntry}
           open={open.finished}
           onOpenChange={(next) => setOpen({ ...open, finished: next })}
@@ -65,6 +66,7 @@ const PublicProfile: React.FC = () => {
           title="currently playing"
           category={LIST_TYPE.CURRENTLY_PLAYING}
           entries={byCategory(LIST_TYPE.CURRENTLY_PLAYING)}
+          allEntries={profile.entries}
           onSelectItem={setSelectedEntry}
           open={open.currentlyPlaying}
           onOpenChange={(next) => setOpen({ ...open, currentlyPlaying: next })}
@@ -75,6 +77,7 @@ const PublicProfile: React.FC = () => {
           title="want to play"
           category={LIST_TYPE.WANT_TO_PLAY}
           entries={byCategory(LIST_TYPE.WANT_TO_PLAY)}
+          allEntries={profile.entries}
           onSelectItem={setSelectedEntry}
           open={open.wantToPlay}
           onOpenChange={(next) => setOpen({ ...open, wantToPlay: next })}

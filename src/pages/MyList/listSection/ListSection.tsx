@@ -6,6 +6,7 @@ import type { UserGame } from "../../../api/generated/models"
 import type { LIST_TYPE } from "../../../helpers/enums"
 import { LIST_LAYOUT } from "../../../store/useUserSettingsAuth"
 import { cn } from "../../../utils/cn"
+import { addOnsOf } from "../gameCard/dlcRows"
 import styles from "./ListSection.module.css"
 
 type ListSectionProps = {
@@ -16,6 +17,12 @@ type ListSectionProps = {
   layout: LIST_LAYOUT
   isFiltering?: boolean
   entries?: UserGame[]
+  /**
+   * Every entry in the list, not just this section's. A game's add-ons can sit
+   * in any category — a DLC you want to play under a game you finished — so
+   * the section it belongs to cannot answer what a card owns.
+   */
+  allEntries?: UserGame[]
   onSelectItem: (entry: UserGame) => void
   isLoading?: boolean
   // Someone else's list: no dropping, no dragging. Clicking still opens a
@@ -23,10 +30,18 @@ type ListSectionProps = {
   readOnly?: boolean
 }
 
+// Titles rather than entries, because GameContainer is presentational and
+// should not learn what a list entry is to render a tooltip.
+const addOnTitlesFor = (entry: UserGame, allEntries: UserGame[]): string[] =>
+  addOnsOf(entry, allEntries)
+    .map((addOn) => addOn.game?.title)
+    .filter((title): title is string => !!title)
+
 const ListSection: React.FC<ListSectionProps> = ({
   title,
   category,
   entries,
+  allEntries,
   onSelectItem,
   open,
   onOpenChange,
@@ -59,6 +74,7 @@ const ListSection: React.FC<ListSectionProps> = ({
                 // The API trims a blank review to null, so "has one" is a
                 // plain truthiness check rather than a length test.
                 hasReview={!!entry.review}
+                addOnTitles={addOnTitlesFor(entry, allEntries ?? [])}
                 layout={layout}
                 index={index}
                 onClick={() => onSelectItem(entry)}
