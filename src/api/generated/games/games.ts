@@ -9,7 +9,7 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.3.0
+ * OpenAPI spec version: 0.4.0
  */
 import { useQuery } from "@tanstack/react-query"
 import type {
@@ -123,6 +123,109 @@ export function useSearchGames<
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getSearchGamesQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * Straight from IGDB, filtered to DLC and Expansion — packs, mods and updates are excluded, as they are in search. Nothing is imported into the catalog by this call; an add-on becomes a catalog row only when somebody adds it to their list.
+ * @summary A game's DLC and expansions
+ */
+export const getGameDlcs = (igdbId: number, options?: SecondParameter<typeof customFetch>, signal?: AbortSignal) => {
+  return customFetch<IGDBGame[]>({ url: `/games/${igdbId}/dlcs`, method: "GET", signal }, options)
+}
+
+export const getGetGameDlcsQueryKey = (igdbId?: number) => {
+  return [`/games/${igdbId}/dlcs`] as const
+}
+
+export const getGetGameDlcsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getGameDlcs>>,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
+>(
+  igdbId: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGameDlcs>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetGameDlcsQueryKey(igdbId)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getGameDlcs>>> = ({ signal }) => getGameDlcs(igdbId, requestOptions, signal)
+
+  return { queryKey, queryFn, enabled: !!igdbId, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getGameDlcs>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetGameDlcsQueryResult = NonNullable<Awaited<ReturnType<typeof getGameDlcs>>>
+export type GetGameDlcsQueryError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse
+
+export function useGetGameDlcs<
+  TData = Awaited<ReturnType<typeof getGameDlcs>>,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
+>(
+  igdbId: number,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGameDlcs>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<Awaited<ReturnType<typeof getGameDlcs>>, TError, Awaited<ReturnType<typeof getGameDlcs>>>,
+        "initialData"
+      >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetGameDlcs<
+  TData = Awaited<ReturnType<typeof getGameDlcs>>,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
+>(
+  igdbId: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGameDlcs>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<Awaited<ReturnType<typeof getGameDlcs>>, TError, Awaited<ReturnType<typeof getGameDlcs>>>,
+        "initialData"
+      >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetGameDlcs<
+  TData = Awaited<ReturnType<typeof getGameDlcs>>,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
+>(
+  igdbId: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGameDlcs>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A game's DLC and expansions
+ */
+
+export function useGetGameDlcs<
+  TData = Awaited<ReturnType<typeof getGameDlcs>>,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse | ErrorResponse,
+>(
+  igdbId: number,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getGameDlcs>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetGameDlcsQueryOptions(igdbId, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 

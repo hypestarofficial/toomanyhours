@@ -9,7 +9,7 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.3.0
+ * OpenAPI spec version: 0.4.0
  */
 import type { IGDBTag } from "./iGDBTag"
 
@@ -21,6 +21,11 @@ export interface IGDBGame {
   title: string
   /** IGDB's release type — main_game, dlc, expansion, bundle, remaster, expanded_game and so on, or unknown. Deliberately not called category, which in this API means finished/currently_playing/ want_to_play. */
   kind: string
+  /**
+   * IGDB's id for the game this is an add-on of, or null.
+   * @nullable
+   */
+  parentIgdbId?: number | null
   /**
    * Cover URL, or null when IGDB has no cover for the game.
    * @nullable

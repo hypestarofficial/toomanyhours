@@ -9,7 +9,7 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.3.0
+ * OpenAPI spec version: 0.4.0
  */
 import type { Tag } from "./tag"
 
@@ -23,6 +23,11 @@ export interface Game {
   image: string
   /** IGDB's release type — main_game, dlc, expansion, bundle, remaster, expanded_game and so on, or unknown. Deliberately not called category, which in this API means finished/currently_playing/ want_to_play. */
   kind: string
+  /**
+   * IGDB's id for the game this one is an add-on of, or null. Set on remasters and expanded games as well as DLC — Skyrim Special Edition points at Skyrim — so it must never on its own be taken to mean "this is an add-on". Only kind dlc and expansion are treated that way.
+   * @nullable
+   */
+  parentIgdbId?: number | null
   releaseDate: string
   /** Always present; empty when the game has none. */
   genres: Tag[]
