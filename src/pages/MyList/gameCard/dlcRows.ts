@@ -1,5 +1,6 @@
 import type { IGDBGame, UserGame } from "../../../api/generated/models"
 import { ADD_ON_KINDS } from "../visibleEntries"
+import { LIST_TYPE } from "../../../helpers/enums"
 
 export type DlcRow = {
   igdbId: number
@@ -23,6 +24,21 @@ export const dlcRow = (game: IGDBGame, entries: UserGame[]): DlcRow => {
 
   return { igdbId: game.igdbId, entry, category: entry?.category }
 }
+
+/**
+ * Whether a row should open the add-on's own card.
+ *
+ * Only for something you have played or are playing. A want-to-play card shows
+ * no rating and no review — `gameCardMode` puts those two categories in EDIT
+ * and FINISH and leaves PLAY with neither — and an add-on has no add-on list of
+ * its own either, so opening one lands you on an empty screen. The three
+ * category buttons already do everything that card could offer.
+ *
+ * A row you do not own is not openable for the plainer reason that there is no
+ * entry to open.
+ */
+export const canOpenAddOn = (category: string | undefined): boolean =>
+  category === LIST_TYPE.FINISHED || category === LIST_TYPE.CURRENTLY_PLAYING
 
 /**
  * The list entry for the game this add-on belongs to, when you have it.

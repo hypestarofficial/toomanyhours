@@ -11,7 +11,7 @@ import { useAddGame, useUpdateEntry } from "../../../api/userGames"
 import useAuthStore from "../../../store/useAuthStore"
 import { handleError } from "../../../utils/errors"
 import { cn } from "../../../utils/cn"
-import { dlcRow } from "./dlcRows"
+import { canOpenAddOn, dlcRow } from "./dlcRows"
 import type { UserGame } from "../../../api/generated/models"
 
 // Shorter than LIST_TYPE_LABEL, and only here. Three buttons share one line
@@ -94,7 +94,7 @@ const DlcList: React.FC<DlcListProps> = ({ igdbId, onOpenEntry }) => {
           {dlcs?.map((dlc) => {
             const row = dlcRow(dlc, entries ?? [])
             const year = dlc.releaseDate?.slice(0, 4)
-            const owned = !!row.entry
+            const openable = canOpenAddOn(row.category)
 
             return (
               <div
@@ -104,16 +104,19 @@ const DlcList: React.FC<DlcListProps> = ({ igdbId, onOpenEntry }) => {
                 {/* The whole left side opens this add-on's own card, where its
                     rating, review and Remove live. Without that route in, an
                     add-on hidden from the list would be unreachable — Gears 5:
-                    Hivebusters already carries a rating. Disabled until you own
-                    it, because there is no entry to open before then. */}
+                    Hivebusters already carries a rating.
+
+                    Only for something finished or being played: see
+                    canOpenAddOn. A want-to-play card has no rating, no review
+                    and no add-on list of its own, so it opens on nothing. */}
                 <button
                   type="button"
-                  disabled={!owned}
+                  disabled={!openable}
                   onClick={() => row.entry && onOpenEntry(row.entry)}
-                  title={owned ? `Open ${dlc.title}` : undefined}
+                  title={openable ? `Open ${dlc.title}` : undefined}
                   className={cn(
                     "flex min-w-0 flex-1 items-center gap-3 text-left",
-                    owned ? "hover:text-primary cursor-pointer" : "cursor-default",
+                    openable ? "hover:text-primary cursor-pointer" : "cursor-default",
                   )}
                 >
                   {/* 3:4, matching IGDB cover art, so the thumbnail is not cropped. */}
@@ -142,8 +145,8 @@ const DlcList: React.FC<DlcListProps> = ({ igdbId, onOpenEntry }) => {
                     </span>
                   </div>
                   {/* The affordance. Without it, a row that silently becomes
-                      clickable once owned reads as plain text. */}
-                  {owned && <ChevronRightIcon className="h-4 w-4 shrink-0 opacity-60" />}
+                      clickable reads as plain text. */}
+                  {openable && <ChevronRightIcon className="h-4 w-4 shrink-0 opacity-60" />}
                 </button>
 
                 {/* No `flex` on these: that prop means w-full, which is what

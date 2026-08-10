@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { dlcRow, parentEntryOf } from "./dlcRows"
+import { canOpenAddOn, dlcRow, parentEntryOf } from "./dlcRows"
 import type { IGDBGame, UserGame } from "../../../api/generated/models"
 
 const igdbGame = (igdbId: number): IGDBGame => ({ igdbId, title: `Game ${igdbId}`, kind: "dlc" }) as unknown as IGDBGame
@@ -33,6 +33,26 @@ describe("dlcRow", () => {
     const broken = { id: 9, gameId: 9, category: "finished" } as unknown as UserGame
 
     expect(dlcRow(igdbGame(396087), [broken]).entry).toBeUndefined()
+  })
+})
+
+describe("canOpenAddOn", () => {
+  it("opens something you finished", () => {
+    expect(canOpenAddOn("finished")).toBe(true)
+  })
+
+  it("opens something you are playing", () => {
+    expect(canOpenAddOn("currently_playing")).toBe(true)
+  })
+
+  // The card would be empty: PLAY mode shows no rating and no review, and an
+  // add-on has no add-on list of its own to fill the space either.
+  it("does not open a want-to-play add-on", () => {
+    expect(canOpenAddOn("want_to_play")).toBe(false)
+  })
+
+  it("does not open one you do not have", () => {
+    expect(canOpenAddOn(undefined)).toBe(false)
   })
 })
 
