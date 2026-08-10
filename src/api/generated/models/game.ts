@@ -9,7 +9,7 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.4.0
+ * OpenAPI spec version: 0.5.0
  */
 import type { Tag } from "./tag"
 
@@ -28,6 +28,8 @@ export interface Game {
    * @nullable
    */
   parentIgdbId?: number | null
+  /** IGDB's short description, or "" when IGDB has none. Shown on the detail cards so somebody meeting the game cold can tell what it is. */
+  summary?: string
   releaseDate: string
   /** Always present; empty when the game has none. */
   genres: Tag[]
