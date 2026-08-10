@@ -6,6 +6,7 @@ import placeholderImage from "../../assets/images/placeholder.webp"
 import type { UserGame } from "../../api/generated/models"
 import { LIST_TYPE_BADGE, LIST_TYPE_LABEL } from "../../helpers/enums"
 import { addOnsOf } from "../MyList/gameCard/dlcRows"
+import GameSummary from "../../components/gameSummary/GameSummary"
 
 type ProfileGameCardProps = {
   entry: UserGame | null
@@ -63,6 +64,10 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
                   different kind of fact and now looks like one. */}
               {entry?.category && <Badge variant={LIST_TYPE_BADGE[entry.category]}>{LIST_TYPE_LABEL[entry.category]}</Badge>}
             </div>
+
+            {/* The reason this feature exists: a visitor is the person most
+                likely not to know the game. */}
+            <GameSummary summary={entry?.game?.summary} />
 
             {entry?.rating != null && (
               <span className="text-primary flex items-center gap-1 text-sm font-semibold">

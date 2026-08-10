@@ -5,6 +5,7 @@ import { Image } from "@heroui/image"
 import MotionButton from "../../../components/motionButton/MotionButton"
 import { Form, useForm } from "react-hook-form"
 import DlcList from "./DlcList"
+import GameSummary from "../../../components/gameSummary/GameSummary"
 import RatingFields from "../RatingFields"
 import type { RatingFormValues } from "../RatingFields"
 import { handleError } from "../../../utils/errors"
@@ -161,6 +162,10 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
           {/* min-w-0 so a long add-on title truncates instead of widening the
               column past the modal. */}
           <div className="flex min-w-0 flex-1 flex-col gap-5">
+            {/* First in the column: a description is what you read before
+                deciding anything else on this card. */}
+            <GameSummary summary={entry?.game?.summary} />
+
             {/* PLAY mode shows neither field, even when the row holds a rating
                 from a previous stint in finished. */}
             {showsForm && <RatingFields control={control} />}
