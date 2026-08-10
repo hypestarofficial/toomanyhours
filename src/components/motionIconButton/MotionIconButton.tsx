@@ -9,9 +9,14 @@ type MotionIconButtonProps = {
   disabled?: boolean
   ref?: RefObject<HTMLButtonElement | null>
   icon: React.ReactNode
+  /**
+   * Required in practice: an icon-only button has no text for a screen reader
+   * to announce. Same reasoning as MotionButton's.
+   */
+  ariaLabel?: string
 }
 
-const MotionIconButton: React.FC<MotionIconButtonProps> = ({ onClick, className, disabled = false, ref, icon }) => (
+const MotionIconButton: React.FC<MotionIconButtonProps> = ({ onClick, className, disabled = false, ref, icon, ariaLabel }) => (
   <motion.button
     {...motionIconButtonConfig[disabled ? "disabled" : "default"]}
     whileTap={{
@@ -30,6 +35,7 @@ const MotionIconButton: React.FC<MotionIconButtonProps> = ({ onClick, className,
     onClick={onClick}
     ref={ref}
     disabled={disabled}
+    aria-label={ariaLabel}
   >
     <span className="flex h-6 w-6 items-center justify-center">{icon}</span>
   </motion.button>
