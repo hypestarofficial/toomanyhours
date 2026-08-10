@@ -1,48 +1,41 @@
-import { useState } from "react"
-import { cn } from "../../utils/cn"
-
-/**
- * Longer than this and the paragraph gets a toggle.
- *
- * A character count rather than a measurement: knowing whether three clamped
- * lines actually elided anything needs the rendered height, and a ref plus a
- * resize observer is a great deal of machinery to decide whether to draw one
- * small button. Roughly three lines at this width, and being wrong shows a
- * toggle that expands to the same text — harmless.
- */
-const CLAMP_CHARS = 180
-
 type GameSummaryProps = {
   summary?: string
 }
 
 /**
- * IGDB's description of a game, short.
+ * IGDB's description of a game, in a box of fixed height.
  *
  * Its job is orientation, not documentation: it answers "what even is this
  * game?" for a visitor reading somebody else's list, or for an owner looking
- * at something they added months ago. That is why it clamps — an unclamped
- * summary runs several paragraphs and pushes everything else below the fold,
- * which helps nobody.
+ * at something they added months ago.
  *
- * A game with no summary renders nothing at all. An absent paragraph is not a
- * fact anybody needs told.
+ * A capped, scrolling box rather than a clamp with a Show more toggle. The
+ * toggle had to guess whether the text was long enough to need one — knowing
+ * whether a clamp actually elided anything needs the rendered height, so it
+ * keyed off a character count and was sometimes wrong. Scrolling needs no such
+ * guess, keeps the card exactly one height whatever IGDB returns, and leaves
+ * this component with no state at all.
+ *
+ * Deliberately shaped like the review field beneath it — label, then a
+ * secondaryBg box with the same radius and padding. The two sit adjacent and
+ * hold the same kind of thing, one written by IGDB and one by you, so looking
+ * alike is the honest rendering.
+ *
+ * A game with no summary renders nothing at all, label included. An absent
+ * paragraph is not a fact anybody needs told.
  */
 const GameSummary: React.FC<GameSummaryProps> = ({ summary }) => {
-  const [expanded, setExpanded] = useState(false)
-
   if (!summary) return null
 
   return (
     <div className="flex w-full flex-col gap-1">
-      {/* whitespace-pre-wrap keeps IGDB's paragraph breaks; several summaries
+      <span className="select-none">About</span>
+      {/* pr-1 on the inner text keeps the scrollbar off the words.
+          whitespace-pre-wrap keeps IGDB's paragraph breaks; several summaries
           have them and they collapse into one block without it. */}
-      <p className={cn("text-sm whitespace-pre-wrap opacity-80", !expanded && "line-clamp-3")}>{summary}</p>
-      {summary.length > CLAMP_CHARS && (
-        <button type="button" onClick={() => setExpanded(!expanded)} className="text-primary self-start text-xs font-semibold">
-          {expanded ? "Show less" : "Show more"}
-        </button>
-      )}
+      <div className="bg-secondaryBg max-h-32 w-full overflow-y-auto rounded-md px-2 py-1">
+        <p className="pr-1 text-sm whitespace-pre-wrap">{summary}</p>
+      </div>
     </div>
   )
 }
