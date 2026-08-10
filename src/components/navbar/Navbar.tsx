@@ -67,9 +67,28 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
           <h1 className={styles.title}>tooManyHours</h1>
           {/* IGDB asks to be credited where their data is used. "powered by"
               stays as text and only the name became the logo, so the credit
-              still reads as a sentence. */}
+              still reads as a sentence — and only the logo is the link, for
+              the same reason: a credit that reads as a sentence should not
+              have the whole sentence underlined.
+
+              The accessible name sits on the anchor rather than the svg: a
+              link needs its own name, and leaving one on both announces
+              "IGDB" twice. */}
           <span className={styles.attribution}>
-            powered by <IgdbLogo className={styles.igdbLogo} role="img" aria-label="IGDB" />
+            powered by
+            <motion.a
+              initial={{ color: colors.text }}
+              whileHover={{ color: colors.primary }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              href="https://www.igdb.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="IGDB"
+              className="inline-flex"
+            >
+              <IgdbLogo className={styles.igdbLogo} aria-hidden="true" />
+            </motion.a>
           </span>
         </div>
       </div>
