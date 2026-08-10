@@ -28,6 +28,14 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.0.0",
+    date: "2026-08-10",
+    changes: [
+      "DLC and expansions now live on their game's card instead of filling up your list.",
+      "Add or move a game's DLC without leaving that game.",
+    ],
+  },
+  {
     version: "0.9.0",
     date: "2026-08-10",
     changes: ["Add a game in two steps, and rate and review it as you add it.", "Rating a game is no longer required."],
