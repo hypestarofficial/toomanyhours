@@ -2,6 +2,7 @@ import { useDroppable } from "@dnd-kit/core"
 import Empty from "../../../components/empty/Empty"
 import MotionCollapse from "../../../components/motionCollapse/MotionCollapse"
 import GameContainer from "../../../components/myList/GameContainer"
+import type { AddOnMark } from "../../../components/myList/GameContainer"
 import type { UserGame } from "../../../api/generated/models"
 import type { LIST_TYPE } from "../../../helpers/enums"
 import { LIST_LAYOUT } from "../../../store/useUserSettingsAuth"
@@ -30,12 +31,13 @@ type ListSectionProps = {
   readOnly?: boolean
 }
 
-// Titles rather than entries, because GameContainer is presentational and
-// should not learn what a list entry is to render a tooltip.
-const addOnTitlesFor = (entry: UserGame, allEntries: UserGame[]): string[] =>
+// Plain title-and-status pairs rather than entries, because GameContainer is
+// presentational and should not learn what a list entry is to render a
+// tooltip. Anything without a title is dropped: it could only render blank.
+const addOnMarksFor = (entry: UserGame, allEntries: UserGame[]): AddOnMark[] =>
   addOnsOf(entry, allEntries)
-    .map((addOn) => addOn.game?.title)
-    .filter((title): title is string => !!title)
+    .filter((addOn) => !!addOn.game?.title)
+    .map((addOn) => ({ title: addOn.game!.title, category: addOn.category as LIST_TYPE }))
 
 const ListSection: React.FC<ListSectionProps> = ({
   title,
@@ -74,7 +76,7 @@ const ListSection: React.FC<ListSectionProps> = ({
                 // The API trims a blank review to null, so "has one" is a
                 // plain truthiness check rather than a length test.
                 hasReview={!!entry.review}
-                addOnTitles={addOnTitlesFor(entry, allEntries ?? [])}
+                addOns={addOnMarksFor(entry, allEntries ?? [])}
                 layout={layout}
                 index={index}
                 onClick={() => onSelectItem(entry)}

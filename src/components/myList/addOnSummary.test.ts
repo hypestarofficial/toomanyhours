@@ -5,7 +5,7 @@ const titles = (n: number) => Array.from({ length: n }, (_, i) => `Add-on ${i + 
 
 describe("addOnSummary", () => {
   it("names everything when it fits", () => {
-    expect(addOnSummary(titles(3))).toEqual({ titles: ["Add-on 1", "Add-on 2", "Add-on 3"], remaining: 0 })
+    expect(addOnSummary(titles(3))).toEqual({ shown: ["Add-on 1", "Add-on 2", "Add-on 3"], remaining: 0 })
   })
 
   // The boundary, which is the only thing here worth getting wrong. Exactly at
@@ -13,14 +13,14 @@ describe("addOnSummary", () => {
   it("names all of them at exactly the cap", () => {
     const summary = addOnSummary(titles(ADD_ON_TOOLTIP_MAX))
 
-    expect(summary.titles).toHaveLength(ADD_ON_TOOLTIP_MAX)
+    expect(summary.shown).toHaveLength(ADD_ON_TOOLTIP_MAX)
     expect(summary.remaining).toBe(0)
   })
 
   it("counts the overflow one past the cap", () => {
     const summary = addOnSummary(titles(ADD_ON_TOOLTIP_MAX + 1))
 
-    expect(summary.titles).toHaveLength(ADD_ON_TOOLTIP_MAX)
+    expect(summary.shown).toHaveLength(ADD_ON_TOOLTIP_MAX)
     expect(summary.remaining).toBe(1)
   })
 
@@ -29,6 +29,6 @@ describe("addOnSummary", () => {
   })
 
   it("handles none at all", () => {
-    expect(addOnSummary([])).toEqual({ titles: [], remaining: 0 })
+    expect(addOnSummary([])).toEqual({ shown: [], remaining: 0 })
   })
 })

@@ -1,9 +1,9 @@
 /** How many add-ons a tooltip lists before it stops naming them. */
 export const ADD_ON_TOOLTIP_MAX = 10
 
-export type AddOnSummary = {
-  /** The titles to print, at most ADD_ON_TOOLTIP_MAX of them. */
-  titles: string[]
+export type AddOnSummary<T> = {
+  /** The ones to print, at most ADD_ON_TOOLTIP_MAX of them. */
+  shown: T[]
   /** How many were left unnamed. 0 when everything fit. */
   remaining: number
 }
@@ -19,7 +19,7 @@ export type AddOnSummary = {
  * Pure because the boundary is the only rule here, and an off-by-one at the
  * cap is invisible until exactly eleven of something exists.
  */
-export const addOnSummary = (titles: string[], max: number = ADD_ON_TOOLTIP_MAX): AddOnSummary => ({
-  titles: titles.slice(0, max),
-  remaining: Math.max(0, titles.length - max),
+export const addOnSummary = <T>(items: T[], max: number = ADD_ON_TOOLTIP_MAX): AddOnSummary<T> => ({
+  shown: items.slice(0, max),
+  remaining: Math.max(0, items.length - max),
 })

@@ -5,6 +5,7 @@ import { ChatBubbleBottomCenterTextIcon, PuzzlePieceIcon, StarIcon } from "@hero
 import { useDraggable } from "@dnd-kit/core"
 import { cn } from "../../utils/cn"
 import Badge from "../badge/Badge"
+import { LIST_TYPE, LIST_TYPE_BADGE, LIST_TYPE_LABEL } from "../../helpers/enums"
 import MotionTooltip from "../motionTooltip/MotionTooltip"
 import { addOnSummary } from "./addOnSummary"
 import placeholderImage from "../../assets/images/placeholder.webp"
@@ -41,12 +42,31 @@ type GameContainerProps = {
    */
   hasReview?: boolean
   /**
-   * Titles of the add-ons you have for this game. Titles rather than entries,
-   * so the card stays presentational — it renders these and knows nothing
-   * about what a list entry is.
+   * The add-ons you have for this game, as plain title-and-status pairs rather
+   * than entries — the card stays presentational and knows nothing about what
+   * a list entry is.
    */
-  addOnTitles?: string[]
+  addOns?: AddOnMark[]
 }
+
+export type AddOnMark = { title: string; category: LIST_TYPE }
+
+/**
+ * One overlay mark: an icon chip that explains itself on hover.
+ *
+ * Identical in both layouts on purpose. The row version used to spell "Written
+ * review" out and print the score as text, which meant the two layouts said
+ * the same things in two different languages.
+ */
+const Mark: React.FC<{ label: React.ReactNode; children: React.ReactNode; tooltipClassName?: string }> = ({
+  label,
+  children,
+  tooltipClassName,
+}) => (
+  <MotionTooltip content={label} className={tooltipClassName}>
+    <span className="bg-bg/80 text-primary flex items-center gap-1 rounded-lg px-1.5 py-1 shadow-md backdrop-blur-sm">{children}</span>
+  </MotionTooltip>
+)
 
 // Cards past this index all arrive together, 0.6s in.
 const STAGGER_CAP = 12
@@ -88,9 +108,9 @@ const GameContainer: React.FC<GameContainerProps> = ({
   layout,
   rating,
   hasReview,
-  addOnTitles,
+  addOns,
 }) => {
-  const addOns = addOnSummary(addOnTitles ?? [])
+  const summary = addOnSummary(addOns ?? [])
   // Hooks cannot be conditional, so this always runs and is disabled when the
   // caller passes no drag payload. The fallback id is never used for a real
   // drop; it only keeps the id stable and unique among non-draggable cards.
@@ -101,6 +121,43 @@ const GameContainer: React.FC<GameContainerProps> = ({
   })
 
   const isRow = layout === LIST_LAYOUT.ROWS
+
+  const addOnMark = addOns && addOns.length > 0 && (
+    <Mark
+      tooltipClassName="max-w-64"
+      label={
+        <span className="flex flex-col gap-1 text-left">
+          {summary.shown.map((addOn) => (
+            <span key={addOn.title} className="flex items-center justify-between gap-2">
+              <span className="truncate">{addOn.title}</span>
+              <Badge variant={LIST_TYPE_BADGE[addOn.category]}>{LIST_TYPE_LABEL[addOn.category]}</Badge>
+            </span>
+          ))}
+          {/* Counted, not dropped: the tooltip stops naming them but never
+              under-reports how many you have. */}
+          {summary.remaining > 0 && <span className="opacity-60">+{summary.remaining} more…</span>}
+        </span>
+      }
+    >
+      <span aria-label={`${addOns.length} add-ons in your list`} className="flex items-center gap-1">
+        <PuzzlePieceIcon className="h-5 w-5" />
+        <span className="text-xs font-semibold">{addOns.length}</span>
+      </span>
+    </Mark>
+  )
+
+  const reviewMark = hasReview && (
+    <Mark label="Written review">
+      <ChatBubbleBottomCenterTextIcon className="h-5 w-5" aria-label="Written review" />
+    </Mark>
+  )
+
+  const ratingMark = rating != null && (
+    <Mark label={`Rated ${rating} out of 10`}>
+      <StarIcon className="h-5 w-5" aria-label={`Rated ${rating} out of 10`} />
+      <span className="text-xs font-semibold">{rating}</span>
+    </Mark>
+  )
 
   return (
     <motion.button
@@ -145,65 +202,28 @@ const GameContainer: React.FC<GameContainerProps> = ({
             alt={title}
             className="pointer-events-none z-0 aspect-3/4 w-full rounded-md object-cover"
           />
-          {/* Bottom right, not top. Over the cover's top edge it sat among the
-              artwork's own busiest corner and went unnoticed; the lower corner
-              is quieter and closer to the title the eye lands on next. */}
-          {hasReview && (
-            <span className="absolute right-2 bottom-2 z-10">
-              <MotionTooltip content="Written review">
-                <span className="bg-bg/80 flex rounded-lg p-1.5 shadow-md backdrop-blur-sm" aria-label="Written review">
-                  <ChatBubbleBottomCenterTextIcon className="text-primary h-5 w-5" />
-                </span>
-              </MotionTooltip>
-            </span>
-          )}
-
-          {/* Opposite corner from the review mark, so a game with both reads as
-              two facts rather than one cluster. */}
-          {addOnTitles && addOnTitles.length > 0 && (
-            <span className="absolute bottom-2 left-2 z-10">
-              <MotionTooltip
-                className="max-w-64"
-                content={
-                  <span className="flex flex-col gap-0.5 text-left">
-                    {addOns.titles.map((addOnTitle) => (
-                      <span key={addOnTitle} className="truncate">
-                        {addOnTitle}
-                      </span>
-                    ))}
-                    {/* Counted, not dropped: the tooltip stops naming them but
-                        never under-reports how many you have. */}
-                    {addOns.remaining > 0 && <span className="opacity-60">+{addOns.remaining} more…</span>}
-                  </span>
-                }
-              >
-                <span
-                  className="bg-bg/80 text-primary flex items-center gap-1 rounded-lg px-1.5 py-1 shadow-md backdrop-blur-sm"
-                  aria-label={`${addOnTitles.length} add-ons in your list`}
-                >
-                  <PuzzlePieceIcon className="h-5 w-5" />
-                  <span className="text-xs font-semibold">{addOnTitles.length}</span>
-                </span>
-              </MotionTooltip>
+          {/* Bottom of the cover, not the top: over the top edge these sat in
+              the artwork's own busiest corner and went unnoticed. Add-ons take
+              the left and the entry's own facts the right, so a game carrying
+              both reads as two groups rather than one cluster. */}
+          {addOnMark && <span className="absolute bottom-2 left-2 z-10">{addOnMark}</span>}
+          {(reviewMark || ratingMark) && (
+            <span className="absolute right-2 bottom-2 z-10 flex items-center gap-1">
+              {reviewMark}
+              {ratingMark}
             </span>
           )}
         </div>
       )}
       <span className={cn("line-clamp-1 text-sm", isRow ? "flex-1 text-left" : "text-center")}>{title}</span>
-      {/* Spelled out in rows, an icon on cards. A row has the width for the
-          words and they read faster than a glyph; a grid card does not, which
-          is why the two layouts differ rather than one compromising. */}
-      {isRow && hasReview && (
-        <span className="shrink-0">
-          <Badge variant="light">Written review</Badge>
-        </span>
-      )}
-      {/* Solid, matching the filled stars in the modal. The icon inherits
-          text-primary from the span, so number and star are the same colour. */}
-      {isRow && rating != null && (
-        <span className="text-primary flex shrink-0 items-center gap-1 pr-2 text-sm font-semibold">
-          {rating}/10
-          <StarIcon className="h-4 w-4" />
+      {/* The same three marks as the cover carries. They used to be a spelled
+          out badge and a bare "7/10", which meant the two layouts said the
+          same things in two different languages. */}
+      {(addOnMark || reviewMark || ratingMark) && isRow && (
+        <span className="flex shrink-0 items-center gap-1 pr-1">
+          {addOnMark}
+          {reviewMark}
+          {ratingMark}
         </span>
       )}
     </motion.button>
