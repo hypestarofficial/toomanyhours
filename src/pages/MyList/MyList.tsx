@@ -25,6 +25,7 @@ import ShareListButton from "./ShareListButton"
 // worth knowing if you grep for it and come up empty.
 import { useGetGenres } from "../../api/generated/genres/genres"
 import { matchesFilters } from "./filters"
+import { visibleEntries } from "./visibleEntries"
 
 const MyList: React.FC = () => {
   const [selectedEntry, setSelectedEntry] = useState<UserGame | null>(null)
@@ -88,8 +89,12 @@ const MyList: React.FC = () => {
   // One pass over the loaded list. ~14 microseconds for 500 entries, so this
   // re-runs freely on every keystroke — see the design doc for why this is not
   // a server-side query.
+  //
+  // visibleEntries first: an add-on reachable from its parent's card should not
+  // be counted by the filter either, or a search would surface something the
+  // list does not show.
   const visible = useMemo(
-    () => entries?.filter((entry) => matchesFilters(entry, search, filterGenres)) ?? [],
+    () => visibleEntries(entries ?? []).filter((entry) => matchesFilters(entry, search, filterGenres)),
     [entries, search, filterGenres],
   )
 

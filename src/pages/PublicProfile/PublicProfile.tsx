@@ -12,6 +12,7 @@ import { LIST_LAYOUT } from "../../store/useUserSettingsAuth"
 import type { UserGame } from "../../api/generated/models"
 import { useGetProfile } from "../../api/generated/profiles/profiles"
 import { ApiError } from "../../api/apiError"
+import { visibleEntries } from "../MyList/visibleEntries"
 
 const PublicProfile: React.FC = () => {
   const { username } = useParams()
@@ -40,7 +41,10 @@ const PublicProfile: React.FC = () => {
     )
   }
 
-  const byCategory = (category: LIST_TYPE) => profile.entries.filter((entry) => entry.category === category)
+  // The same rule as your own list. A shared page full of Borderlands packs is
+  // the same problem, seen by somebody with less patience for it.
+  const shown = visibleEntries(profile.entries)
+  const byCategory = (category: LIST_TYPE) => shown.filter((entry) => entry.category === category)
 
   return (
     <Page align="start">
