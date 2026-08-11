@@ -53,41 +53,39 @@ const ListToolbar: React.FC<ListToolbarProps> = ({
   shareDisabledReason,
   searchPlaceholder = "Search your list...",
   searchId = "listSearch",
-}) => {
-  return (
-    // Two rows, not one. Packed into a single line, the sort arrow, the two
-    // layout icons and the share icon sat side by side as four adjacent icon
-    // buttons and none of them read as belonging to anything. Search takes the
-    // full width above; below it, what narrows the list sits left and what
-    // changes how it is read or shared sits right.
-    <div className="mb-4 flex w-full flex-col gap-2">
-      <Input
-        type="text"
-        id={searchId}
-        placeholder={searchPlaceholder}
-        value={search}
-        onChange={(e) => onSearchChange(e.target.value)}
-        sideLabel={false}
-        clearable
-      />
-      <div className="flex w-full flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Wide enough for what it has to hold: three badges capped at
+}) => (
+  // Two rows, not one. Packed into a single line, the sort arrow, the two
+  // layout icons and the share icon sat side by side as four adjacent icon
+  // buttons and none of them read as belonging to anything. Search takes the
+  // full width above; below it, what narrows the list sits left and what
+  // changes how it is read or shared sits right.
+  <div className="mb-4 flex w-full flex-col gap-2">
+    <Input
+      type="text"
+      id={searchId}
+      placeholder={searchPlaceholder}
+      value={search}
+      onChange={(e) => onSearchChange(e.target.value)}
+      sideLabel={false}
+      clearable
+    />
+    <div className="flex w-full flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Wide enough for what it has to hold: three badges capped at
               max-w-24 plus a +N counter come to roughly 380px once the chevron
               and padding are counted. Full width below `sm`, where it has the
               row to itself anyway. */}
-          <div className="w-full sm:w-96">
-            <MultiSelect options={genreOptions} value={genres} onChange={onGenresChange} placeholder="Filter by genres" />
-          </div>
-          <SortControl field={sortField} direction={sortDirection} onChange={onSortChange} />
+        <div className="w-full sm:w-96">
+          <MultiSelect options={genreOptions} value={genres} onChange={onGenresChange} placeholder="Filter by genres" />
         </div>
-        <div className="flex items-center gap-2">
-          <LayoutToggle layout={layout} onChange={onLayoutChange} />
-          <ShareListButton url={shareUrl} disabled={shareDisabled} disabledReason={shareDisabledReason} />
-        </div>
+        <SortControl field={sortField} direction={sortDirection} onChange={onSortChange} />
+      </div>
+      <div className="flex items-center gap-2">
+        <LayoutToggle layout={layout} onChange={onLayoutChange} />
+        <ShareListButton url={shareUrl} disabled={shareDisabled} disabledReason={shareDisabledReason} />
       </div>
     </div>
-  )
-}
+  </div>
+)
 
 export default ListToolbar

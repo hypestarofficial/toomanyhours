@@ -17,25 +17,22 @@ import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core"
 import GameContainer from "../../components/myList/GameContainer"
 import { useMoveEntry } from "../../api/userGames"
 import { toast } from "sonner"
-import Input from "../../components/form/input/Input"
-import MultiSelect from "../../components/form/multiSelect/MultiSelect"
-import LayoutToggle from "./layoutToggle/LayoutToggle"
-import ShareListButton from "./ShareListButton"
+import ListToolbar from "../../components/listToolbar/ListToolbar"
+import { profileShareUrl } from "../../helpers/shareUrl"
 // useGetGenres is an overloaded `export function`, not an `export const` —
 // worth knowing if you grep for it and come up empty.
 import { useGetGenres } from "../../api/generated/genres/genres"
 import { matchesFilters } from "./filters"
 import { sortEntries } from "./sort"
-import SortControl from "./sortControl/SortControl"
 import { visibleEntries } from "./visibleEntries"
 
 const MyList: React.FC = () => {
   const [selectedEntry, setSelectedEntry] = useState<UserGame | null>(null)
   const [isAddGameOpen, setIsAddGameOpen] = useState(false)
   const [search, setSearch] = useState("")
-  const { defaultListConfig, setDefaultListConfig, layout, filterGenres, setFilterGenres, sortField, sortDirection } =
+  const { defaultListConfig, setDefaultListConfig, layout, setLayout, filterGenres, setFilterGenres, sortField, sortDirection, setSort } =
     useUserSettingsAuthStore()
-  const { jwtToken } = useAuthStore()
+  const { jwtToken, user } = useAuthStore()
 
   // Generated hooks need `enabled` passed explicitly, or they fire before a
   // token exists and 401 on boot.
@@ -43,6 +40,11 @@ const MyList: React.FC = () => {
   const { data: genres } = useGetGenres({ query: { enabled: !!jwtToken } })
 
   const genreOptions = genres?.map((genre) => ({ label: genre.name, value: genre.id })) ?? []
+
+  // Computed here rather than inside the share button, which now serves two
+  // pages and must not assume the list it is looking at is yours.
+  const shareUrl = profileShareUrl(window.location.origin, user?.username ?? "")
+  const isPrivate = user?.visibility === "private"
 
   const isFiltering = search.trim() !== "" || filterGenres.length > 0
 
@@ -177,40 +179,24 @@ const MyList: React.FC = () => {
       </MotionContainer>
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={() => setDraggedEntry(null)}>
         <MotionContainer className="flex w-full flex-col gap-2 pb-10">
-          {/* Two rows, not one. Packed into a single line, the sort arrow, the
-              two layout icons and the share icon sat side by side as four
-              adjacent icon buttons, and none of them read as belonging to
-              anything. Search takes the full width above; below it, what
-              narrows the list sits left and what changes how it is read or
-              shared sits right. */}
-          <div className="mb-4 flex w-full flex-col gap-2">
-            <Input
-              type="text"
-              id="listSearch"
-              placeholder="Search your list..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              sideLabel={false}
-              clearable
-            />
-            <div className="flex w-full flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                {/* Wide enough for what it has to hold: three badges capped at
-                    max-w-24 plus a +N counter come to roughly 380px once the
-                    chevron and padding are counted, and 224px was where the
-                    old single-row toolbar left it. Full width below `sm`,
-                    where it has the row to itself anyway. */}
-                <div className="w-full sm:w-96">
-                  <MultiSelect options={genreOptions} value={filterGenres} onChange={setFilterGenres} placeholder="Filter by genres" />
-                </div>
-                <SortControl />
-              </div>
-              <div className="flex items-center gap-2">
-                <LayoutToggle />
-                <ShareListButton />
-              </div>
-            </div>
-          </div>
+          <ListToolbar
+            search={search}
+            onSearchChange={setSearch}
+            genreOptions={genreOptions}
+            genres={filterGenres}
+            onGenresChange={setFilterGenres}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSortChange={setSort}
+            layout={layout}
+            onLayoutChange={setLayout}
+            shareUrl={shareUrl}
+            // Disabled rather than warned about while the profile is private:
+            // the API answers 403 to everyone else, so the link would look
+            // broken to the friend and give the owner no clue why.
+            shareDisabled={isPrivate}
+            shareDisabledReason="Your profile is private — make it public in settings to share it"
+          />
           <ListSection
             title={sectionTitle("finished", LIST_TYPE.FINISHED)}
             category={LIST_TYPE.FINISHED}
