@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useParams } from "react-router"
 import Page from "../../components/page/Page"
 import Loader from "../../components/loader/Loader"
@@ -13,6 +13,11 @@ import type { UserGame } from "../../api/generated/models"
 import { useGetProfile } from "../../api/generated/profiles/profiles"
 import { ApiError } from "../../api/apiError"
 import { visibleEntries } from "../MyList/visibleEntries"
+import ListToolbar from "../../components/listToolbar/ListToolbar"
+import { profileShareUrl } from "../../helpers/shareUrl"
+import { matchesFilters } from "../MyList/filters"
+import { NATURAL_DIRECTION, SORT_DIRECTION, SORT_FIELD, sortEntries } from "../MyList/sort"
+import { genreOptions } from "./genreOptions"
 
 const PublicProfile: React.FC = () => {
   const { username } = useParams()
@@ -21,9 +26,49 @@ const PublicProfile: React.FC = () => {
   // else's list and should not disturb how yours is arranged.
   const [open, setOpen] = useState({ finished: true, currentlyPlaying: true, wantToPlay: true })
 
+  // Every one of these is local, and that is the point: filtering or sorting
+  // someone else's list must not leave your own list filtered when you go back.
+  // `filterGenres` and `layout` live in the shared store — the first is shared
+  // across the app and the second is persisted — so reading either here would
+  // change a setting the visitor never touched, on a page that is not theirs.
+  // The section open state above is already local for this reason.
+  const [search, setSearch] = useState("")
+  const [genres, setGenres] = useState<number[]>([])
+  const [sortField, setSortField] = useState<SORT_FIELD>(SORT_FIELD.RATING)
+  const [sortDirection, setSortDirection] = useState<SORT_DIRECTION>(NATURAL_DIRECTION[SORT_FIELD.RATING])
+  const [layout, setLayout] = useState<LIST_LAYOUT>(LIST_LAYOUT.CARDS)
+
+  const setSort = (field: SORT_FIELD, direction: SORT_DIRECTION) => {
+    setSortField(field)
+    setSortDirection(direction)
+  }
+
   // No `enabled: !!jwtToken`, unlike every other query in this app. The whole
   // point is that a visitor with no account sees this.
   const { data: profile, isLoading, error } = useGetProfile(username ?? "")
+
+  // Above the early returns below, because hooks cannot be called
+  // conditionally — and `profile` is undefined until the query resolves.
+  const entries = useMemo(() => profile?.entries ?? [], [profile])
+
+  const options = useMemo(() => genreOptions(entries), [entries])
+
+  const isFiltering = search.trim() !== "" || genres.length > 0
+
+  // The same order MyList uses: hide add-ons under owned parents, then filter,
+  // then sort per section.
+  const visible = useMemo(() => visibleEntries(entries).filter((entry) => matchesFilters(entry, search, genres)), [entries, search, genres])
+
+  const byCategory = (category: LIST_TYPE) =>
+    sortEntries(
+      visible.filter((entry) => entry.category === category),
+      sortField,
+      sortDirection,
+    )
+
+  // An open, empty section is ambiguous while filtering — no matches, or
+  // nothing in that category at all?
+  const sectionTitle = (label: string, category: LIST_TYPE) => (isFiltering ? `${label} (${byCategory(category).length})` : label)
 
   if (isLoading) {
     return <Loader fullPage />
@@ -41,47 +86,71 @@ const PublicProfile: React.FC = () => {
     )
   }
 
-  // The same rule as your own list. A shared page full of Borderlands packs is
-  // the same problem, seen by somebody with less patience for it.
-  const shown = visibleEntries(profile.entries)
-  const byCategory = (category: LIST_TYPE) => shown.filter((entry) => entry.category === category)
-
   return (
     <Page align="start">
       <MotionContainer className="flex w-full flex-col gap-5 pb-10">
         <Avatar image={null} username={profile.username} />
 
+        <ListToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchId="profileSearch"
+          searchPlaceholder={`Search ${profile.username}'s list...`}
+          genreOptions={options}
+          genres={genres}
+          onGenresChange={setGenres}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onSortChange={setSort}
+          layout={layout}
+          onLayoutChange={setLayout}
+          // Never disabled: if this page rendered at all, the profile is
+          // public — the API answered rather than returning 403.
+          shareUrl={profileShareUrl(window.location.origin, profile.username)}
+        />
+
+        {/* `isFiltering ||` rather than MyList's snapshot-and-restore effect: a
+            match can be inside a collapsed section, so filtering has to reveal
+            it. MyList needs a ref and a transition-guarded effect because its
+            open state is persisted and shared; this page's is local, so the
+            same behaviour is one derived expression with nothing to keep in
+            sync and nothing to clean up on unmount.
+
+            `allEntries` stays the *unfiltered* set on all three, as does
+            ProfileGameCard's `entries` below: the cover marks count a game's
+            add-ons and the card lists them, so passing the filtered array would
+            make an add-on count change as the visitor types in the search box. */}
         <ListSection
-          title="finished"
+          title={sectionTitle("finished", LIST_TYPE.FINISHED)}
           category={LIST_TYPE.FINISHED}
           entries={byCategory(LIST_TYPE.FINISHED)}
           allEntries={profile.entries}
           onSelectItem={setSelectedEntry}
-          open={open.finished}
+          open={isFiltering || open.finished}
           onOpenChange={(next) => setOpen({ ...open, finished: next })}
-          layout={LIST_LAYOUT.CARDS}
+          layout={layout}
           readOnly
         />
         <ListSection
-          title="currently playing"
+          title={sectionTitle("currently playing", LIST_TYPE.CURRENTLY_PLAYING)}
           category={LIST_TYPE.CURRENTLY_PLAYING}
           entries={byCategory(LIST_TYPE.CURRENTLY_PLAYING)}
           allEntries={profile.entries}
           onSelectItem={setSelectedEntry}
-          open={open.currentlyPlaying}
+          open={isFiltering || open.currentlyPlaying}
           onOpenChange={(next) => setOpen({ ...open, currentlyPlaying: next })}
-          layout={LIST_LAYOUT.CARDS}
+          layout={layout}
           readOnly
         />
         <ListSection
-          title="want to play"
+          title={sectionTitle("want to play", LIST_TYPE.WANT_TO_PLAY)}
           category={LIST_TYPE.WANT_TO_PLAY}
           entries={byCategory(LIST_TYPE.WANT_TO_PLAY)}
           allEntries={profile.entries}
           onSelectItem={setSelectedEntry}
-          open={open.wantToPlay}
+          open={isFiltering || open.wantToPlay}
           onOpenChange={(next) => setOpen({ ...open, wantToPlay: next })}
-          layout={LIST_LAYOUT.CARDS}
+          layout={layout}
           readOnly
         />
       </MotionContainer>
