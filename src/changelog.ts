@@ -28,6 +28,14 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.4.1",
+    date: "2026-08-10",
+    changes: [
+      "Picking several genres no longer stretches the filter out of shape.",
+      "Notifications are legible again — they were rendering pale on the dark background.",
+    ],
+  },
+  {
     version: "1.4.0",
     date: "2026-08-10",
     changes: ["Sort your list by rating, name or when you added it — in either direction, and it remembers your choice."],
