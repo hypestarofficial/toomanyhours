@@ -195,7 +195,12 @@ const MyList: React.FC = () => {
             />
             <div className="flex w-full flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-2">
-                <div className="w-56">
+                {/* Wide enough for what it has to hold: three badges capped at
+                    max-w-24 plus a +N counter come to roughly 380px once the
+                    chevron and padding are counted, and 224px was where the
+                    old single-row toolbar left it. Full width below `sm`,
+                    where it has the row to itself anyway. */}
+                <div className="w-full sm:w-96">
                   <MultiSelect options={genreOptions} value={filterGenres} onChange={setFilterGenres} placeholder="Filter by genres" />
                 </div>
                 <SortControl />

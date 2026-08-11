@@ -70,11 +70,26 @@ const MultiSelect = <T extends string | number>({
   return (
     <div ref={buttonRef} className="relative flex w-full">
       <MotionButton onClick={toggleOpen} flex className="min-h-[40px] w-full min-w-[9rem] justify-between px-2!" disabled={disabled} noTap>
-        <div className="flex flex-wrap items-center gap-1 overflow-hidden">
+        {/* flex-nowrap, not flex-wrap. The badges are whitespace-nowrap, so
+            each is as wide as its text — and the widest genre, "Role-playing
+            (RPG)", is about 135px against roughly 180px of usable width here.
+            Wrapping meant two long names pushed the control onto a second
+            line and it grew taller than everything beside it, since
+            min-h-[40px] is a floor and not a height. The count cap below
+            could not help: it caps badges, and what overflows is their width.
+
+            With nowrap plus the truncation below, the content is bounded by
+            construction rather than by hoping the names stay short. */}
+        <div className="flex flex-nowrap items-center gap-1 overflow-hidden">
           {selectedOptions.length > 0 ? (
             <>
               {selectedOptions.slice(0, 3).map((opt) => (
-                <Badge key={opt.value}>{opt.label}</Badge>
+                // max-w-24 is about twelve characters, which fits every genre
+                // but the longest and ellipsises that one rather than letting
+                // it set the width of the control.
+                <Badge key={opt.value} className="max-w-24 truncate">
+                  {opt.label}
+                </Badge>
               ))}
 
               {selectedOptions.length > 3 && <Badge>{`+${selectedOptions.length - 3}`}</Badge>}

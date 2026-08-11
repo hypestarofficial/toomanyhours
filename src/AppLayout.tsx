@@ -88,22 +88,34 @@ const AppLayout = () => {
       <div className="relative flex h-full">
         <Navbar />
         <main className="flex h-full w-full flex-col px-10 pt-20">
+          {/* theme="dark" is the load-bearing one: sonner defaults to light,
+              so the toast arrived as a pale box on a dark app with almost no
+              contrast in it. richColors goes with it — it makes sonner impose
+              its own palette per type, which is exactly what the overrides
+              below were fighting.
+
+              The type is a filled background with white text, not a tinted
+              border, because that is what --color-success and --color-error
+              are: dark shades meant to sit *behind* white text, which is how
+              Badge's status variants use them. As a hairline on the near-black
+              surface they would have been invisible, which is the bug being
+              fixed here rather than a new look. Info is neutral grey, since
+              --color-info is white and a white toast is where this started. */}
           <Toaster
             closeButton
             position="bottom-right"
-            richColors
+            theme="dark"
             swipeDirections={["bottom"]}
             offset="1rem"
             toastOptions={{
               classNames: {
-                description: "text-text!",
-                toast: "bg-secondaryBg! border-none!",
-                title: "text-text!",
-                closeButton: "text-bg!",
-                error: "text-error!",
-                success: "text-success!",
-                warning: "text-warning!",
-                info: "text-info!",
+                toast: "bg-secondaryBg! text-text! border! border-highlight! shadow-lg! shadow-black/50!",
+                title: "text-text! font-semibold!",
+                description: "text-text! opacity-90!",
+                closeButton: "bg-secondaryBg! border-highlight! text-text! hover:bg-highlight!",
+                success: "bg-success! border-success!",
+                error: "bg-error! border-error!",
+                info: "bg-highlight! border-highlight!",
               },
             }}
           />
