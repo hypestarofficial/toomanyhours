@@ -9,7 +9,7 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.7.0
+ * OpenAPI spec version: 0.8.0
  */
 import type { UserGameCategory } from "./userGameCategory"
 import type { Game } from "./game"
@@ -29,7 +29,8 @@ export interface UserGame {
    */
   rating?: number | null
   /**
-   * Plain text, at most 2000 characters.
+   * Plain text, at most 8000 characters.
+   * @maxLength 8000
    * @nullable
    */
   review?: string | null
