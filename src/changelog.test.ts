@@ -1,6 +1,7 @@
-import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 import { changelog } from "./changelog"
+// The manifest itself, so the check cannot drift from what ships.
+import pkg from "../package.json"
 
 // Semantic, not lexicographic. "0.10.0" < "0.9.0" as strings, which is the
 // wrong answer and will not be wrong until the tenth minor release — long
@@ -66,7 +67,7 @@ describe("changelog", () => {
 // because "versions may skip" makes a gap indistinguishable from a deliberate
 // omission unless you look at *how big* the gap is.
 describe("changelog against package.json", () => {
-  const appVersion = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version as string
+  const appVersion = pkg.version
 
   it("is never ahead of the app", () => {
     expect(compareVersions(changelog[0].version, appVersion)).toBeLessThanOrEqual(0)

@@ -6,6 +6,9 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "types": ["vite/client", "vite-plugin-svgr/client"],
+    // changelog.test.ts imports package.json to check the version against the
+    // newest entry. Vite already resolves JSON imports; this tells tsc so.
+    "resolveJsonModule": true,
     "skipLibCheck": true,
 
     /* Bundler mode */
