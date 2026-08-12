@@ -12,12 +12,12 @@ import { LIST_LAYOUT } from "../../store/useUserSettingsAuth"
 import type { UserGame } from "../../api/generated/models"
 import { useGetProfile } from "../../api/generated/profiles/profiles"
 import { ApiError } from "../../api/apiError"
-import { visibleEntries } from "../MyList/visibleEntries"
+import { visibleEntries } from "../../list/visibleEntries"
 import ListToolbar from "../../components/listToolbar/ListToolbar"
 import { profileShareUrl } from "../../helpers/shareUrl"
-import { matchesFilters } from "../MyList/filters"
-import { NATURAL_DIRECTION, SORT_DIRECTION, SORT_FIELD, sortEntries } from "../MyList/sort"
-import { genreOptions } from "./genreOptions"
+import { matchesFilters } from "../../list/filters"
+import { NATURAL_DIRECTION, SORT_DIRECTION, SORT_FIELD, sortEntries } from "../../list/sort"
+import { genreOptions } from "../../list/genreOptions"
 
 const PublicProfile: React.FC = () => {
   const { username } = useParams()
@@ -51,13 +51,18 @@ const PublicProfile: React.FC = () => {
   // conditionally — and `profile` is undefined until the query resolves.
   const entries = useMemo(() => profile?.entries ?? [], [profile])
 
-  const options = useMemo(() => genreOptions(entries), [entries])
-
   const isFiltering = search.trim() !== "" || genres.length > 0
 
   // The same order MyList uses: hide add-ons under owned parents, then filter,
-  // then sort per section.
-  const visible = useMemo(() => visibleEntries(entries).filter((entry) => matchesFilters(entry, search, genres)), [entries, search, genres])
+  // then sort per section. Split so the genre options come from the same set
+  // the filter runs over — deriving from the raw entries would offer a genre
+  // carried only by an add-on hidden under its owned parent, which can never
+  // match anything.
+  const shown = useMemo(() => visibleEntries(entries), [entries])
+
+  const options = useMemo(() => genreOptions(shown), [shown])
+
+  const visible = useMemo(() => shown.filter((entry) => matchesFilters(entry, search, genres)), [shown, search, genres])
 
   const byCategory = (category: LIST_TYPE) =>
     sortEntries(

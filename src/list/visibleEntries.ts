@@ -1,5 +1,5 @@
-import type { UserGame } from "../../api/generated/models"
-import { ownedIgdbIds } from "./addGameModal/rows"
+import type { UserGame } from "../api/generated/models"
+import { ownedIgdbIds } from "./ownedIgdbIds"
 
 /**
  * The two kinds that belong to a game rather than standing beside it.

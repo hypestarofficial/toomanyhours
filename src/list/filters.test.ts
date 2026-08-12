@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { matchesFilters } from "./filters"
-import type { UserGame } from "../../api/generated/models"
+import type { UserGame } from "../api/generated/models"
 
 const entry = (title: string, genreIDs: number[]): UserGame =>
   ({

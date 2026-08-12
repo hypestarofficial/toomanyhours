@@ -9,7 +9,7 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.5.0
+ * OpenAPI spec version: 0.6.0
  */
 
 export * from "./addUserGameRequest"

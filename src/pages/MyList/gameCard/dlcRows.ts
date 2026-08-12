@@ -1,5 +1,5 @@
 import type { IGDBGame, UserGame } from "../../../api/generated/models"
-import { ADD_ON_KINDS } from "../visibleEntries"
+import { ADD_ON_KINDS } from "../../../list/visibleEntries"
 
 export type DlcRow = {
   igdbId: number
