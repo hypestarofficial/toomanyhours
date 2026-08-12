@@ -4,7 +4,7 @@ import Page from "../../components/page/Page"
 import Loader from "../../components/loader/Loader"
 import Empty from "../../components/empty/Empty"
 import MotionContainer from "../../components/motionContainer/MotionContainer"
-import Avatar from "../../components/avatar/Avatar"
+import ProfileHeader from "./ProfileHeader"
 import ListSection from "../MyList/listSection/ListSection"
 import ProfileGameCard from "./ProfileGameCard"
 import { LIST_TYPE } from "../../helpers/enums"
@@ -94,7 +94,9 @@ const PublicProfile: React.FC = () => {
   return (
     <Page align="start">
       <MotionContainer className="flex w-full flex-col gap-5 pb-10">
-        <Avatar image={null} username={profile.username} />
+        {/* `shown`, not `visible`: these are totals, so they must not move when
+            somebody types in the search box. */}
+        <ProfileHeader username={profile.username} bio={profile.bio} createdAt={profile.createdAt} entries={shown} />
 
         <ListToolbar
           search={search}
