@@ -34,7 +34,7 @@ const Changelog: React.FC = () => (
 
       {/* Says where the record starts, so the gap reads as a known boundary
           rather than missing data. */}
-      <p className="text-xs opacity-60">Versions before 0.4.0 are not recorded — the number sat at 0.1.0 and did not move.</p>
+      <p className="text-xs opacity-60">Versions before 0.4.0 are not recorded since I was lazy to come up with proper versioning.</p>
     </MotionContainer>
   </Page>
 )

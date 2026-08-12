@@ -4,6 +4,8 @@ import { httpRequest } from "./api"
 type PatchMeBody = {
   username?: string
   visibility?: Visibility
+  /** "" clears it, matching the API's sentinel convention. */
+  bio?: string
 }
 
 export const getMe = async (): Promise<User | null> =>

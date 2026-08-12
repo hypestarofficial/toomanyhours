@@ -9,7 +9,7 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.6.0
+ * OpenAPI spec version: 0.7.0
  */
 import type { UserVisibility } from "./userVisibility"
 
@@ -18,8 +18,14 @@ export interface User {
   /** Lowercase, unique, and the public profile URL key. */
   username: string
   email: string
-  /** Stored and editable, but not yet read by anything — public profiles are a later phase. */
+  /** Read on every public profile request: a private profile answers 403 to everyone, its owner included. */
   visibility: UserVisibility
+  /**
+   * A short self-description, at most 500 characters, or null. Plain text — never rendered as markdown or HTML. Counted in characters, which is what both the CHECK constraint and validate.Bio use.
+   * @maxLength 500
+   * @nullable
+   */
+  bio?: string | null
   created_at: string
   updated_at: string
 }
