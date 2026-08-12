@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import Input from "../../../components/form/input/Input"
 import Modal from "../../../components/modal/Modal"
 import { handleError } from "../../../utils/errors"
@@ -21,6 +21,7 @@ import { ownedIgdbIds } from "../../../list/ownedIgdbIds"
 import { addGamePayload } from "./payload"
 import { useDebouncedValue } from "../../../hooks/useDebouncedValue"
 import RatingFields from "../RatingFields"
+import { reviewTooLong } from "../../../list/review"
 import type { RatingFormValues } from "../RatingFields"
 import { Image } from "@heroui/image"
 import placeholderImage from "../../../assets/images/placeholder.webp"
@@ -83,6 +84,12 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
   } = useForm<RatingFormValues>({
     defaultValues: { rating: 0, review: "" },
   })
+
+  // The button refuses before the request, so an over-long review cannot come
+  // back as a bare 400 that renders as "something went wrong".
+  // useWatch rather than watch(): the React Compiler cannot memoize a
+  // function returned by useForm, and lint rejects it outright.
+  const tooLong = reviewTooLong(useWatch({ control, name: "review" }) ?? "")
 
   // Selecting is single: picking another game replaces the choice rather than
   // adding to a set. Clicking the chosen row again clears it.
@@ -212,7 +219,7 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
               <MotionButton onClick={back} disabled={isPending}>
                 Back
               </MotionButton>
-              <MotionButton flex variant="success" onClick={handleSubmit(onSubmit)} disabled={!category || isPending}>
+              <MotionButton flex variant="success" onClick={handleSubmit(onSubmit)} disabled={!category || isPending || tooLong}>
                 Add Game
               </MotionButton>
             </div>

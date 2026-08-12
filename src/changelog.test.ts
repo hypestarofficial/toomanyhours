@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { changelog } from "./changelog"
+// The manifest itself, so the check cannot drift from what ships.
+import pkg from "../package.json"
 
 // Semantic, not lexicographic. "0.10.0" < "0.9.0" as strings, which is the
 // wrong answer and will not be wrong until the tenth minor release — long
@@ -53,5 +55,34 @@ describe("changelog", () => {
         expect(change.trim()).not.toBe("")
       }
     }
+  })
+})
+
+// The rule this encodes is the one already written down: a feature release has
+// something a person would notice, so it needs an entry, while a patch may have
+// nothing worth telling anyone and is allowed to skip. 1.5.1 skipped rightly.
+//
+// It exists because 1.6.0 shipped with its entry silently missing — the version
+// was bumped, the entry was not written, and every other test here passed,
+// because "versions may skip" makes a gap indistinguishable from a deliberate
+// omission unless you look at *how big* the gap is.
+describe("changelog against package.json", () => {
+  const appVersion = pkg.version
+
+  it("is never ahead of the app", () => {
+    expect(compareVersions(changelog[0].version, appVersion)).toBeLessThanOrEqual(0)
+  })
+
+  it("has an entry for the current feature release", () => {
+    const [appMajor, appMinor] = appVersion.split(".").map(Number)
+    const [newestMajor, newestMinor] = changelog[0].version.split(".").map(Number)
+
+    // Only the major and minor are compared: a patch above the newest entry is
+    // the allowed case, and a major or minor above it is a feature nobody was
+    // told about.
+    expect(
+      { major: newestMajor, minor: newestMinor },
+      `package.json is ${appVersion} but the newest changelog entry is ${changelog[0].version} — a feature release needs an entry`,
+    ).toEqual({ major: appMajor, minor: appMinor })
   })
 })

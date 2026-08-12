@@ -9,7 +9,7 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.6.0
+ * OpenAPI spec version: 0.8.0
  */
 import type { UserGame } from "./userGame"
 
@@ -19,5 +19,11 @@ import type { UserGame } from "./userGame"
 export interface PublicProfile {
   username: string
   createdAt: string
+  /**
+   * A short self-description, at most 500 characters, or null. Plain text — never rendered as markdown or HTML. Counted in characters, which is what both the CHECK constraint and validate.Bio use.
+   * @maxLength 500
+   * @nullable
+   */
+  bio?: string | null
   entries: UserGame[]
 }

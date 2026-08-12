@@ -9,11 +9,11 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.6.0
+ * OpenAPI spec version: 0.8.0
  */
 
 /**
- * Stored and editable, but not yet read by anything — public profiles are a later phase.
+ * Read on every public profile request: a private profile answers 403 to everyone, its owner included.
  */
 export type UserVisibility = (typeof UserVisibility)[keyof typeof UserVisibility]
 

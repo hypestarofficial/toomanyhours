@@ -7,6 +7,8 @@ import type { UserGame } from "../../api/generated/models"
 import { LIST_TYPE_BADGE, LIST_TYPE_LABEL } from "../../helpers/enums"
 import { addOnsOf, stripParentTitle } from "../MyList/gameCard/dlcRows"
 import GameSummary from "../../components/gameSummary/GameSummary"
+import ReviewSection from "../../components/reviewSection/ReviewSection"
+import ReviewText from "../../components/reviewSection/ReviewText"
 
 type ProfileGameCardProps = {
   entry: UserGame | null
@@ -34,7 +36,7 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
 
   return (
     <Modal isOpen={!!entry} onClose={onClose}>
-      <div className="flex w-full flex-col gap-6 p-6 md:w-[42rem]">
+      <div className="flex w-full flex-col gap-6 p-6 md:w-[48rem]">
         <div className="flex flex-col gap-5 md:flex-row md:items-start">
           {entry?.game?.image && (
             <Image
@@ -65,10 +67,9 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
               {entry?.category && <Badge variant={LIST_TYPE_BADGE[entry.category]}>{LIST_TYPE_LABEL[entry.category]}</Badge>}
             </div>
 
-            {/* The reason this feature exists: a visitor is the person most
-                likely not to know the game. */}
-            <GameSummary summary={entry?.game?.summary} />
-
+            {/* Its own row under the title rather than trailing the status
+                badge: crowded onto the title line it competed with the name,
+                and the name is what you are looking for. */}
             {entry?.rating != null && (
               <span className="text-primary flex items-center gap-1 text-sm font-semibold">
                 {entry.rating}/10
@@ -76,13 +77,20 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
               </span>
             )}
 
-            {/* whitespace-pre-wrap keeps the paragraph breaks somebody typed;
+            {/* The reason this feature exists: a visitor is the person most
+                likely not to know the game. */}
+            <GameSummary summary={entry?.game?.summary} />
+
+            {/* Shaped like the review *field* on your own card — label above a
+                filled box — because that is what it is: the thing this person
+                wrote. GameSummary above deliberately is not, so IGDB's text and
+                somebody's own words no longer look like the same kind of thing.
+
+                whitespace-pre-wrap keeps the paragraph breaks somebody typed;
                 without it a multi-paragraph review collapses into one block. */}
-            {entry?.review ? (
-              <p className="text-sm whitespace-pre-wrap">{entry.review}</p>
-            ) : (
-              <p className="text-sm opacity-60">No review.</p>
-            )}
+            <ReviewSection>
+              <ReviewText review={entry?.review} title={entry?.game?.title} rating={entry?.rating} />
+            </ReviewSection>
           </div>
         </div>
 

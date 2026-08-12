@@ -1,10 +1,13 @@
 import { Controller } from "react-hook-form"
 import type { Control } from "react-hook-form"
-import TextArea from "../../components/form/textArea/TextArea"
 import StarRating from "./gameCard/StarRating"
 import MotionIconButton from "../../components/motionIconButton/MotionIconButton"
 import MotionTooltip from "../../components/motionTooltip/MotionTooltip"
+import ReviewSection from "../../components/reviewSection/ReviewSection"
 import { TrashIcon } from "@heroicons/react/24/outline"
+import { cn } from "../../utils/cn"
+import { textLength } from "../../utils/textLength"
+import { REVIEW_MAX_LENGTH } from "../../list/review"
 
 // One shape, shared by the detail modal and step 2 of the add flow, so the
 // component below can be typed concretely rather than generically.
@@ -30,6 +33,12 @@ type RatingFieldsProps = {
  * with VISION.md — "a list with a few scored standouts reads better than one
  * where every entry has a dutiful number".
  *
+ * The review is a bare textarea inside `ReviewSection` rather than the
+ * `TextArea` component, so it is visually the same box the public profile
+ * renders: one holds a field and the other holds text, and they should not look
+ * like different features. `TextArea` brings its own label and background,
+ * which would have meant a box inside a box.
+ *
  * StarRating renders ten stars at h-7. Ten at h-10 came to about 480px and
  * overflowed the modal on a phone.
  */
@@ -38,7 +47,41 @@ const RatingFields: React.FC<RatingFieldsProps> = ({ control }) => (
     <Controller
       name="review"
       control={control}
-      render={({ field }) => <TextArea id="review" label="Review" placeholder="Write your review here..." sideLabel={false} {...field} />}
+      render={({ field }) => {
+        const count = textLength(field.value)
+        const tooLong = count > REVIEW_MAX_LENGTH
+
+        return (
+          <ReviewSection
+            // Counted the server's way — `.length` would disagree on emoji and
+            // block a save the API would have accepted.
+            meta={
+              <span className={cn("text-xs tabular-nums", tooLong ? "text-error font-semibold" : "opacity-50")}>
+                {count.toLocaleString()} / {REVIEW_MAX_LENGTH.toLocaleString()}
+              </span>
+            }
+          >
+            {/* Fills the card so the whole area is clickable, with the same
+                padding the read-only body uses so the two are the same box.
+
+                No Read more here, unlike the public card: this is a textarea
+                you are typing in, so scrolling it is an input behaving
+                normally — and a button floated over the bottom right sat on
+                top of the words being written.
+
+                No maxLength: pasting past the limit would silently drop the end
+                and the writer would never find out. The counter says so and the
+                save button refuses instead. */}
+            <textarea
+              id="review"
+              placeholder="What did you make of it?"
+              spellCheck="false"
+              className="h-full w-full resize-none bg-transparent px-3 py-2.5 text-sm leading-relaxed outline-none placeholder:opacity-40"
+              {...field}
+            />
+          </ReviewSection>
+        )
+      }}
     />
     <Controller
       name="rating"

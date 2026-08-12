@@ -5,8 +5,8 @@
 }
 
 /* Semibold because a TextArea's label reads as a section header wherever this
-   is used — today only the review field on the game card, which sits directly
-   beneath the About box and should match it. */
+   is used, and because the read-only review on the public profile card is
+   built to match this one — label above a filled box. */
 .label {
   @apply font-semibold;
 }
