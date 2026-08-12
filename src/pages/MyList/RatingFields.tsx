@@ -4,7 +4,6 @@ import StarRating from "./gameCard/StarRating"
 import MotionIconButton from "../../components/motionIconButton/MotionIconButton"
 import MotionTooltip from "../../components/motionTooltip/MotionTooltip"
 import ReviewSection from "../../components/reviewSection/ReviewSection"
-import ReadMore from "../../components/readMore/ReadMore"
 import { TrashIcon } from "@heroicons/react/24/outline"
 import { cn } from "../../utils/cn"
 import { textLength } from "../../utils/textLength"
@@ -54,24 +53,30 @@ const RatingFields: React.FC<RatingFieldsProps> = ({ control }) => (
 
         return (
           <ReviewSection
-            flush
             // Counted the server's way — `.length` would disagree on emoji and
             // block a save the API would have accepted.
             meta={
-              <span className={cn("text-xs tabular-nums", tooLong ? "text-error font-semibold" : "opacity-60")}>
+              <span className={cn("text-xs tabular-nums", tooLong ? "text-error font-semibold" : "opacity-50")}>
                 {count.toLocaleString()} / {REVIEW_MAX_LENGTH.toLocaleString()}
               </span>
             }
-            action={<ReadMore text={field.value} />}
           >
-            {/* No maxLength: pasting past the limit would silently drop the end
+            {/* Fills the card so the whole area is clickable, with the same
+                padding the read-only body uses so the two are the same box.
+
+                No Read more here, unlike the public card: this is a textarea
+                you are typing in, so scrolling it is an input behaving
+                normally — and a button floated over the bottom right sat on
+                top of the words being written.
+
+                No maxLength: pasting past the limit would silently drop the end
                 and the writer would never find out. The counter says so and the
                 save button refuses instead. */}
             <textarea
               id="review"
-              placeholder="Write your review here..."
+              placeholder="What did you make of it?"
               spellCheck="false"
-              className="h-full w-full resize-none bg-transparent px-2 py-1.5 text-sm leading-5 outline-none placeholder:opacity-50"
+              className="h-full w-full resize-none bg-transparent px-3 py-2.5 text-sm leading-relaxed outline-none placeholder:opacity-40"
               {...field}
             />
           </ReviewSection>

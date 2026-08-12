@@ -28,6 +28,15 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.6.0",
+    date: "2026-08-12",
+    changes: [
+      "Write a short bio, so people opening your list know whose taste they are reading.",
+      "Reviews can be far longer — up to 8,000 characters — and the editor counts as you write.",
+      "A long review no longer overflows its card: Read more opens the whole thing.",
+    ],
+  },
+  {
     version: "1.5.0",
     date: "2026-08-10",
     changes: ["Shared lists can now be searched, filtered and sorted, so a long one is worth opening."],
