@@ -7,7 +7,6 @@ import styles from "./Navbar.module.css"
 import MotionContainer from "../motionContainer/MotionContainer"
 import { motion } from "motion/react"
 import { colors } from "../../utils/colors"
-import GithubIcon from "../../assets/github.svg?react"
 import IgdbLogo from "../../assets/igdb.svg?react"
 import { routes } from "../../helpers/routes"
 import { Link } from "react-router"
@@ -35,9 +34,9 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
   return (
     <nav ref={ref} {...props} className={styles.nav}>
       <div className="flex items-center justify-start gap-3">
-        {/* Repo link and build version together: both are about the software
-            rather than the product, and grouping them keeps the version out of
-            the wordmark, where a second line dragged this icon out of line. */}
+        {/* The version sits outside the wordmark on purpose: stacked over the
+            IGDB credit it made a two-line block, and items-baseline aligns a
+            block's *first* line, so the credit hung below the title. */}
         <div className="flex items-center gap-2">
           {/* From package.json via Vite's define, so it is a literal in the
               bundle and moves on rebuild with nothing to configure. */}
@@ -46,18 +45,6 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
           <Link to={routes.changelog} className={styles.versionChip} title="What's new">
             v{__APP_VERSION__}
           </Link>
-          <motion.a
-            initial={{ color: colors.text }}
-            whileHover={{ color: colors.primary }}
-            whileTap={{ scale: 0.9 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            href="https://github.com/hypestarofficial"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary"
-          >
-            <GithubIcon className="h-5 w-5" />
-          </motion.a>
         </div>
         {/* Baseline-aligned rather than bottom-aligned: the credit sits on the
             same line as the title instead of dropping into its descender space,
