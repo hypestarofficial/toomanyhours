@@ -9,9 +9,13 @@ import type { UserGame } from "../api/generated/models"
  * can reach. It is also the better list: on a profile of forty games, the full
  * IGDB set would offer twenty genres of which a dozen match nothing.
  *
- * MyList still uses `useGetGenres`. Switching it over would remove that
- * endpoint's last caller, and by this project's own rule that means deleting
- * the endpoint — an API cycle, not this one.
+ * Both list pages use this. MyList did fetch `GET /genres` instead, which is
+ * why that endpoint existed; deriving here left it with no caller and it was
+ * deleted rather than left to drift out of step with the schema.
+ *
+ * Callers pass `visibleEntries(entries)`, not the raw list: a genre carried
+ * only by an add-on hidden under its owned parent would otherwise appear as an
+ * option that matches nothing.
  */
 export const genreOptions = (entries: UserGame[]): { label: string; value: number }[] => {
   const byID = new Map<number, string>()

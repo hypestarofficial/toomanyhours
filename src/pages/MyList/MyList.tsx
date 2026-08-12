@@ -19,10 +19,8 @@ import { useMoveEntry } from "../../api/userGames"
 import { toast } from "sonner"
 import ListToolbar from "../../components/listToolbar/ListToolbar"
 import { profileShareUrl } from "../../helpers/shareUrl"
-// useGetGenres is an overloaded `export function`, not an `export const` —
-// worth knowing if you grep for it and come up empty.
-import { useGetGenres } from "../../api/generated/genres/genres"
 import { matchesFilters } from "../../list/filters"
+import { genreOptions } from "../../list/genreOptions"
 import { sortEntries } from "../../list/sort"
 import { visibleEntries } from "../../list/visibleEntries"
 
@@ -37,9 +35,6 @@ const MyList: React.FC = () => {
   // Generated hooks need `enabled` passed explicitly, or they fire before a
   // token exists and 401 on boot.
   const { data: entries, isLoading } = useGetMeGames({ query: { enabled: !!jwtToken } })
-  const { data: genres } = useGetGenres({ query: { enabled: !!jwtToken } })
-
-  const genreOptions = genres?.map((genre) => ({ label: genre.name, value: genre.id })) ?? []
 
   // Computed here rather than inside the share button, which now serves two
   // pages and must not assume the list it is looking at is yours.
@@ -98,10 +93,14 @@ const MyList: React.FC = () => {
   // visibleEntries first: an add-on reachable from its parent's card should not
   // be counted by the filter either, or a search would surface something the
   // list does not show.
-  const visible = useMemo(
-    () => visibleEntries(entries ?? []).filter((entry) => matchesFilters(entry, search, filterGenres)),
-    [entries, search, filterGenres],
-  )
+  const shown = useMemo(() => visibleEntries(entries ?? []), [entries])
+
+  // Derived from `shown`, not from the raw entries: a genre carried only by an
+  // add-on hidden under its owned parent would otherwise be offered as a filter
+  // that can never match anything.
+  const options = useMemo(() => genreOptions(shown), [shown])
+
+  const visible = useMemo(() => shown.filter((entry) => matchesFilters(entry, search, filterGenres)), [shown, search, filterGenres])
 
   // Sorted per section, over what survived the filter. Not folded into the
   // `visible` useMemo above: each section is sorted independently, and sorting
@@ -182,7 +181,7 @@ const MyList: React.FC = () => {
           <ListToolbar
             search={search}
             onSearchChange={setSearch}
-            genreOptions={genreOptions}
+            genreOptions={options}
             genres={filterGenres}
             onGenresChange={setFilterGenres}
             sortField={sortField}
