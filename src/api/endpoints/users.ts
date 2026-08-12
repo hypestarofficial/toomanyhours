@@ -1,7 +1,7 @@
 import type { User, Visibility } from "../../types/users"
 import { httpRequest } from "./api"
 
-type PatchMeBody = {
+export type PatchMeBody = {
   username?: string
   visibility?: Visibility
   /** "" clears it, matching the API's sentinel convention. */
