@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { NATURAL_DIRECTION, SORT_DIRECTION, SORT_FIELD, sortEntries } from "./sort"
-import type { UserGame } from "../../api/generated/models"
+import type { UserGame } from "../api/generated/models"
 
 type Fixture = { id: number; createdAt: string; rating?: number | null; title?: string | null }
 

@@ -1,4 +1,4 @@
-import type { UserGame } from "../../api/generated/models"
+import type { UserGame } from "../api/generated/models"
 
 /**
  * The genres worth offering as a filter for one profile: the ones its own

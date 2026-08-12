@@ -1,11 +1,11 @@
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 // The dependency points this way on purpose. LIST_LAYOUT is declared here, so
-// declaring SORT_FIELD here too would look consistent — but sort.ts is a
-// tested module, and importing this store into sort.test.ts would evaluate
+// declaring SORT_FIELD here too would look consistent — but src/list/sort.ts is
+// a tested module, and importing this store into sort.test.ts would evaluate
 // createJSONStorage(() => localStorage) under Vitest's node environment, where
 // localStorage does not exist. Do not flip it for tidiness.
-import { NATURAL_DIRECTION, SORT_DIRECTION, SORT_FIELD } from "../pages/MyList/sort"
+import { NATURAL_DIRECTION, SORT_DIRECTION, SORT_FIELD } from "../list/sort"
 
 export const LIST_LAYOUT = {
   CARDS: "cards",

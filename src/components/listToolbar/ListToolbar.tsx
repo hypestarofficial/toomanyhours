@@ -3,7 +3,7 @@ import MultiSelect from "../form/multiSelect/MultiSelect"
 import LayoutToggle from "./LayoutToggle"
 import ShareListButton from "./ShareListButton"
 import SortControl from "./SortControl"
-import type { SORT_DIRECTION, SORT_FIELD } from "../../pages/MyList/sort"
+import type { SORT_DIRECTION, SORT_FIELD } from "../../list/sort"
 import type { LIST_LAYOUT } from "../../store/useUserSettingsAuth"
 
 type ListToolbarProps = {

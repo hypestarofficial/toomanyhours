@@ -12,12 +12,12 @@ import { LIST_LAYOUT } from "../../store/useUserSettingsAuth"
 import type { UserGame } from "../../api/generated/models"
 import { useGetProfile } from "../../api/generated/profiles/profiles"
 import { ApiError } from "../../api/apiError"
-import { visibleEntries } from "../MyList/visibleEntries"
+import { visibleEntries } from "../../list/visibleEntries"
 import ListToolbar from "../../components/listToolbar/ListToolbar"
 import { profileShareUrl } from "../../helpers/shareUrl"
-import { matchesFilters } from "../MyList/filters"
-import { NATURAL_DIRECTION, SORT_DIRECTION, SORT_FIELD, sortEntries } from "../MyList/sort"
-import { genreOptions } from "./genreOptions"
+import { matchesFilters } from "../../list/filters"
+import { NATURAL_DIRECTION, SORT_DIRECTION, SORT_FIELD, sortEntries } from "../../list/sort"
+import { genreOptions } from "../../list/genreOptions"
 
 const PublicProfile: React.FC = () => {
   const { username } = useParams()

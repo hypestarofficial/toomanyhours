@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { visibleEntries } from "./visibleEntries"
-import type { UserGame } from "../../api/generated/models"
+import type { UserGame } from "../api/generated/models"
 
 // Only the fields the function reads. The generated UserGame is far wider and
 // filling it in would bury what each case is actually about.

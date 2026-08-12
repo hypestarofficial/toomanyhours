@@ -2,7 +2,7 @@ import { BarsArrowDownIcon, BarsArrowUpIcon } from "@heroicons/react/24/outline"
 import Select from "../form/select/Select"
 import MotionButton from "../motionButton/MotionButton"
 import MotionTooltip from "../motionTooltip/MotionTooltip"
-import { NATURAL_DIRECTION, SORT_DIRECTION, SORT_FIELD, SORT_LABEL } from "../../pages/MyList/sort"
+import { NATURAL_DIRECTION, SORT_DIRECTION, SORT_FIELD, SORT_LABEL } from "../../list/sort"
 
 const options = Object.values(SORT_FIELD).map((field) => ({ label: SORT_LABEL[field], value: field }))
 

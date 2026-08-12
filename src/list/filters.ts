@@ -1,4 +1,4 @@
-import type { UserGame } from "../../api/generated/models"
+import type { UserGame } from "../api/generated/models"
 
 /**
  * Whether an entry survives the current search and genre filters.

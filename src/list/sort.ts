@@ -1,4 +1,4 @@
-import type { UserGame } from "../../api/generated/models"
+import type { UserGame } from "../api/generated/models"
 
 /**
  * How MyList is ordered. Three fields, no more: the wishlist entry said

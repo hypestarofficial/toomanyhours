@@ -22,9 +22,9 @@ import { profileShareUrl } from "../../helpers/shareUrl"
 // useGetGenres is an overloaded `export function`, not an `export const` —
 // worth knowing if you grep for it and come up empty.
 import { useGetGenres } from "../../api/generated/genres/genres"
-import { matchesFilters } from "./filters"
-import { sortEntries } from "./sort"
-import { visibleEntries } from "./visibleEntries"
+import { matchesFilters } from "../../list/filters"
+import { sortEntries } from "../../list/sort"
+import { visibleEntries } from "../../list/visibleEntries"
 
 const MyList: React.FC = () => {
   const [selectedEntry, setSelectedEntry] = useState<UserGame | null>(null)
