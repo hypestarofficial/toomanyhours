@@ -3,10 +3,11 @@ import Modal from "../../../components/modal/Modal"
 import type { UserGame } from "../../../api/generated/models"
 import { Image } from "@heroui/image"
 import MotionButton from "../../../components/motionButton/MotionButton"
-import { Form, useForm } from "react-hook-form"
+import { Form, useForm, useWatch } from "react-hook-form"
 import DlcList from "./DlcList"
 import GameSummary from "../../../components/gameSummary/GameSummary"
 import RatingFields from "../RatingFields"
+import { reviewTooLong } from "../../../list/review"
 import type { RatingFormValues } from "../RatingFields"
 import { handleError } from "../../../utils/errors"
 import { toast } from "sonner"
@@ -70,6 +71,13 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
   useEffect(() => {
     reset({ rating: entry?.rating ?? 0, review: entry?.review ?? "" })
   }, [entry, reset])
+
+  // Watched rather than validated on submit: the button has to refuse *before*
+  // the request, or an over-long review comes back as a bare 400 that renders
+  // as "something went wrong" with no mention of the limit.
+  // useWatch rather than watch(): the React Compiler cannot memoize a
+  // function returned by useForm, and lint rejects it outright.
+  const tooLong = reviewTooLong(useWatch({ control, name: "review" }) ?? "")
 
   const close = () => {
     reset()
@@ -140,8 +148,14 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
           Not a Modal `size`: those are min-widths, and a min-width beats a
           max-width in CSS, so a large one would force horizontal overflow on a
           phone. A plain md: width lets the modal grow on a desktop and stay
-          inside max-w-[90%] everywhere else. */}
-      <Form control={control} className="flex w-full flex-col gap-6 p-6 md:w-[54rem] lg:w-[64rem]">
+          inside max-w-[90%] everywhere else.
+
+          Sized to match the public card's 42rem rather than the 54/64rem it
+          used to be. That much width left the review box a very long single
+          line and pushed the two columns apart with nothing between them; the
+          form needs a little more room than the read-only card, hence the lg
+          step, but not twice as much. */}
+      <Form control={control} className="flex w-full flex-col gap-6 p-6 md:w-[42rem] lg:w-[48rem]">
         {/* Side by side on a desktop, stacked on a phone. The cover is the one
             thing here that is only looked at, so it goes in a column of its own
             and everything you can act on shares the other. */}
@@ -153,8 +167,17 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
             {entry?.game?.image && (
               <Image src={entry.game.image} alt={entry.game.title} className="w-full max-w-48 rounded-md object-cover md:max-w-none" />
             )}
-            {entry?.game?.genres && (
-              <div className="flex w-full flex-wrap items-center justify-center gap-1 md:justify-start">
+          </div>
+
+          {/* min-w-0 so a long add-on title truncates instead of widening the
+              column past the modal. */}
+          <div className="flex min-w-0 flex-1 flex-col gap-5">
+            {/* Genres lead, matching the public card. They are the fastest
+                thing on the card to read and they set expectations for
+                everything under them — under the cover in the left column they
+                were the last thing anybody looked at. */}
+            {entry?.game?.genres && entry.game.genres.length > 0 && (
+              <div className="flex w-full flex-wrap items-center gap-1">
                 {entry.game.genres.map((genre) => (
                   <Badge variant="dark" key={genre.id}>
                     {genre.name}
@@ -162,27 +185,26 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
                 ))}
               </div>
             )}
-          </div>
 
-          {/* min-w-0 so a long add-on title truncates instead of widening the
-              column past the modal. */}
-          <div className="flex min-w-0 flex-1 flex-col gap-5">
-            {/* First in the column: a description is what you read before
-                deciding anything else on this card. */}
             <GameSummary summary={entry?.game?.summary} />
 
             {/* PLAY mode shows neither field, even when the row holds a rating
                 from a previous stint in finished. */}
             {showsForm && <RatingFields control={control} />}
-
-            {/* Only for a game that could have add-ons. An add-on's own card
-                does not list further add-ons — IGDB does not nest them, and a
-                DLC of a DLC is not a thing. */}
-            {entry?.game && entry.game.kind !== "dlc" && entry.game.kind !== "expansion" && (
-              <DlcList igdbId={entry.game.igdbId} parentTitle={entry.game.title} />
-            )}
           </div>
         </div>
+
+        {/* Full width beneath both columns, like the public card's add-on list:
+            these belong to the game rather than to the right-hand column, and
+            indented under it they read as a footnote to the review above them.
+            The extra width also stops long add-on titles truncating so early.
+
+            Only for a game that could have add-ons. An add-on's own card does
+            not list further add-ons — IGDB does not nest them, and a DLC of a
+            DLC is not a thing. */}
+        {entry?.game && entry.game.kind !== "dlc" && entry.game.kind !== "expansion" && (
+          <DlcList igdbId={entry.game.igdbId} parentTitle={entry.game.title} />
+        )}
 
         {/* Full width beneath both columns: the actions apply to the whole
             card, not to the right-hand one. */}
@@ -227,7 +249,7 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
               the entry's own values whenever a card opens, so a freshly opened
               card starts clean rather than counting the prefill as an edit. */}
           {mode === GAME_CARD_MODE.EDIT && (
-            <MotionButton variant="success" onClick={handleSubmit(onSubmit)} disabled={!isDirty}>
+            <MotionButton variant="success" onClick={handleSubmit(onSubmit)} disabled={!isDirty || tooLong}>
               Save
             </MotionButton>
           )}
