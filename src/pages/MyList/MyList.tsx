@@ -113,15 +113,6 @@ const MyList: React.FC = () => {
       sortDirection,
     )
 
-  // Always, not only while filtering. It began as a filtering-only answer to
-  // one ambiguity — an open, empty section could mean no matches or no games in
-  // that category — and how many games are in each is worth knowing at rest too.
-  //
-  // The number counts what is *shown*, so it moves as the filter narrows. That
-  // is the point: a heading that kept reading "finished (47)" while three cards
-  // were on screen would be answering a question nobody asked.
-  const sectionTitle = (label: string, category: LIST_TYPE) => `${label} (${byCategory(category).length})`
-
   const { mutate: moveEntry } = useMoveEntry()
 
   // Without a distance constraint every click counts as a drag and the detail
@@ -202,7 +193,7 @@ const MyList: React.FC = () => {
             shareDisabledReason="Your profile is private — make it public in settings to share it"
           />
           <ListSection
-            title={sectionTitle("finished", LIST_TYPE.FINISHED)}
+            title="finished"
             category={LIST_TYPE.FINISHED}
             entries={byCategory(LIST_TYPE.FINISHED)}
             allEntries={entries}
@@ -213,7 +204,7 @@ const MyList: React.FC = () => {
             isFiltering={isFiltering}
           />
           <ListSection
-            title={sectionTitle("currently playing", LIST_TYPE.CURRENTLY_PLAYING)}
+            title="currently playing"
             category={LIST_TYPE.CURRENTLY_PLAYING}
             entries={byCategory(LIST_TYPE.CURRENTLY_PLAYING)}
             allEntries={entries}
@@ -224,7 +215,7 @@ const MyList: React.FC = () => {
             isFiltering={isFiltering}
           />
           <ListSection
-            title={sectionTitle("want to play", LIST_TYPE.WANT_TO_PLAY)}
+            title="want to play"
             category={LIST_TYPE.WANT_TO_PLAY}
             entries={byCategory(LIST_TYPE.WANT_TO_PLAY)}
             allEntries={entries}

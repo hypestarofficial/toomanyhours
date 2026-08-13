@@ -16,9 +16,15 @@ type CollapseProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   isLoading?: boolean
+  /**
+   * How many things are inside, shown beside the title. Undefined hides it
+   * entirely, which is what a section still loading passes — a 0 mid-fetch
+   * reads as "none" a moment before the content arrives.
+   */
+  count?: number
 }
 
-const MotionCollapse = ({ title, children, open, onOpenChange, isLoading = false }: CollapseProps) => (
+const MotionCollapse = ({ title, children, open, onOpenChange, isLoading = false, count }: CollapseProps) => (
   <div className="flex w-full flex-col gap-3 border-b! border-white! pb-5">
     <motion.button
       initial={{ color: colors.text }}
@@ -26,7 +32,13 @@ const MotionCollapse = ({ title, children, open, onOpenChange, isLoading = false
       onClick={() => onOpenChange(!open)}
       className="flex w-full items-center justify-between text-left"
     >
-      <h4 className="font-semibold select-none">{title}</h4>
+      <div className="flex items-baseline gap-2">
+        <h4 className="font-semibold select-none">{title}</h4>
+        {/* A bare dimmed number, as DlcList prints beside its own heading — no
+            parentheses, and no size of its own, so it sits at the title's size
+            rather than the small one that suits a heading inside a card. */}
+        {count !== undefined && <span className="opacity-60 select-none">{count}</span>}
+      </div>
       <motion.div animate={{ rotate: open ? 180 : 0 }}>
         <ChevronDownIcon className="h-5 w-5 text-white" />
       </motion.div>

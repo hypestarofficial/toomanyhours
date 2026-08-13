@@ -62,7 +62,16 @@ const ListSection: React.FC<ListSectionProps> = ({
     // Inside the collapsible content, dropping onto a closed section would be
     // impossible.
     <div ref={setNodeRef} className={cn("rounded-xl transition-colors", isOver && "bg-highlight/10 ring-highlight ring-2")}>
-      <MotionCollapse title={title} open={open} onOpenChange={onOpenChange} isLoading={isLoading}>
+      {/* The count is derived here rather than passed in, so it cannot disagree
+          with what is rendered below: it is the length of the very array these
+          cards come from, which is the filtered, sorted set for this section. */}
+      <MotionCollapse
+        title={title}
+        open={open}
+        onOpenChange={onOpenChange}
+        isLoading={isLoading}
+        count={isLoading ? undefined : (entries?.length ?? 0)}
+      >
         {entries && entries.length > 0 ? (
           <div className={layout === LIST_LAYOUT.ROWS ? styles.gamesRows : styles.gamesGrid}>
             {/* Keyed by the entry, not the game: the entry is what is being
