@@ -142,8 +142,56 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
     }
   }
 
+  // Rendered through Modal's `footer`, which sits *outside* the scrolling
+  // content region rather than inside the form. Inside it, a card with a long
+  // summary and a dozen add-ons pushed Remove and Save below the fold, and the
+  // only actions on the card had to be scrolled to. That slot exists for this.
+  const actions = (
+    <div className="flex w-full items-center justify-center gap-3 border-t border-white/5 px-6 py-4">
+      {/* Centred as a pair, at their natural size. Neither carries `flex`,
+          which means w-full and turned the primary into a green bar the length
+          of the card.
+
+          This does put Remove beside the button clicked every time, which
+          earlier layouts kept apart. It is survivable because Remove opens a
+          confirmation naming the game rather than acting straight away — the
+          dialog is what makes the adjacency safe, so it must stay. Remove shows
+          in all three modes: a want-to-play you have gone off is the likeliest
+          thing anyone removes. */}
+      <MotionButton variant="error" onClick={() => entry && setConfirmingGameId(entry.gameId)} disabled={removing}>
+        Remove
+      </MotionButton>
+
+      {/* No Skip. It was the escape hatch from a mandatory rating, and it did
+          not finish the game — it closed the modal with a reassuring toast.
+          With rating optional, Finish with no stars picked is the honest
+          version of that. Plain dismissal is the header's × and the backdrop. */}
+      {mode === GAME_CARD_MODE.PLAY && (
+        <MotionButton variant="success" onClick={onPlay}>
+          Play!
+        </MotionButton>
+      )}
+      {mode === GAME_CARD_MODE.FINISH && (
+        <MotionButton variant="success" onClick={handleSubmit(onSubmit)}>
+          Finish
+        </MotionButton>
+      )}
+      {/* Save alone is disabled until something changes. There is nothing to
+          save on an untouched finished entry, and an always-live Save gives no
+          clue whether an edit registered. Finish is not gated the same way: it
+          moves the entry, which is a real change even when neither field was
+          touched. isDirty is honest because the effect above resets the form to
+          the entry's own values whenever a card opens. */}
+      {mode === GAME_CARD_MODE.EDIT && (
+        <MotionButton variant="success" onClick={handleSubmit(onSubmit)} disabled={!isDirty || tooLong}>
+          Save
+        </MotionButton>
+      )}
+    </div>
+  )
+
   return (
-    <Modal isOpen={!!entry} onClose={close}>
+    <Modal isOpen={!!entry} onClose={close} footer={actions}>
       {/* Fixed width from md up, so the two columns below have somewhere to go.
           Not a Modal `size`: those are min-widths, and a min-width beats a
           max-width in CSS, so a large one would force horizontal overflow on a
@@ -155,11 +203,19 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
           line and pushed the two columns apart with nothing between them; the
           form needs a little more room than the read-only card, hence the lg
           step, but not twice as much. */}
-      <Form control={control} className="flex w-full flex-col gap-6 p-6 md:w-[42rem] lg:w-[48rem]">
+      {/* max-h-full + min-h-0 make this a height-bounded flex column, so the
+          add-on list below can flex into whatever room is left instead of
+          being capped at a guessed height. Short cards stay short — this is a
+          max, not a fixed height. If even the floor does not fit, the form
+          overflows and the modal's own scroll takes over, which is the
+          fallback rather than the normal case. */}
+      <Form control={control} className="flex max-h-full min-h-0 w-full flex-col gap-6 px-6 pb-4 md:w-[42rem] lg:w-[48rem]">
         {/* Side by side on a desktop, stacked on a phone. The cover is the one
             thing here that is only looked at, so it goes in a column of its own
             and everything you can act on shares the other. */}
-        <div className="flex flex-col gap-6 md:flex-row md:items-start">
+        {/* shrink-0 so the slack is taken from the add-on list rather than from
+            the cover and the review. */}
+        <div className="flex shrink-0 flex-col gap-6 md:flex-row md:items-start">
           <div className="flex w-full flex-col items-center gap-3 md:w-48 md:shrink-0">
             {/* aspect-3/4 matches IGDB cover art. Capped on a phone so the
                 cover does not fill the screen before anything else is
@@ -205,55 +261,6 @@ const GameCard: React.FC<GameCardProps> = ({ entry, onClose }) => {
         {entry?.game && entry.game.kind !== "dlc" && entry.game.kind !== "expansion" && (
           <DlcList igdbId={entry.game.igdbId} parentTitle={entry.game.title} />
         )}
-
-        {/* Full width beneath both columns: the actions apply to the whole
-            card, not to the right-hand one. */}
-        <div className="flex w-full items-center justify-center gap-3">
-          {/* Centred as a pair, at their natural size. Neither carries `flex`,
-              which means w-full and turned the primary into a green bar the
-              length of a 64rem card.
-
-              This does put Remove beside the button clicked every time, which
-              earlier layouts kept apart. It is survivable here because Remove
-              opens a confirmation naming the game rather than acting straight
-              away — the dialog is what makes the adjacency safe, so it must
-              stay. Remove shows in all three modes: a want-to-play you have
-              gone off is the likeliest thing anyone removes. */}
-          <MotionButton variant="error" onClick={() => entry && setConfirmingGameId(entry.gameId)} disabled={removing}>
-            Remove
-          </MotionButton>
-
-          {/* No Skip. It was the escape hatch from a mandatory rating, and it
-              did not finish the game — it closed the modal with a reassuring
-              toast. With rating optional, Finish with no stars picked is the
-              honest version of that. Plain dismissal is the header's × and the
-              backdrop, as everywhere else. */}
-          {mode === GAME_CARD_MODE.PLAY && (
-            <MotionButton variant="success" onClick={onPlay}>
-              Play!
-            </MotionButton>
-          )}
-          {mode === GAME_CARD_MODE.FINISH && (
-            <MotionButton variant="success" onClick={handleSubmit(onSubmit)}>
-              Finish
-            </MotionButton>
-          )}
-          {/* Save alone is disabled until something changes. There is nothing
-              to save on an untouched finished entry, and an always-live Save
-              gives no clue whether an edit registered.
-
-              Finish is not gated the same way: it moves the entry to finished,
-              which is a real change even when neither field was touched.
-
-              isDirty is honest here because the effect above resets the form to
-              the entry's own values whenever a card opens, so a freshly opened
-              card starts clean rather than counting the prefill as an edit. */}
-          {mode === GAME_CARD_MODE.EDIT && (
-            <MotionButton variant="success" onClick={handleSubmit(onSubmit)} disabled={!isDirty || tooLong}>
-              Save
-            </MotionButton>
-          )}
-        </div>
       </Form>
 
       {/* A second Modal, nested inside the first. Both portal to document.body

@@ -149,8 +149,25 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
 
   const year = selected?.releaseDate?.slice(0, 4)
 
+  // Through Modal's `footer`, outside the scrolling content — on a short
+  // screen the cover, the category buttons, the review box and the stars
+  // together pushed Add Game below the fold. Only on step two: Modal skips the
+  // footer entirely when it is falsy, and the search step's action is picking
+  // a row.
+  const actions =
+    step === "details" ? (
+      <div className="flex w-full gap-2 border-t border-white/5 px-6 py-4">
+        <MotionButton onClick={back} disabled={isPending}>
+          Back
+        </MotionButton>
+        <MotionButton flex variant="success" onClick={handleSubmit(onSubmit)} disabled={!category || isPending || tooLong}>
+          Add Game
+        </MotionButton>
+      </div>
+    ) : null
+
   return (
-    <Modal isOpen={isOpen} onClose={close}>
+    <Modal isOpen={isOpen} onClose={close} footer={actions}>
       <div className="flex w-full flex-col gap-4 px-6 pb-6">
         {step === "search" ? (
           <>
@@ -214,15 +231,6 @@ const AddGameModal: React.FC<AddGameModalProps> = ({ isOpen, onClose }) => {
 
             {/* Both fields are optional; Add stays enabled with neither. */}
             {scored && <RatingFields control={control} />}
-
-            <div className="flex w-full gap-2">
-              <MotionButton onClick={back} disabled={isPending}>
-                Back
-              </MotionButton>
-              <MotionButton flex variant="success" onClick={handleSubmit(onSubmit)} disabled={!category || isPending || tooLong}>
-                Add Game
-              </MotionButton>
-            </div>
           </MotionContainer>
         )}
       </div>
