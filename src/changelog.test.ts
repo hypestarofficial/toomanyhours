@@ -56,6 +56,17 @@ describe("changelog", () => {
       }
     }
   })
+
+  // An empty string is not the way to say "no intro" — undefined is. A blank
+  // one renders as a paragraph of nothing above the list, pushing it down for
+  // no reason, and no other check here would notice.
+  it("has no blank intro", () => {
+    for (const entry of changelog) {
+      if (entry.intro !== undefined) {
+        expect(entry.intro.trim()).not.toBe("")
+      }
+    }
+  })
 })
 
 // The rule this encodes is the one already written down: a feature release has

@@ -22,19 +22,25 @@ const Changelog: React.FC = () => (
             <span className="text-xs opacity-60">{entry.date}</span>
           </div>
 
-          <ul className="flex flex-col gap-1">
+          {/* Prose, so no dash and a little more room beneath it: this is the
+              paragraph the list hangs off, not the first item in it. */}
+          {entry.intro && <p className="mb-1 text-sm leading-relaxed opacity-80">{entry.intro}</p>}
+
+          <ul className="flex flex-col gap-1.5">
             {entry.changes.map((change) => (
-              <li key={change} className="text-sm opacity-90">
-                — {change}
+              // The dash is a hanging marker: `flex` puts it beside the text
+              // rather than in it, so a line that wraps lines up under the
+              // first word instead of under the dash.
+              <li key={change} className="flex gap-2 text-sm leading-relaxed opacity-90">
+                <span aria-hidden="true" className="opacity-60 select-none">
+                  —
+                </span>
+                <span>{change}</span>
               </li>
             ))}
           </ul>
         </div>
       ))}
-
-      {/* Says where the record starts, so the gap reads as a known boundary
-          rather than missing data. */}
-      <p className="text-xs opacity-60">Versions before 0.4.0 are not recorded since I was lazy to come up with proper versioning.</p>
     </MotionContainer>
   </Page>
 )

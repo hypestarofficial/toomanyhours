@@ -3,6 +3,17 @@ export type ChangelogEntry = {
   version: string
   /** ISO date, the day it landed on main. */
   date: string
+  /**
+   * A sentence or two of prose above the list, for a release that needs framing
+   * rather than itemising — 1.0.0 being the case it exists for. Optional, and
+   * most releases should not have one: a changelog is a list, and an entry that
+   * opens with a paragraph every time is a blog.
+   *
+   * It is separate from `changes` rather than being its first item because the
+   * page prefixes each change with a dash. A paragraph behind a list marker
+   * reads as an oversized bullet, which is exactly how it looked.
+   */
+  intro?: string
   /** What changed, in the language someone using the app would use. */
   changes: string[]
 }
@@ -42,8 +53,16 @@ export const changelog: ChangelogEntry[] = [
   {
     version: "1.0.0",
     date: "2026-08-13",
+    intro:
+      "TooManyHours keeps track of the games you play, and turns that into a page you can send to someone. It is built for a few friends rather than for everyone, so it does one thing properly: your list, and somewhere to share it.",
     changes: [
-      "TooManyHours keeps track of the games you play and turns that into a page you can share. Add anything from IGDB's catalogue to one of three lists — finished, currently playing, or want to play — and drag a game between them as things change. Rate what you have finished out of ten in half stars and write as long a review as you like; DLC and expansions sit under the game they belong to. Your list lives at /u/your-name with your photo and bio at the top, shared with anyone you send the link to or kept private to just you. Search it, filter by genre, sort by rating, name or when you added it, and read it as covers or as rows.",
+      "Keep three lists — finished, currently playing and want to play — and drag a game from one to another as things change.",
+      "Add games from IGDB, with the cover, genres and release date filled in for you.",
+      "Rate a finished game out of ten in half stars, and write as long a review as you want.",
+      "Find a game's DLC and expansions on its card, and keep those in your lists too.",
+      "Share your list at /u/your-name, or make your profile private and keep it to yourself.",
+      "Put a photo and a short bio at the top of your list.",
+      "Search it, filter by genre, sort by rating, name or when you added it, and read it as covers or as rows.",
     ],
   },
 ]
