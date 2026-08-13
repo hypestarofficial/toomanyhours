@@ -127,10 +127,14 @@ const Profile: React.FC = () => {
                 capped box silently drops the end and the writer never finds
                 out — tolerable for a 16-character game tag, not for a paragraph
                 somebody wrote somewhere else. */}
+            {/* Six rows, not four: at four, a bio anywhere near the 500
+                character limit scrolls inside its own box, and a box that
+                scrolls under the cursor steals the page's wheel and shows a
+                half-cut line at the top. Six fits most of a full-length bio. */}
             <TextArea
               id="bio"
               sideLabel={false}
-              rows={4}
+              rows={6}
               placeholder="A sentence or two about what you play."
               value={bio}
               onChange={(event) => setBio(event.currentTarget.value)}

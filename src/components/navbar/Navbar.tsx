@@ -50,7 +50,7 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
             same line as the title instead of dropping into its descender space,
             which is what reads as one piece of type rather than two. This only
             works while it is a single line — see the version chip above. */}
-        <div className="flex items-baseline gap-2">
+        <div className="flex items-baseline gap-1">
           <h1 className={styles.title}>tooManyHours</h1>
           {/* IGDB asks to be credited where their data is used. "powered by"
               stays as text and only the name became the logo, so the credit
