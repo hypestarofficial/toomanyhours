@@ -56,11 +56,27 @@ describe("changelog", () => {
       }
     }
   })
+
+  // An empty string is not the way to say "no intro" — undefined is. A blank
+  // one renders as a paragraph of nothing above the list, pushing it down for
+  // no reason, and no other check here would notice.
+  it("has no blank intro", () => {
+    for (const entry of changelog) {
+      if (entry.intro !== undefined) {
+        expect(entry.intro.trim()).not.toBe("")
+      }
+    }
+  })
 })
 
 // The rule this encodes is the one already written down: a feature release has
 // something a person would notice, so it needs an entry, while a patch may have
-// nothing worth telling anyone and is allowed to skip. 1.5.1 skipped rightly.
+// nothing worth telling anyone and is allowed to skip.
+//
+// Batched releases do not weaken it. Work now sits on main unreleased, which
+// this cannot see and has no reason to — package.json is not moving, so there
+// is nothing to be missing an entry for. It fires exactly when a release is
+// declared, which is the moment the entry is owed.
 //
 // It exists because 1.6.0 shipped with its entry silently missing — the version
 // was bumped, the entry was not written, and every other test here passed,
