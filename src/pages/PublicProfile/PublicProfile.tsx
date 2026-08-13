@@ -71,9 +71,10 @@ const PublicProfile: React.FC = () => {
       sortDirection,
     )
 
-  // An open, empty section is ambiguous while filtering — no matches, or
-  // nothing in that category at all?
-  const sectionTitle = (label: string, category: LIST_TYPE) => (isFiltering ? `${label} (${byCategory(category).length})` : label)
+  // Always, not only while filtering — the same rule MyList uses, and counting
+  // what is shown rather than the total for the same reason. The header above
+  // carries the unfiltered totals, so both facts are on the page.
+  const sectionTitle = (label: string, category: LIST_TYPE) => `${label} (${byCategory(category).length})`
 
   // `/api` is the prefix httpRequest hardcodes and vite.config.ts proxies away.
   // An image URL has to carry it too, because the browser fetches this directly
