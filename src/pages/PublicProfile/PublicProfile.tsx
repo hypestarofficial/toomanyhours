@@ -75,6 +75,12 @@ const PublicProfile: React.FC = () => {
   // nothing in that category at all?
   const sectionTitle = (label: string, category: LIST_TYPE) => (isFiltering ? `${label} (${byCategory(category).length})` : label)
 
+  // `/api` is the prefix httpRequest hardcodes and vite.config.ts proxies away.
+  // An image URL has to carry it too, because the browser fetches this directly
+  // rather than through the wrapper. The `?v=` is what earns the immutable cache
+  // header; without it the server answers no-cache and every visit refetches.
+  const avatarUrl = profile?.avatarHash ? `/api/profiles/${encodeURIComponent(profile.username)}/avatar?v=${profile.avatarHash}` : null
+
   if (isLoading) {
     return <Loader fullPage />
   }
@@ -96,7 +102,7 @@ const PublicProfile: React.FC = () => {
       <MotionContainer className="flex w-full flex-col gap-5 pb-10">
         {/* `shown`, not `visible`: these are totals, so they must not move when
             somebody types in the search box. */}
-        <ProfileHeader username={profile.username} bio={profile.bio} createdAt={profile.createdAt} entries={shown} />
+        <ProfileHeader username={profile.username} bio={profile.bio} createdAt={profile.createdAt} entries={shown} avatarUrl={avatarUrl} />
 
         <ListToolbar
           search={search}

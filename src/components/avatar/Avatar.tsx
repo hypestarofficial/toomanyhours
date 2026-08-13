@@ -1,5 +1,4 @@
 import { UserCircleIcon } from "@heroicons/react/24/solid"
-import { Image } from "@heroui/image"
 import { cn } from "../../utils/cn"
 
 type AvatarProps = {
@@ -23,7 +22,12 @@ const Avatar: React.FC<AvatarProps> = ({ image, username, email, size = "md", ov
     <div className="flex items-center gap-4">
       <div className="relative shrink-0">
         <div className={cn("bg-secondaryBg flex items-center justify-center overflow-hidden rounded-full", box)}>
-          {image ? <Image src={image} alt={username} className={cn("object-cover", box)} /> : <UserCircleIcon className={box} />}
+          {/* A plain <img>, not HeroUI's Image: that one puts z-10 on the image
+              element itself, which paints it over anything in `overlay` — the
+              edit and remove buttons ended up half-hidden behind the photo. It
+              also brings a blur/zoom wrapper this has no use for, and the other
+              two places a photo appears use a plain img already. */}
+          {image ? <img src={image} alt={username} className={cn("object-cover", box)} /> : <UserCircleIcon className={box} />}
         </div>
         {overlay}
       </div>
