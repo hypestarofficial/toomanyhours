@@ -11,122 +11,150 @@ import { usePatchMeMutation } from "../../api/endpoints/useQuery"
 import { handleError } from "../../utils/errors"
 import UsernameStatus from "../../components/form/UsernameStatus"
 import TextArea from "../../components/form/textArea/TextArea"
+import SettingsSection from "./SettingsSection"
 import type { Visibility } from "../../types/users"
 import { cn } from "../../utils/cn"
 import { BIO_MAX_LENGTH, bioLength } from "./bio"
+import { changedFields, hasChanges, saveBlockedReason } from "./settingsForm"
+import type { SavedSettings } from "./settingsForm"
 
 const visibilityOptions: { label: string; value: Visibility }[] = [
   { label: "Public", value: "public" },
   { label: "Private", value: "private" },
 ]
 
+const USERNAME_MAX_LENGTH = 16
+
+/**
+ * Account settings: one panel, one rhythm, one Save.
+ *
+ * **The old page saved each field on its own**, which put three different
+ * controls on screen doing the same job — a full-width Save under the game tag,
+ * a small right-aligned one under the bio, and nothing at all under visibility,
+ * which applied the moment the dropdown closed. Reading it, there was no way to
+ * tell which fields were saved and which were pending.
+ *
+ * One Save costs one thing worth stating: a rejected game tag now blocks the
+ * bio in the same request, because it is one request. That is the trade for a
+ * page where "have I saved this?" has a single answer, and the fields that can
+ * be judged before sending — length, shape, the bio limit — are judged here
+ * with the reason shown, so the common mistakes never reach the API.
+ *
+ * The photo is the exception and stays immediate: an upload has its own
+ * progress, its own failure, and nothing to batch it with.
+ */
 const Profile: React.FC = () => {
   const { user } = useAuthStore()
-  const [username, setUsername] = useState(user?.username ?? "")
-  const [bio, setBio] = useState(user?.bio ?? "")
   const patchMe = usePatchMeMutation()
 
-  const usernameChanged = username !== user?.username && username.length >= 3
+  const [username, setUsername] = useState(user?.username ?? "")
+  const [bio, setBio] = useState(user?.bio ?? "")
+  const [visibility, setVisibility] = useState<Visibility>(user?.visibility ?? "public")
 
-  const handleSaveUsername = () => {
-    patchMe.mutate(
-      { username },
-      {
-        onSuccess: () => toast.success("Game tag updated"),
-        onError: (error) => handleError({ error, userMessage: "Could not update game tag", componentName: "Profile" }),
-      },
-    )
+  const saved: SavedSettings = {
+    username: user?.username ?? "",
+    bio: user?.bio ?? null,
+    visibility: user?.visibility ?? "public",
   }
+  const form = { username, bio, visibility }
 
-  // Counted the server's way. `.length` would disagree on emoji and block a
-  // save the API would have accepted — see bio.ts.
+  const dirty = hasChanges(form, saved)
+  const blocked = saveBlockedReason(form, saved)
+
+  // Counted the server's way. `.length` would disagree the moment somebody uses
+  // an emoji and refuse text the API accepts.
   const bioCount = bioLength(bio)
   const bioTooLong = bioCount > BIO_MAX_LENGTH
-  const bioChanged = bio.trim() !== (user?.bio ?? "")
 
-  const handleSaveBio = () => {
-    // "" is the clear sentinel. Trimming here matches validate.Bio server-side,
-    // so the field keeps showing what was actually stored.
-    patchMe.mutate(
-      { bio: bio.trim() },
-      {
-        onSuccess: () => toast.success("Bio updated"),
-        onError: (error) => handleError({ error, userMessage: "Could not update bio", componentName: "Profile" }),
-      },
-    )
-  }
+  const handleSave = () => {
+    const patch = changedFields(form, saved)
 
-  const isPrivate = user?.visibility === "private"
-
-  const handleVisibilityChange = (value: string | number) => {
-    patchMe.mutate(
-      { visibility: value as Visibility },
-      {
-        onSuccess: () => toast.success(value === "private" ? "Profile is now private" : "Profile is now public"),
-        onError: (error) => handleError({ error, userMessage: "Could not update visibility", componentName: "Profile" }),
-      },
-    )
+    patchMe.mutate(patch, {
+      onSuccess: () => toast.success("Settings saved"),
+      onError: (error) => handleError({ error, userMessage: "Could not save your settings", componentName: "Profile" }),
+    })
   }
 
   return (
-    <Page>
-      <MotionContainer className="flex w-full max-w-md flex-col items-center gap-10 p-10">
-        <AvatarField />
+    <Page align="start" className="overflow-y-auto">
+      <MotionContainer className="flex w-full max-w-xl flex-col gap-6 py-10">
+        <h1 className="px-6 text-2xl font-semibold">Settings</h1>
 
-        <div className="flex w-full flex-col gap-2">
-          <Input
-            type="text"
-            id="username"
-            label="Game tag"
-            maxLength={16}
-            value={username}
-            onChange={(event) => setUsername(event.currentTarget.value.toLowerCase())}
-          />
-          {/* currentUsername is what stops your own name reading as taken. */}
-          <UsernameStatus value={username} currentUsername={user?.username} />
-          <MotionButton flex disabled={!usernameChanged || patchMe.isPending} onClick={handleSaveUsername}>
-            Save
-          </MotionButton>
-        </div>
+        {/* A bordered panel rather than a filled one: the inputs are already
+            secondaryBg, so a card in the same colour would swallow them. */}
+        <div className="flex w-full flex-col rounded-xl border border-white/10">
+          {/* No border-t, being first — the panel's own edge is the divider. */}
+          <div className="px-6 py-6">
+            <AvatarField />
+          </div>
 
-        <div className="flex w-full flex-col gap-2">
-          <TextArea
-            id="bio"
-            label="Bio"
-            sideLabel={false}
-            rows={4}
-            placeholder="A sentence or two about what you play."
-            value={bio}
-            onChange={(event) => setBio(event.currentTarget.value)}
-          />
-          {/* Deliberately no maxLength on the field. Pasting 600 characters into
-              a hard-capped textarea silently drops the end and the writer never
-              finds out — tolerable for the 16-character game tag above, not for
-              a paragraph somebody wrote somewhere else. */}
-          <div className="flex items-center justify-between gap-2">
-            <span className={cn("text-xs", bioTooLong ? "text-error font-semibold" : "opacity-70")}>
-              {bioCount} / {BIO_MAX_LENGTH}
-            </span>
-            <MotionButton disabled={!bioChanged || bioTooLong || patchMe.isPending} onClick={handleSaveBio}>
-              Save
+          <SettingsSection
+            title="Game tag"
+            htmlFor="username"
+            description="Your name on the site, and the address of your list."
+            footer={
+              <>
+                <UsernameStatus value={username} currentUsername={user?.username} />
+                {/* Pushed right on its own, so the slot stays put whether or not
+                    the status line to its left is showing anything. */}
+                <span className="ml-auto opacity-60">
+                  {username.length} / {USERNAME_MAX_LENGTH}
+                </span>
+              </>
+            }
+          >
+            <Input
+              type="text"
+              id="username"
+              sideLabel={false}
+              maxLength={USERNAME_MAX_LENGTH}
+              value={username}
+              onChange={(event) => setUsername(event.currentTarget.value.toLowerCase())}
+            />
+          </SettingsSection>
+
+          <SettingsSection
+            title="Bio"
+            htmlFor="bio"
+            description="A sentence or two, shown at the top of your list."
+            footer={
+              <span className={cn("ml-auto", bioTooLong ? "text-error font-semibold" : "opacity-60")}>
+                {bioCount} / {BIO_MAX_LENGTH}
+              </span>
+            }
+          >
+            {/* Deliberately no maxLength. Pasting 600 characters into a hard-
+                capped box silently drops the end and the writer never finds
+                out — tolerable for a 16-character game tag, not for a paragraph
+                somebody wrote somewhere else. */}
+            <TextArea
+              id="bio"
+              sideLabel={false}
+              rows={4}
+              placeholder="A sentence or two about what you play."
+              value={bio}
+              onChange={(event) => setBio(event.currentTarget.value)}
+            />
+          </SettingsSection>
+
+          <SettingsSection
+            title="Profile visibility"
+            description={visibility === "private" ? "Only you can see your list." : "Anyone with your link can see your list."}
+          >
+            {/* Select builds its own control rather than a labelled input, so
+                this section's heading is a plain h2 and not a label. */}
+            <Select options={visibilityOptions} value={visibility} onChange={(value) => setVisibility(value as Visibility)} />
+          </SettingsSection>
+
+          <div className="flex items-center justify-end gap-4 border-t border-white/10 px-6 py-4">
+            {/* The reason sits beside the button it disables. A disabled Save
+                with no explanation was the old page's worst habit. */}
+            {blocked && <p className="text-error text-xs">{blocked}</p>}
+            <MotionButton disabled={!dirty || !!blocked || patchMe.isPending} onClick={handleSave}>
+              {patchMe.isPending ? "Saving…" : "Save changes"}
             </MotionButton>
           </div>
         </div>
-
-        <div className="flex w-full flex-col gap-2">
-          <p className="text-sm">Profile visibility</p>
-          <Select
-            options={visibilityOptions}
-            value={user?.visibility ?? "public"}
-            onChange={handleVisibilityChange}
-            disabled={patchMe.isPending}
-          />
-          <p className="text-xs opacity-70">{isPrivate ? "Only you can see your list." : "Anyone with your link can see your list."}</p>
-        </div>
-
-        <MotionButton size="default" variant="error" onClick={() => {}} flex>
-          Delete Profile
-        </MotionButton>
       </MotionContainer>
     </Page>
   )
