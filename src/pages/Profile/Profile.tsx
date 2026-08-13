@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { toast } from "sonner"
-import Avatar from "../../components/avatar/Avatar"
+import AvatarField from "./AvatarField"
 import Input from "../../components/form/input/Input"
 import Select from "../../components/form/select/Select"
 import MotionButton from "../../components/motionButton/MotionButton"
@@ -71,7 +71,7 @@ const Profile: React.FC = () => {
   return (
     <Page>
       <MotionContainer className="flex w-full max-w-md flex-col items-center gap-10 p-10">
-        <Avatar image={null} username={user?.username} email={user?.email} />
+        <AvatarField />
 
         <div className="flex w-full flex-col gap-2">
           <Input
