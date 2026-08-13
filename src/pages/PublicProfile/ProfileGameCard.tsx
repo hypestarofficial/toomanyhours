@@ -36,8 +36,8 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
 
   return (
     <Modal isOpen={!!entry} onClose={onClose}>
-      <div className="flex w-full flex-col gap-6 p-6 md:w-[48rem]">
-        <div className="flex flex-col gap-5 md:flex-row md:items-start">
+      <div className="flex max-h-full min-h-0 w-full flex-col gap-6 p-6 md:w-[48rem]">
+        <div className="flex shrink-0 flex-col gap-5 md:flex-row md:items-start">
           {entry?.game?.image && (
             <Image
               src={entry.game.image}
@@ -98,12 +98,14 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
             catalogue of what exists, and an empty heading on most cards would
             be noise on somebody else's list. */}
         {addOns.length > 0 && (
-          <div className="flex w-full flex-col gap-2">
+          // min-h-0 flex-1: this section absorbs whatever height the card has
+          // left, so the modal itself does not scroll as well.
+          <div className="flex min-h-0 w-full flex-1 flex-col gap-2">
             <div className="flex w-full items-center justify-between gap-2">
               <h4 className="text-sm font-semibold select-none">DLC &amp; expansions</h4>
               <span className="text-sm opacity-60 select-none">{addOns.length}</span>
             </div>
-            <div className="flex max-h-64 w-full flex-col gap-1 overflow-y-auto pr-1">
+            <div className="flex min-h-40 w-full flex-1 flex-col gap-1 overflow-y-auto pr-1">
               {addOns.map((addOn) => (
                 <div key={addOn.id} className="flex items-center gap-3 rounded-md p-1.5">
                   <Image

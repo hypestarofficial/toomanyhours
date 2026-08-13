@@ -47,7 +47,8 @@ const DlcList: React.FC<DlcListProps> = ({ igdbId, parentTitle }) => {
   const { data: entries } = useGetMeGames({ query: { enabled: !!jwtToken } })
 
   return (
-    <div className="flex w-full flex-col gap-2">
+    // min-h-0 flex-1: this section absorbs whatever height the card has left.
+    <div className="flex min-h-0 w-full flex-1 flex-col gap-2">
       <div className="flex w-full items-center justify-between gap-2">
         <h4 className="text-sm font-semibold select-none">DLC &amp; expansions</h4>
         {/* Only once they have arrived. A count of 0 mid-fetch would read as
@@ -63,11 +64,12 @@ const DlcList: React.FC<DlcListProps> = ({ igdbId, parentTitle }) => {
         // missed it; one that says "none" answers the question.
         <p className="text-sm opacity-60">No add-ons available.</p>
       ) : (
-        // A ceiling, because this list is unbounded: Dave the Diver has a dozen
-        // add-ons, and without one they push the save button off the bottom of
-        // the screen. Scrolling inside keeps the card a fixed shape however
-        // many IGDB returns.
-        <div className="flex max-h-80 w-full flex-col gap-1 overflow-y-auto pr-1">
+        // Flexes into the room the card has left rather than a guessed
+        // max-height, so the modal itself does not also scroll — two nested
+        // scrollbars leave you unsure which one the wheel will move. min-h-40
+        // is the floor: below that the card overflows and the modal scrolls,
+        // which is the graceful fallback on a very short screen.
+        <div className="flex min-h-40 w-full flex-1 flex-col gap-1 overflow-y-auto pr-1">
           {dlcs.map((dlc) => {
             const row = dlcRow(dlc, entries ?? [])
             const year = dlc.releaseDate?.slice(0, 4)
