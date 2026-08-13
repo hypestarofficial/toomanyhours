@@ -4,7 +4,7 @@ import { Image } from "@heroui/image"
 import { ChatBubbleBottomCenterTextIcon, StarIcon } from "@heroicons/react/24/solid"
 import placeholderImage from "../../assets/images/placeholder.webp"
 import type { UserGame } from "../../api/generated/models"
-import { LIST_TYPE_BADGE, LIST_TYPE_LABEL } from "../../helpers/enums"
+import { LIST_TYPE, LIST_TYPE_BADGE, LIST_TYPE_LABEL } from "../../helpers/enums"
 import { addOnsOf, stripParentTitle } from "../MyList/gameCard/dlcRows"
 import GameSummary from "../../components/gameSummary/GameSummary"
 import ReviewSection from "../../components/reviewSection/ReviewSection"
@@ -34,9 +34,11 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
   // /games/:igdbId/dlcs sits behind AuthRequired and a visitor has no token.
   const addOns = addOnsOf(entry, entries)
 
-  // Trimmed, not merely present: the API stores "" as the clear sentinel, so an
-  // emptied review is a string and would keep the box on screen forever.
-  const hasReview = !!entry?.review?.trim()
+  // A review is a fact about a finished game — the API refuses one on any other
+  // category — so the box belongs to finished cards and nowhere else. Keyed on
+  // the category rather than on whether text exists, so a finished game nobody
+  // has written about still says so.
+  const showReview = entry?.category === LIST_TYPE.FINISHED
 
   return (
     <Modal isOpen={!!entry} onClose={onClose}>
@@ -85,22 +87,21 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
                 likely not to know the game. */}
             <GameSummary summary={entry?.game?.summary} />
 
-            {/* Only when there is one to read, the same rule the add-on list
-                below follows. A review belongs to a finished game, so on a
-                want-to-play or currently-playing card the box could only ever
-                say "No review yet." — and even on a finished one it is an empty
-                field on a page where nobody can write in it. Your own card is
-                the opposite case and always shows it: there, the empty box is
-                how a review gets written.
+            {/* Finished cards only. A review is something you write about a
+                game you have played — the API refuses one on any other category
+                — so on a want-to-play or currently-playing card the box could
+                only ever read "No review yet.", which is not a fact anyone
+                needs. On a finished card it stays even when empty, because
+                there it *is* a fact: this person finished it and said nothing.
 
-                Shaped like that field — label above a filled box — because that
+                Shaped like the review field on your own card — label above a filled box — because that
                 is what it is: the thing this person wrote. GameSummary above
                 deliberately is not, so IGDB's text and somebody's own words do
                 not look like the same kind of thing.
 
                 whitespace-pre-wrap keeps the paragraph breaks somebody typed;
                 without it a multi-paragraph review collapses into one block. */}
-            {hasReview && (
+            {showReview && (
               <ReviewSection>
                 <ReviewText review={entry?.review} title={entry?.game?.title} rating={entry?.rating} />
               </ReviewSection>
