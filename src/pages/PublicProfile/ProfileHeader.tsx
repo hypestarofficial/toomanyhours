@@ -8,6 +8,8 @@ type ProfileHeaderProps = {
   createdAt: string
   /** Already through visibleEntries, and never the filtered set — these are totals. */
   entries: UserGame[]
+  /** Built by the caller from the profile's avatarHash, or null. */
+  avatarUrl?: string | null
 }
 
 /** "March 2026". Locale-aware, and the day is noise at this resolution. */
@@ -32,7 +34,7 @@ const memberSince = (iso: string): string => new Date(iso).toLocaleDateString(un
  * characters is about five lines. Cropping it produced a half-cut line that
  * read as a rendering bug rather than as an invitation to scroll.
  */
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ username, bio, createdAt, entries }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ username, bio, createdAt, entries, avatarUrl }) => {
   const counts = [LIST_TYPE.FINISHED, LIST_TYPE.CURRENTLY_PLAYING, LIST_TYPE.WANT_TO_PLAY]
     .map((category) => ({ label: LIST_TYPE_LABEL[category], count: entries.filter((entry) => entry.category === category).length }))
     .filter((stat) => stat.count > 0)
@@ -44,7 +46,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ username, bio, createdAt,
             the placeholder needs the darker tone to read as a distinct shape
             rather than dissolving into the card. */}
         <div className="bg-bg flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full">
-          <UserCircleIcon className="h-24 w-24 opacity-80" />
+          {avatarUrl ? (
+            // A real URL here, not a data URI: this is somebody else's photo,
+            // fetched by the browser from the anonymous route. The ?v= the
+            // caller builds is what earns the immutable cache header.
+            <img src={avatarUrl} alt={`${username}'s profile photo`} className="h-24 w-24 object-cover" />
+          ) : (
+            <UserCircleIcon className="h-24 w-24 opacity-80" />
+          )}
         </div>
 
         <div className="flex min-w-0 flex-col gap-2">

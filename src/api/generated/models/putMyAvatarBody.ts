@@ -12,7 +12,7 @@ block is genuinely public.
  * OpenAPI spec version: 0.9.0
  */
 
-export interface AuthenticateRequest {
-  email: string
-  password: string
+export type PutMyAvatarBody = {
+  /** A JPEG, PNG or GIF, at most 2MB. */
+  avatar: Blob
 }

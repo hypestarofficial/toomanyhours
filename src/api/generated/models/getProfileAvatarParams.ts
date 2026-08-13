@@ -12,7 +12,9 @@ block is genuinely public.
  * OpenAPI spec version: 0.9.0
  */
 
-export interface AuthenticateRequest {
-  email: string
-  password: string
+export type GetProfileAvatarParams = {
+  /**
+   * The avatarHash from GET /profiles/{username}. Present, it earns a one-year immutable cache; absent or stale, the response is no-cache.
+   */
+  v?: string
 }

@@ -9,7 +9,7 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.8.0
+ * OpenAPI spec version: 0.9.0
  */
 import type { UserVisibility } from "./userVisibility"
 
@@ -26,6 +26,11 @@ export interface User {
    * @nullable
    */
   bio?: string | null
+  /**
+   * The account's own profile photo as a `data:image/jpeg;base64,...` URI, or null. Inline rather than a URL because an `<img>` cannot send a bearer token, and the public avatar route answers 403 for a private profile — including to its owner.
+   * @nullable
+   */
+  avatar?: string | null
   created_at: string
   updated_at: string
 }

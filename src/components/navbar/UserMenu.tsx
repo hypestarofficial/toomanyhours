@@ -65,7 +65,15 @@ const UserMenu: React.FC = () => {
     <div ref={menuRef} className="relative inline-block">
       <MotionButton ref={buttonRef} variant="text" size="menu" onClick={() => setMenuOpen(!menuOpen)} className={styles.profile}>
         <span className="text-base">{user?.username || "Unknown user"}</span>
-        <UserCircleIcon className="h-6 w-6" />
+        {user?.avatar ? (
+          // From GET /me as a data URI: an <img src> cannot send a bearer
+          // token, and /profiles/:username/avatar 403s a private profile even
+          // for its owner. alt="" on purpose — the username is right beside it,
+          // so a description would be announced twice.
+          <img src={user.avatar} alt="" className="h-6 w-6 shrink-0 rounded-full object-cover" />
+        ) : (
+          <UserCircleIcon className="h-6 w-6" />
+        )}
       </MotionButton>
 
       <AnimatePresence>

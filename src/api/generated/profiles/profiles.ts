@@ -9,7 +9,7 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.8.0
+ * OpenAPI spec version: 0.9.0
  */
 import { useQuery } from "@tanstack/react-query"
 import type {
@@ -24,7 +24,7 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query"
 
-import type { ErrorResponse, PublicProfile } from ".././models"
+import type { ErrorResponse, GetProfileAvatarParams, PublicProfile } from ".././models"
 
 import { customFetch } from "../../mutator"
 
@@ -110,6 +110,121 @@ export function useGetProfile<TData = Awaited<ReturnType<typeof getProfile>>, TE
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getGetProfileQueryOptions(username, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * The second anonymous read path, and 403 for a private profile for the same reason /profiles/{username} is: a link that stopped working should say why. There is no "who is asking" branch, which is why an owner's own photo arrives inline on GET /me instead of from here — an <img> cannot send a bearer token, and this route would 403 its own owner.
+Cache-Control is `immutable` only when `v` matches the stored hash, so a hand-typed URL without one cannot pin a stale photo for a year.
+ * @summary A public profile's photo
+ */
+export const getProfileAvatar = (
+  username: string,
+  params?: GetProfileAvatarParams,
+  options?: SecondParameter<typeof customFetch>,
+  signal?: AbortSignal,
+) => {
+  return customFetch<Blob>({ url: `/profiles/${username}/avatar`, method: "GET", params, responseType: "blob", signal }, options)
+}
+
+export const getGetProfileAvatarQueryKey = (username?: string, params?: GetProfileAvatarParams) => {
+  return [`/profiles/${username}/avatar`, ...(params ? [params] : [])] as const
+}
+
+export const getGetProfileAvatarQueryOptions = <
+  TData = Awaited<ReturnType<typeof getProfileAvatar>>,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse,
+>(
+  username: string,
+  params?: GetProfileAvatarParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getProfileAvatar>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetProfileAvatarQueryKey(username, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getProfileAvatar>>> = ({ signal }) =>
+    getProfileAvatar(username, params, requestOptions, signal)
+
+  return { queryKey, queryFn, enabled: !!username, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getProfileAvatar>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetProfileAvatarQueryResult = NonNullable<Awaited<ReturnType<typeof getProfileAvatar>>>
+export type GetProfileAvatarQueryError = ErrorResponse | ErrorResponse | ErrorResponse
+
+export function useGetProfileAvatar<
+  TData = Awaited<ReturnType<typeof getProfileAvatar>>,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse,
+>(
+  username: string,
+  params: undefined | GetProfileAvatarParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getProfileAvatar>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<Awaited<ReturnType<typeof getProfileAvatar>>, TError, Awaited<ReturnType<typeof getProfileAvatar>>>,
+        "initialData"
+      >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProfileAvatar<
+  TData = Awaited<ReturnType<typeof getProfileAvatar>>,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse,
+>(
+  username: string,
+  params?: GetProfileAvatarParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getProfileAvatar>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<Awaited<ReturnType<typeof getProfileAvatar>>, TError, Awaited<ReturnType<typeof getProfileAvatar>>>,
+        "initialData"
+      >
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProfileAvatar<
+  TData = Awaited<ReturnType<typeof getProfileAvatar>>,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse,
+>(
+  username: string,
+  params?: GetProfileAvatarParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getProfileAvatar>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A public profile's photo
+ */
+
+export function useGetProfileAvatar<
+  TData = Awaited<ReturnType<typeof getProfileAvatar>>,
+  TError = ErrorResponse | ErrorResponse | ErrorResponse,
+>(
+  username: string,
+  params?: GetProfileAvatarParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getProfileAvatar>>, TError, TData>>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetProfileAvatarQueryOptions(username, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
