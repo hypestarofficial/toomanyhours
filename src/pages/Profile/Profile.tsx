@@ -76,10 +76,8 @@ const Profile: React.FC = () => {
   }
 
   return (
-    <Page align="start" className="overflow-y-auto">
+    <Page align="start">
       <MotionContainer className="flex w-full max-w-xl flex-col gap-6 py-10">
-        <h1 className="px-6 text-2xl font-semibold">Settings</h1>
-
         {/* A bordered panel rather than a filled one: the inputs are already
             secondaryBg, so a card in the same colour would swallow them. */}
         <div className="flex w-full flex-col rounded-xl border border-white/10">

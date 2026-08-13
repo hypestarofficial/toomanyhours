@@ -34,6 +34,10 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
   // /games/:igdbId/dlcs sits behind AuthRequired and a visitor has no token.
   const addOns = addOnsOf(entry, entries)
 
+  // Trimmed, not merely present: the API stores "" as the clear sentinel, so an
+  // emptied review is a string and would keep the box on screen forever.
+  const hasReview = !!entry?.review?.trim()
+
   return (
     <Modal isOpen={!!entry} onClose={onClose}>
       <div className="flex max-h-full min-h-0 w-full flex-col gap-6 p-6 md:w-[48rem]">
@@ -81,16 +85,26 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
                 likely not to know the game. */}
             <GameSummary summary={entry?.game?.summary} />
 
-            {/* Shaped like the review *field* on your own card — label above a
-                filled box — because that is what it is: the thing this person
-                wrote. GameSummary above deliberately is not, so IGDB's text and
-                somebody's own words no longer look like the same kind of thing.
+            {/* Only when there is one to read, the same rule the add-on list
+                below follows. A review belongs to a finished game, so on a
+                want-to-play or currently-playing card the box could only ever
+                say "No review yet." — and even on a finished one it is an empty
+                field on a page where nobody can write in it. Your own card is
+                the opposite case and always shows it: there, the empty box is
+                how a review gets written.
+
+                Shaped like that field — label above a filled box — because that
+                is what it is: the thing this person wrote. GameSummary above
+                deliberately is not, so IGDB's text and somebody's own words do
+                not look like the same kind of thing.
 
                 whitespace-pre-wrap keeps the paragraph breaks somebody typed;
                 without it a multi-paragraph review collapses into one block. */}
-            <ReviewSection>
-              <ReviewText review={entry?.review} title={entry?.game?.title} rating={entry?.rating} />
-            </ReviewSection>
+            {hasReview && (
+              <ReviewSection>
+                <ReviewText review={entry?.review} title={entry?.game?.title} rating={entry?.rating} />
+              </ReviewSection>
+            )}
           </div>
         </div>
 

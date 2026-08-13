@@ -87,7 +87,13 @@ const AppLayout = () => {
       <NavigationRegistrar />
       <div className="relative flex h-full">
         <Navbar />
-        <main className="flex h-full w-full flex-col px-10 pt-20">
+        {/* The app's one scroll container, and it has to be this element.
+            Scrolling a page's own wrapper instead put the scrollbar inside this
+            padding — floating 40px in from the window edge with a strip of
+            background to its right, which reads as a bug. A scrollbar belongs
+            on the border box, so the element that scrolls must be the one whose
+            edge is the window's. */}
+        <main className="flex h-full w-full flex-col overflow-y-auto px-10 pt-20">
           {/* theme="dark" is the load-bearing one: sonner defaults to light,
               so the toast arrived as a pale box on a dark app with almost no
               contrast in it. richColors goes with it — it makes sonner impose
