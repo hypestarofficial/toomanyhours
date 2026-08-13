@@ -113,9 +113,14 @@ const MyList: React.FC = () => {
       sortDirection,
     )
 
-  // An open, empty section is ambiguous while filtering — no matches, or no
-  // games in that category at all?
-  const sectionTitle = (label: string, category: LIST_TYPE) => (isFiltering ? `${label} (${byCategory(category).length})` : label)
+  // Always, not only while filtering. It began as a filtering-only answer to
+  // one ambiguity — an open, empty section could mean no matches or no games in
+  // that category — and how many games are in each is worth knowing at rest too.
+  //
+  // The number counts what is *shown*, so it moves as the filter narrows. That
+  // is the point: a heading that kept reading "finished (47)" while three cards
+  // were on screen would be answering a question nobody asked.
+  const sectionTitle = (label: string, category: LIST_TYPE) => `${label} (${byCategory(category).length})`
 
   const { mutate: moveEntry } = useMoveEntry()
 

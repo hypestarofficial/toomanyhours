@@ -28,6 +28,11 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.7.1",
+    date: "2026-08-13",
+    changes: ["Show how many games are in each section, on your list and on a shared one."],
+  },
+  {
     version: "1.7.0",
     date: "2026-08-13",
     changes: ["Add a profile photo, shown beside your name and at the top of your shared list."],
