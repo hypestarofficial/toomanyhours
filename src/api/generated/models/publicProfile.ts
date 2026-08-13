@@ -9,7 +9,7 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.8.0
+ * OpenAPI spec version: 0.9.0
  */
 import type { UserGame } from "./userGame"
 
@@ -25,5 +25,10 @@ export interface PublicProfile {
    * @nullable
    */
   bio?: string | null
+  /**
+   * Short content hash of the profile photo, or null when there is none. Build `/profiles/{username}/avatar?v={avatarHash}`; the server sends an immutable cache header only when `v` matches.
+   * @nullable
+   */
+  avatarHash?: string | null
   entries: UserGame[]
 }

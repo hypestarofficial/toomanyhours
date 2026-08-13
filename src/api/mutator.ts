@@ -16,6 +16,11 @@ export type FetchConfig = {
   data?: unknown
   headers?: Record<string, string>
   signal?: AbortSignal
+  // Orval sets this on any operation whose 200 is binary — currently only
+  // getProfileAvatar. Without it in this type the generated call does not
+  // compile, and honouring it is three lines, so it is honoured rather than
+  // ignored: a caller asking for a blob and receiving null would be worse.
+  responseType?: string
 }
 
 // Orval's `request` option is typed as the second parameter of this function,
@@ -26,7 +31,7 @@ export type FetchOptions = {
 
 export const customFetch = async <T>(config: FetchConfig, options?: FetchOptions): Promise<T> =>
   withAuthRetry(async () => {
-    const { url, method, params, data, headers: configHeaders, signal } = config
+    const { url, method, params, data, headers: configHeaders, signal, responseType } = config
 
     // Read inside the retry closure, not outside. After a refresh the retry
     // must pick up the NEW token; reading once outside would resend the
@@ -68,6 +73,10 @@ export const customFetch = async <T>(config: FetchConfig, options?: FetchOptions
       // ApiError rather than Error: withAuthRetry needs the status to tell a
       // 401 from any other failure. handleError() still reads .message.
       throw new ApiError(response.status, `HTTP ${response.status}: ${errorBody?.message ?? response.statusText}`, errorBody)
+    }
+
+    if (responseType === "blob") {
+      return (await response.blob()) as T
     }
 
     if (!isJson || response.status === 204) {

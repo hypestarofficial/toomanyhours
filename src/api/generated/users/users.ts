@@ -9,7 +9,7 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.8.0
+ * OpenAPI spec version: 0.9.0
  */
 import { useMutation, useQuery } from "@tanstack/react-query"
 import type {
@@ -27,7 +27,7 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query"
 
-import type { ErrorResponse, PatchMeRequest, User } from ".././models"
+import type { ErrorResponse, PatchMeRequest, PutMyAvatarBody, User } from ".././models"
 
 import { customFetch } from "../../mutator"
 
@@ -154,6 +154,104 @@ export const usePatchMe = <TError = ErrorResponse | ErrorResponse | ErrorRespons
   queryClient?: QueryClient,
 ): UseMutationResult<Awaited<ReturnType<typeof patchMe>>, TError, { data: PatchMeRequest }, TContext> => {
   const mutationOptions = getPatchMeMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Multipart, with the image in the `avatar` field. Neither the filename nor the Content-Type is consulted: both are claims a client makes. The server decodes, centre-crops, resizes to 256x256 and re-encodes as JPEG — which is what makes the stored bytes provably an image, and strips EXIF (including GPS) on the way through.
+Two limits, because one cannot do the job: the body is capped at 2MB, and the decoded pixel count at 20,000,000. A 60000-square PNG is forty bytes of header, so only the second catches it.
+Responds with the whole account, so the caller can write it straight into its auth store.
+ * @summary Upload a profile photo
+ */
+export const putMyAvatar = (putMyAvatarBody: PutMyAvatarBody, options?: SecondParameter<typeof customFetch>) => {
+  const formData = new FormData()
+  formData.append(`avatar`, putMyAvatarBody.avatar)
+
+  return customFetch<User>(
+    { url: `/me/avatar`, method: "PUT", headers: { "Content-Type": "multipart/form-data" }, data: formData },
+    options,
+  )
+}
+
+export const getPutMyAvatarMutationOptions = <TError = ErrorResponse | ErrorResponse | ErrorResponse, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof putMyAvatar>>, TError, { data: PutMyAvatarBody }, TContext>
+  request?: SecondParameter<typeof customFetch>
+}): UseMutationOptions<Awaited<ReturnType<typeof putMyAvatar>>, TError, { data: PutMyAvatarBody }, TContext> => {
+  const mutationKey = ["putMyAvatar"]
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof putMyAvatar>>, { data: PutMyAvatarBody }> = (props) => {
+    const { data } = props ?? {}
+
+    return putMyAvatar(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type PutMyAvatarMutationResult = NonNullable<Awaited<ReturnType<typeof putMyAvatar>>>
+export type PutMyAvatarMutationBody = PutMyAvatarBody
+export type PutMyAvatarMutationError = ErrorResponse | ErrorResponse | ErrorResponse
+
+/**
+ * @summary Upload a profile photo
+ */
+export const usePutMyAvatar = <TError = ErrorResponse | ErrorResponse | ErrorResponse, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof putMyAvatar>>, TError, { data: PutMyAvatarBody }, TContext>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<Awaited<ReturnType<typeof putMyAvatar>>, TError, { data: PutMyAvatarBody }, TContext> => {
+  const mutationOptions = getPutMyAvatarMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Removing a photo that is not there is not an error: the caller wanted no photo, and there is none. Responds with the whole account, like the upload.
+ * @summary Remove the profile photo
+ */
+export const deleteMyAvatar = (options?: SecondParameter<typeof customFetch>) => {
+  return customFetch<User>({ url: `/me/avatar`, method: "DELETE" }, options)
+}
+
+export const getDeleteMyAvatarMutationOptions = <TError = ErrorResponse | ErrorResponse, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteMyAvatar>>, TError, void, TContext>
+  request?: SecondParameter<typeof customFetch>
+}): UseMutationOptions<Awaited<ReturnType<typeof deleteMyAvatar>>, TError, void, TContext> => {
+  const mutationKey = ["deleteMyAvatar"]
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMyAvatar>>, void> = () => {
+    return deleteMyAvatar(requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type DeleteMyAvatarMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMyAvatar>>>
+
+export type DeleteMyAvatarMutationError = ErrorResponse | ErrorResponse
+
+/**
+ * @summary Remove the profile photo
+ */
+export const useDeleteMyAvatar = <TError = ErrorResponse | ErrorResponse, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteMyAvatar>>, TError, void, TContext>
+    request?: SecondParameter<typeof customFetch>
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<Awaited<ReturnType<typeof deleteMyAvatar>>, TError, void, TContext> => {
+  const mutationOptions = getDeleteMyAvatarMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
