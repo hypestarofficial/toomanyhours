@@ -71,11 +71,6 @@ const PublicProfile: React.FC = () => {
       sortDirection,
     )
 
-  // Always, not only while filtering — the same rule MyList uses, and counting
-  // what is shown rather than the total for the same reason. The header above
-  // carries the unfiltered totals, so both facts are on the page.
-  const sectionTitle = (label: string, category: LIST_TYPE) => `${label} (${byCategory(category).length})`
-
   // `/api` is the prefix httpRequest hardcodes and vite.config.ts proxies away.
   // An image URL has to carry it too, because the browser fetches this directly
   // rather than through the wrapper. The `?v=` is what earns the immutable cache
@@ -135,7 +130,7 @@ const PublicProfile: React.FC = () => {
             add-ons and the card lists them, so passing the filtered array would
             make an add-on count change as the visitor types in the search box. */}
         <ListSection
-          title={sectionTitle("finished", LIST_TYPE.FINISHED)}
+          title="finished"
           category={LIST_TYPE.FINISHED}
           entries={byCategory(LIST_TYPE.FINISHED)}
           allEntries={profile.entries}
@@ -146,7 +141,7 @@ const PublicProfile: React.FC = () => {
           readOnly
         />
         <ListSection
-          title={sectionTitle("currently playing", LIST_TYPE.CURRENTLY_PLAYING)}
+          title="currently playing"
           category={LIST_TYPE.CURRENTLY_PLAYING}
           entries={byCategory(LIST_TYPE.CURRENTLY_PLAYING)}
           allEntries={profile.entries}
@@ -157,7 +152,7 @@ const PublicProfile: React.FC = () => {
           readOnly
         />
         <ListSection
-          title={sectionTitle("want to play", LIST_TYPE.WANT_TO_PLAY)}
+          title="want to play"
           category={LIST_TYPE.WANT_TO_PLAY}
           entries={byCategory(LIST_TYPE.WANT_TO_PLAY)}
           allEntries={profile.entries}
