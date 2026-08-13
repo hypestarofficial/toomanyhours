@@ -28,6 +28,11 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.6.1",
+    date: "2026-08-12",
+    changes: ["A game card's buttons no longer disappear below the fold when the game has a lot of add-ons."],
+  },
+  {
     version: "1.6.0",
     date: "2026-08-12",
     changes: [
