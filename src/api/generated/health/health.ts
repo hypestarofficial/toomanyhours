@@ -9,7 +9,7 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.9.0
+ * OpenAPI spec version: 0.10.0
  */
 import { useQuery } from "@tanstack/react-query"
 import type {
@@ -24,24 +24,27 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query"
 
-import type { GetHealth200 } from ".././models"
+import type { Health } from ".././models"
 
 import { customFetch } from "../../mutator"
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
+ * Answers 200 while the database responds and 503 when it does not, so it is usable as a platform health check rather than merely readable. The database ping carries its own one-second deadline, shorter than the global three-second request timeout: a check that hangs is indistinguishable from a failing one to whatever is watching it.
+`igdb` reports whether this deployment has Twitch credentials and is never a failure — the API is designed to boot without them.
+Publishes no version, uptime, memory or request count. The route is unauthenticated and world-readable, and a stale version is worse than none.
  * @summary Health check
  */
 export const getHealth = (options?: SecondParameter<typeof customFetch>, signal?: AbortSignal) => {
-  return customFetch<GetHealth200>({ url: `/`, method: "GET", signal }, options)
+  return customFetch<Health>({ url: `/`, method: "GET", signal }, options)
 }
 
 export const getGetHealthQueryKey = () => {
   return [`/`] as const
 }
 
-export const getGetHealthQueryOptions = <TData = Awaited<ReturnType<typeof getHealth>>, TError = unknown>(options?: {
+export const getGetHealthQueryOptions = <TData = Awaited<ReturnType<typeof getHealth>>, TError = Health>(options?: {
   query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>>
   request?: SecondParameter<typeof customFetch>
 }) => {
@@ -57,9 +60,9 @@ export const getGetHealthQueryOptions = <TData = Awaited<ReturnType<typeof getHe
 }
 
 export type GetHealthQueryResult = NonNullable<Awaited<ReturnType<typeof getHealth>>>
-export type GetHealthQueryError = unknown
+export type GetHealthQueryError = Health
 
-export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = unknown>(
+export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = Health>(
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>> &
       Pick<DefinedInitialDataOptions<Awaited<ReturnType<typeof getHealth>>, TError, Awaited<ReturnType<typeof getHealth>>>, "initialData">
@@ -67,7 +70,7 @@ export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TErr
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = unknown>(
+export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = Health>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>> &
       Pick<UndefinedInitialDataOptions<Awaited<ReturnType<typeof getHealth>>, TError, Awaited<ReturnType<typeof getHealth>>>, "initialData">
@@ -75,7 +78,7 @@ export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TErr
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = unknown>(
+export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = Health>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>>
     request?: SecondParameter<typeof customFetch>
@@ -86,7 +89,7 @@ export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TErr
  * @summary Health check
  */
 
-export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = unknown>(
+export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = Health>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>>
     request?: SecondParameter<typeof customFetch>

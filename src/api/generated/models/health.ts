@@ -9,11 +9,13 @@ There is no document-level `security` default: every protected operation
 declares `BearerAuth` explicitly, so an operation without a `security`
 block is genuinely public.
 
- * OpenAPI spec version: 0.9.0
+ * OpenAPI spec version: 0.10.0
  */
+import type { HealthStatus } from "./healthStatus"
+import type { HealthChecks } from "./healthChecks"
 
-export type GetHealth200 = {
-  status: string
-  message: string
-  version: string
+export interface Health {
+  /** `ok` only when every check that can fail did not. Mirrors the status code, so a caller may use either. */
+  status: HealthStatus
+  checks: HealthChecks
 }
