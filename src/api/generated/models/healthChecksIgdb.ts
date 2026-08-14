@@ -13,9 +13,12 @@ block is genuinely public.
  */
 
 /**
- * A genre, theme or game mode. IGDB attaches all three to a game and they behave identically, so they share one table and one type here.
+ * Whether Twitch credentials are present. Never a failure: the API boots without them and simply answers 503 on the routes that need IGDB.
  */
-export interface Tag {
-  id: number
-  name: string
-}
+export type HealthChecksIgdb = (typeof HealthChecksIgdb)[keyof typeof HealthChecksIgdb]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const HealthChecksIgdb = {
+  configured: "configured",
+  not_configured: "not_configured",
+} as const

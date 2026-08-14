@@ -12,17 +12,13 @@ block is genuinely public.
  * OpenAPI spec version: 0.10.0
  */
 
-export type SearchGamesParams = {
-  /**
-   * Free-text title search.
-   * @minLength 2
-   * @maxLength 100
-   */
-  q: string
-  /**
-   * Values above 50 are capped rather than rejected.
-   * @minimum 1
-   * @maximum 50
-   */
-  limit?: number
-}
+/**
+ * `ok` only when every check that can fail did not. Mirrors the status code, so a caller may use either.
+ */
+export type HealthStatus = (typeof HealthStatus)[keyof typeof HealthStatus]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const HealthStatus = {
+  ok: "ok",
+  unavailable: "unavailable",
+} as const
