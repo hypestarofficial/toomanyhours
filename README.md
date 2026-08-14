@@ -45,7 +45,10 @@ never talks to IGDB.
 ## Testing on a phone or another machine
 
 The dev server already binds to every interface (`server.host: true`), so no
-change here is needed. Two things outside this repo usually are:
+change here is needed. Check first that both devices are actually on the same
+network — a phone that has quietly joined a different SSID looks exactly like a
+firewall problem and wastes far more time. Then two things outside this repo
+usually are needed:
 
 **A firewall rule.** With `ufw` enabled the default input policy is `DROP`, and
 a phone's connection is refused before Vite ever sees it — "site can't be
