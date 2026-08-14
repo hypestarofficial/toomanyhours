@@ -106,25 +106,40 @@ body {
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-  font-weight: 600;
-}
+/* Defaults for a heading with no size of its own — and they must be in a layer.
+ *
+ * Unlayered CSS beats every layered rule in the cascade no matter how specific
+ * the layered one is, and Tailwind v4 puts its utilities in @layer utilities.
+ * So while these sat outside a layer, `text-sm` on an <h2> did nothing at all:
+ * ten headings across the app carried a size class that was silently thrown
+ * away, which is why "Settings" rendered at 3.2em with `text-2xl` on it.
+ *
+ * In @layer base they are what they were meant to be — a default that any
+ * utility class overrides. A heading with no class looks exactly as before.
+ *
+ * The same trap is still set elsewhere in this file: `button` is unlayered too,
+ * which is why every size in MotionButton's map ends in `!`. */
+@layer base {
+  h1 {
+    font-size: 3.2em;
+    line-height: 1.1;
+    font-weight: 600;
+  }
 
-h2 {
-  font-size: 2.4em;
-  line-height: 1.1;
-}
+  h2 {
+    font-size: 2.4em;
+    line-height: 1.1;
+  }
 
-h3 {
-  font-size: 2em;
-  line-height: 1.1;
-}
+  h3 {
+    font-size: 2em;
+    line-height: 1.1;
+  }
 
-h4 {
-  font-size: 1.6em;
-  line-height: 1.1;
+  h4 {
+    font-size: 1.6em;
+    line-height: 1.1;
+  }
 }
 
 img {

@@ -4,7 +4,7 @@ import { Image } from "@heroui/image"
 import { ChatBubbleBottomCenterTextIcon, StarIcon } from "@heroicons/react/24/solid"
 import placeholderImage from "../../assets/images/placeholder.webp"
 import type { UserGame } from "../../api/generated/models"
-import { LIST_TYPE_BADGE, LIST_TYPE_LABEL } from "../../helpers/enums"
+import { LIST_TYPE, LIST_TYPE_BADGE, LIST_TYPE_LABEL } from "../../helpers/enums"
 import { addOnsOf, stripParentTitle } from "../MyList/gameCard/dlcRows"
 import GameSummary from "../../components/gameSummary/GameSummary"
 import ReviewSection from "../../components/reviewSection/ReviewSection"
@@ -33,6 +33,12 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
   // played, not everything that exists — and could not ask IGDB anyway, since
   // /games/:igdbId/dlcs sits behind AuthRequired and a visitor has no token.
   const addOns = addOnsOf(entry, entries)
+
+  // A review is a fact about a finished game — the API refuses one on any other
+  // category — so the box belongs to finished cards and nowhere else. Keyed on
+  // the category rather than on whether text exists, so a finished game nobody
+  // has written about still says so.
+  const showReview = entry?.category === LIST_TYPE.FINISHED
 
   return (
     <Modal isOpen={!!entry} onClose={onClose}>
@@ -81,16 +87,25 @@ const ProfileGameCard: React.FC<ProfileGameCardProps> = ({ entry, entries, onClo
                 likely not to know the game. */}
             <GameSummary summary={entry?.game?.summary} />
 
-            {/* Shaped like the review *field* on your own card — label above a
-                filled box — because that is what it is: the thing this person
-                wrote. GameSummary above deliberately is not, so IGDB's text and
-                somebody's own words no longer look like the same kind of thing.
+            {/* Finished cards only. A review is something you write about a
+                game you have played — the API refuses one on any other category
+                — so on a want-to-play or currently-playing card the box could
+                only ever read "No review yet.", which is not a fact anyone
+                needs. On a finished card it stays even when empty, because
+                there it *is* a fact: this person finished it and said nothing.
+
+                Shaped like the review field on your own card — label above a filled box — because that
+                is what it is: the thing this person wrote. GameSummary above
+                deliberately is not, so IGDB's text and somebody's own words do
+                not look like the same kind of thing.
 
                 whitespace-pre-wrap keeps the paragraph breaks somebody typed;
                 without it a multi-paragraph review collapses into one block. */}
-            <ReviewSection>
-              <ReviewText review={entry?.review} title={entry?.game?.title} rating={entry?.rating} />
-            </ReviewSection>
+            {showReview && (
+              <ReviewSection>
+                <ReviewText review={entry?.review} title={entry?.game?.title} rating={entry?.rating} />
+              </ReviewSection>
+            )}
           </div>
         </div>
 

@@ -8,7 +8,7 @@ import { changelog } from "../../changelog"
  * page cannot fail to load — which is why there is no loading or error branch.
  */
 const Changelog: React.FC = () => (
-  <Page align="start" className="overflow-y-auto">
+  <Page align="start">
     <MotionContainer className="flex w-full max-w-2xl flex-col gap-8 p-10">
       <h1 className="text-2xl font-semibold">What&apos;s new</h1>
 
