@@ -40,24 +40,30 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ username, bio, createdAt,
     .filter((stat) => stat.count > 0)
 
   return (
-    <header className="bg-secondaryBg flex w-full flex-col gap-5 rounded-xl p-6">
-      <div className="flex items-center gap-5">
+    <header className="bg-secondaryBg flex w-full flex-col gap-4 rounded-xl p-4 sm:gap-5 sm:p-6">
+      <div className="flex items-center gap-4 sm:gap-5">
         {/* bg-bg rather than secondaryBg: the panel is already secondaryBg, so
             the placeholder needs the darker tone to read as a distinct shape
             rather than dissolving into the card. */}
-        <div className="bg-bg flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full">
+        {/* Smaller on a phone, where 96px of avatar plus its gap leaves too
+            little for the name beside it. Only this wrapper carries the size —
+            the photo and the fallback fill it — so the two cannot drift. */}
+        <div className="bg-bg flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full sm:h-24 sm:w-24">
           {avatarUrl ? (
             // A real URL here, not a data URI: this is somebody else's photo,
             // fetched by the browser from the anonymous route. The ?v= the
             // caller builds is what earns the immutable cache header.
-            <img src={avatarUrl} alt={`${username}'s profile photo`} className="h-24 w-24 object-cover" />
+            <img src={avatarUrl} alt={`${username}'s profile photo`} className="h-full w-full object-cover" />
           ) : (
-            <UserCircleIcon className="h-24 w-24 opacity-80" />
+            <UserCircleIcon className="h-full w-full opacity-80" />
           )}
         </div>
 
         <div className="flex min-w-0 flex-col gap-2">
-          <h1 className="truncate text-4xl leading-none font-bold">{username}</h1>
+          {/* A 16-character name at text-4xl is about 290px, wider than a phone
+              has left once the avatar is beside it — so it would truncate on
+              the one page whose whole job is telling you whose list this is. */}
+          <h1 className="truncate text-2xl leading-none font-bold sm:text-4xl">{username}</h1>
           {/* One quiet line of context rather than a row of stat cards: this is
               somebody's reading list, not a dashboard. Categories with nothing
               in them are omitted — "0 currently playing" is not a fact worth
