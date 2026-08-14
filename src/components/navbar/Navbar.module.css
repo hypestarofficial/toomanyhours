@@ -1,11 +1,16 @@
 @reference "../../index.css";
 
+/* px-4 below sm, matching <main>'s: 80px of a 390px phone spent on padding
+   before any content exists is most of the reason things felt cramped there. */
 .nav {
-  @apply bg-secondaryBg fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-10 pt-5 pb-3;
+  @apply bg-secondaryBg fixed top-0 right-0 left-0 z-50 flex items-center justify-between gap-2 px-4 pt-5 pb-3 sm:px-10;
 }
 
+/* Smaller on a phone. The wordmark, the credit beside it and the user menu
+   opposite have to share about 360px there, and the wordmark is the piece that
+   can give without losing anything. */
 .title {
-  @apply text-2xl font-semibold select-none;
+  @apply text-lg font-semibold select-none sm:text-2xl;
 }
 
 /* A build badge rather than body text, next to the repo link. The page

@@ -4,8 +4,12 @@
   @apply fixed inset-0 z-50 bg-black/50 backdrop-blur-sm;
 }
 
+/* w-[92vw] below sm, auto above it. Together with the sm:-prefixed min-widths
+   in Modal.tsx this is what keeps a dialog inside a phone: min-width beats
+   max-width in the CSS cascade, so an unconditional min-w-md defeated the
+   max-w-[90%] here outright and rendered a 448px dialog on a 390px screen. */
 .modal {
-  @apply bg-bg fixed top-1/2 left-1/2 z-50 flex max-h-[90vh] max-w-[90%] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl;
+  @apply bg-bg fixed top-1/2 left-1/2 z-50 flex max-h-[90vh] w-[92vw] max-w-[90%] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl sm:w-auto;
 }
 
 .modalHeader {
