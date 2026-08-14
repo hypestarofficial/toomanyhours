@@ -93,7 +93,7 @@ const AppLayout = () => {
             background to its right, which reads as a bug. A scrollbar belongs
             on the border box, so the element that scrolls must be the one whose
             edge is the window's. */}
-        <main className="flex h-full w-full flex-col overflow-y-auto px-10 pt-20">
+        <main className="flex h-full w-full flex-col overflow-y-auto px-4 pt-20 sm:px-10">
           {/* theme="dark" is the load-bearing one: sonner defaults to light,
               so the toast arrived as a pale box on a dark app with almost no
               contrast in it. richColors goes with it — it makes sonner impose

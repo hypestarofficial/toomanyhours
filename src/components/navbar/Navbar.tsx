@@ -37,7 +37,10 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
         {/* The version sits outside the wordmark on purpose: stacked over the
             IGDB credit it made a two-line block, and items-baseline aligns a
             block's *first* line, so the credit hung below the title. */}
-        <div className="flex items-center gap-2">
+        {/* Hidden below sm. It is the one thing here nobody came for, and
+            /changelog is still reachable by URL — where the wordmark and the
+            user menu both have to fit, this is what yields first. */}
+        <div className="hidden items-center gap-2 sm:flex">
           {/* From package.json via Vite's define, so it is a literal in the
               bundle and moves on rebuild with nothing to configure. */}
           {/* The version number is the thing someone clicks to ask what
@@ -61,8 +64,12 @@ const Navbar = forwardRef<HTMLElement, NavbarProps>((props, ref) => {
               The accessible name sits on the anchor rather than the svg: a
               link needs its own name, and leaving one on both announces
               "IGDB" twice. */}
+          {/* The words go on a phone, the logo never does: IGDB asks to be
+              credited where their data is used, so the mark itself stays at
+              every width — it is "powered by" that is the part there is no room
+              for, not the credit. */}
           <span className={styles.attribution}>
-            powered by
+            <span className="hidden sm:inline">powered by</span>
             <motion.a
               initial={{ color: colors.text }}
               whileHover={{ color: colors.primary }}

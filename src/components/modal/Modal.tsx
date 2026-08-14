@@ -37,12 +37,17 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, backdrop = tru
     }
   }, [isOpen])
 
+  // Every one is sm:-prefixed, and that prefix is load-bearing. min-width beats
+  // max-width in the cascade, so a bare min-w-md here overrode .modal's
+  // max-w-[90%] and made a 448px dialog on a 390px phone — overflowing the
+  // viewport sideways and taking the page with it. Below sm the modal takes its
+  // width from .modal instead; from sm up these are unchanged.
   const sizeMap = {
-    xs: "min-w-xs",
-    sm: "min-w-sm",
-    md: "min-w-md",
-    lg: "min-w-lg",
-    xl: "min-w-xl",
+    xs: "sm:min-w-xs",
+    sm: "sm:min-w-sm",
+    md: "sm:min-w-md",
+    lg: "sm:min-w-lg",
+    xl: "sm:min-w-xl",
   }
 
   return createPortal(
