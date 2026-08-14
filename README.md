@@ -1,73 +1,76 @@
-# React + TypeScript + Vite
+# tooManyHours — web app
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 + TypeScript + Vite. Keeps a list of games across three categories and
+shares it at a public `/u/<username>` URL.
 
-Currently, two official plugins are available:
+The Go API lives in its own repository beside this one. Both are developed
+together and versioned independently.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Commands
 
-## React Compiler
-
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev          # dev server on :3100, bound to all interfaces
+npm test             # Vitest, run once
+npm run test:watch
+npm run build        # tsc -b && vite build
+npm run lint         # eslint, --max-warnings=0 (prettier runs as a rule)
+npm run format       # prettier --write src/
+npm run check-format
+npm run codegen      # Orval, from ../toomanyhours-api/openapi.yml
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Run `npm run format` before `npm run lint`: prettier reports through eslint, so
+a formatting slip otherwise arrives as a confusing lint error.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+`src/api/generated/` is a build output — `codegen` wipes the directory on every
+run, so a hand edit there is lost silently.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Environment
+
+`.env.local`, gitignored:
+
 ```
+VITE_API_URL=http://localhost:3130
+```
+
+The app never calls that host directly. `httpRequest` hardcodes `/api`, and
+Vite proxies `/api/*` there while stripping the prefix — so a production deploy
+needs an equivalent rewrite rule.
+
+**Never put a secret in this file.** Vite inlines `VITE_*` variables at build
+time, which publishes them to every visitor with no way to un-publish. The IGDB
+and Twitch credentials belong to the API's `.env` and only there; the browser
+never talks to IGDB.
+
+## Testing on a phone or another machine
+
+The dev server already binds to every interface (`server.host: true`), so no
+change here is needed. Two things outside this repo usually are:
+
+**A firewall rule.** With `ufw` enabled the default input policy is `DROP`, and
+a phone's connection is refused before Vite ever sees it — "site can't be
+reached", with the server running perfectly. Allow the port for the local
+subnet rather than the world; the dev server has no authentication in front of
+it:
+
+```bash
+ip -4 -o addr show scope global          # find the subnet, e.g. 10.100.3.186/16
+sudo ufw allow from 10.100.0.0/16 to any port 3100 proto tcp
+```
+
+**Connect by IP, not by hostname.** Vite checks the `Host` header. A raw IP is
+accepted; a hostname such as `desktop.local` is rejected with "Blocked request.
+This host is not allowed." and has to be listed in `server.allowedHosts`.
+
+A device on a different subnet — wired while the laptop is on wifi — needs its
+own rule. If a rule for the right subnet still does not work, the next suspect
+is client isolation on the access point, which nothing on this machine can fix.
+
+## Notes
+
+- Vitest runs in `environment: "node"` and collects `src/**/*.test.ts` only, so
+  every test here is a pure function and no component is rendered.
+- Component-local styles are CSS modules beside the component; everything else
+  is Tailwind v4, configured entirely in `src/index.css`.
+- `/changelog` is rendered from `src/changelog.ts`, and an entry lands in the
+  same commit as the version bump it describes.
